@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useApp } from '../AppContext';
+import { ConditionBadge } from './ConditionBadge';
+import { ConditionSelector } from './ConditionSelector';
 
 export const InitiativeTracker = () => {
-  const { state, setInitiative, updateCombatantHp, nextTurn, endEncounter } = useApp();
+  const { state, setInitiative, updateCombatantHp, nextTurn, endEncounter, addConditionToCombatant, removeConditionFromCombatant } = useApp();
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [initiativeInputs, setInitiativeInputs] = useState<Record<string, string>>({});
+  const [conditionModalOpen, setConditionModalOpen] = useState<string | null>(null);
 
   const activeEncounter = state.encounters.find(e => e.id === state.activeEncounterId);
 
@@ -146,11 +149,46 @@ export const InitiativeTracker = () => {
                 </button>
               </div>
 
+              <div className="conditions-section">
+                <div className="conditions-header">
+                  <span className="conditions-label">Conditions:</span>
+                  <button
+                    onClick={() => setConditionModalOpen(combatant.id)}
+                    className="add-condition-btn"
+                  >
+                    + Add
+                  </button>
+                </div>
+                {combatant.conditions && combatant.conditions.length > 0 && (
+                  <div className="conditions-list">
+                    {combatant.conditions.map(condition => (
+                      <ConditionBadge
+                        key={condition.index}
+                        condition={condition}
+                        onRemove={() => removeConditionFromCombatant(combatant.id, condition.index)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {isDead && <div className="dead-indicator">UNCONSCIOUS/DEAD</div>}
             </div>
           );
         })}
       </div>
+
+      {conditionModalOpen && (
+        <ConditionSelector
+          combatantName={activeEncounter.combatants.find(c => c.id === conditionModalOpen)?.name || ''}
+          availableConditions={state.availableConditions}
+          onAddCondition={(condition) => {
+            addConditionToCombatant(conditionModalOpen, condition);
+            setConditionModalOpen(null);
+          }}
+          onClose={() => setConditionModalOpen(null)}
+        />
+      )}
     </div>
   );
 };

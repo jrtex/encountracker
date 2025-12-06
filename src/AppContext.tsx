@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { AppState, Character, Encounter, Monster, Combatant } from './types';
+import type { AppState, Character, Encounter, Monster, Combatant, Condition } from './types';
 
 interface AppContextType {
   state: AppState;
@@ -19,6 +19,8 @@ interface AppContextType {
   deleteEncounter: (encounterId: string) => void;
   exportData: () => string;
   importData: (jsonData: string) => void;
+  addConditionToCombatant: (combatantId: string, condition: Condition) => void;
+  removeConditionFromCombatant: (combatantId: string, conditionIndex: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -29,12 +31,13 @@ const loadFromStorage = (): AppState => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return { ...parsed, availableConditions: parsed.availableConditions || [] };
     }
   } catch (error) {
     console.error('Failed to load from localStorage:', error);
   }
-  return { characters: [], encounters: [] };
+  return { characters: [], encounters: [], availableConditions: [] };
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -47,6 +50,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to save to localStorage:', error);
     }
   }, [state]);
+
+  // Fetch conditions from D&D 5e API on mount
+  useEffect(() => {
+    if (state.availableConditions.length > 0) return; // Already loaded
+
+    fetch('https://www.dnd5eapi.co/api/conditions')
+      .then(res => res.json())
+      .then(data => {
+        // Fetch detailed info for each condition
+        Promise.all(
+          data.results.map((c: { url: string }) =>
+            fetch(`https://www.dnd5eapi.co${c.url}`).then(r => r.json())
+          )
+        ).then(conditions => {
+          setState(prev => ({ ...prev, availableConditions: conditions }));
+        });
+      })
+      .catch(err => console.error('Failed to load conditions:', err));
+  }, []);
 
   const addCharacter = (character: Omit<Character, 'id'>) => {
     const newCharacter: Character = {
@@ -244,6 +266,52 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addConditionToCombatant = (combatantId: string, condition: Condition) => {
+    setState(prev => {
+      if (!prev.activeEncounterId) return prev;
+
+      return {
+        ...prev,
+        encounters: prev.encounters.map(enc => {
+          if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
+
+          return {
+            ...enc,
+            combatants: enc.combatants.map(c => {
+              if (c.id !== combatantId) return c;
+              // Check if condition already exists
+              const hasCondition = c.conditions?.some(cond => cond.index === condition.index);
+              if (hasCondition) return c; // Don't add duplicate
+              return { ...c, conditions: [...(c.conditions || []), condition] };
+            }),
+          };
+        }),
+      };
+    });
+  };
+
+  const removeConditionFromCombatant = (combatantId: string, conditionIndex: string) => {
+    setState(prev => {
+      if (!prev.activeEncounterId) return prev;
+
+      return {
+        ...prev,
+        encounters: prev.encounters.map(enc => {
+          if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
+
+          return {
+            ...enc,
+            combatants: enc.combatants.map(c =>
+              c.id === combatantId
+                ? { ...c, conditions: c.conditions?.filter(cond => cond.index !== conditionIndex) }
+                : c
+            ),
+          };
+        }),
+      };
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -263,6 +331,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         deleteEncounter,
         exportData,
         importData,
+        addConditionToCombatant,
+        removeConditionFromCombatant,
       }}
     >
       {children}

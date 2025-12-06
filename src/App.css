@@ -727,3 +727,84 @@
 .cancel-btn:hover {
   background: #ccc;
 }
+
+/* Conditions Section */
+.conditions-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.conditions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.conditions-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.add-condition-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.add-condition-btn:hover {
+  background: #5568d3;
+}
+
+.conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.condition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  background: #ff9800;
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: help;
+}
+
+.condition-remove-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  line-height: 1;
+  margin-left: 0.2rem;
+}
+
+.condition-remove-btn:hover {
+  opacity: 0.8;
+}
+
+.condition-description {
+  margin: 1rem 0;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.condition-description p {
+  margin-bottom: 0.5rem;
+}

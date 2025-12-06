@@ -1,3 +1,9 @@
+export interface Condition {
+  index: string;
+  name: string;
+  desc: string[];
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -31,7 +37,7 @@ export interface Combatant {
   armorClass: number;
   initiative: number;
   isPlayer: boolean;
-  conditions?: string[];
+  conditions?: Condition[];
 }
 
 export interface Encounter {
@@ -49,4 +55,5 @@ export interface AppState {
   characters: Character[];
   encounters: Encounter[];
   activeEncounterId?: string;
+  availableConditions: Condition[];
 }

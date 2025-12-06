@@ -109,12 +109,16 @@ npm run test:coverage # Run tests with coverage report
 - Support statuses (blinded, prone, poisoned, etc)
 - Support temporary HP
 - Support in-app rolling, including automatic initiative modifier
+- When starting encounter, go to current combat screen
+- Don't hide the encounter when it is active, but list it as read-only
 - Nicer UI
+  - left-right carousel to show turn order instead of top-bottom
 - DM-only and Player views
 - Configuration (port)
 - ✅ unit tests
   - Github actions to run unit tests on commit
 - Build and publish application
+- Campaign management with new sets of players and saved encounters
 
 
 ## Tech Stack
