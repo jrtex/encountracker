@@ -8,6 +8,7 @@ export const EncounterPlanner = () => {
     state,
     createEncounter,
     addMonsterToEncounter,
+    updateMonsterInEncounter,
     removeMonsterFromEncounter,
     deleteEncounter,
     startEncounter,
@@ -20,6 +21,12 @@ export const EncounterPlanner = () => {
   const [showMonsterSelector, setShowMonsterSelector] = useState(false);
   const [showInitiativeSetup, setShowInitiativeSetup] = useState(false);
   const [encounterToStart, setEncounterToStart] = useState<string | null>(null);
+  const [editingMonsterId, setEditingMonsterId] = useState<string | null>(null);
+  const [monsterEditData, setMonsterEditData] = useState({
+    name: '',
+    maxHp: 10,
+    armorClass: 10,
+  });
 
   const handleCreateEncounter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +57,30 @@ export const EncounterPlanner = () => {
     startEncounter(encounterToStart, updatedCharacters, initiatives);
     setShowInitiativeSetup(false);
     setEncounterToStart(null);
+  };
+
+  const handleEditMonster = (encounterId: string, monster: typeof state.encounters[0]['monsters'][0]) => {
+    setMonsterEditData({
+      name: monster.name,
+      maxHp: monster.maxHp,
+      armorClass: monster.armorClass,
+    });
+    setEditingMonsterId(monster.id);
+    setSelectedEncounterId(encounterId);
+  };
+
+  const handleSaveMonsterEdit = (encounterId: string, monsterId: string) => {
+    updateMonsterInEncounter(encounterId, monsterId, {
+      ...monsterEditData,
+      currentHp: monsterEditData.maxHp,
+    });
+    setEditingMonsterId(null);
+    setMonsterEditData({ name: '', maxHp: 10, armorClass: 10 });
+  };
+
+  const handleCancelMonsterEdit = () => {
+    setEditingMonsterId(null);
+    setMonsterEditData({ name: '', maxHp: 10, armorClass: 10 });
   };
 
   return (
@@ -129,19 +160,67 @@ export const EncounterPlanner = () => {
                   <div className="monsters-list">
                     {encounter.monsters.map(monster => (
                       <div key={monster.id} className="monster-card">
-                        <div className="monster-info">
-                          <strong>{monster.name}</strong>
-                          <span className="monster-stats">
-                            HP: {monster.maxHp} | AC: {monster.armorClass}
-                            {monster.challenge_rating && ` | CR: ${monster.challenge_rating}`}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => removeMonsterFromEncounter(encounter.id, monster.id)}
-                          className="remove-btn"
-                        >
-                          Remove
-                        </button>
+                        {editingMonsterId === monster.id ? (
+                          <div className="monster-edit-form">
+                            <input
+                              type="text"
+                              value={monsterEditData.name}
+                              onChange={e => setMonsterEditData({ ...monsterEditData, name: e.target.value })}
+                              placeholder="Name"
+                            />
+                            <input
+                              type="number"
+                              value={monsterEditData.maxHp}
+                              onChange={e => setMonsterEditData({ ...monsterEditData, maxHp: parseInt(e.target.value) })}
+                              placeholder="HP"
+                              min="1"
+                            />
+                            <input
+                              type="number"
+                              value={monsterEditData.armorClass}
+                              onChange={e => setMonsterEditData({ ...monsterEditData, armorClass: parseInt(e.target.value) })}
+                              placeholder="AC"
+                              min="1"
+                            />
+                            <button
+                              onClick={() => handleSaveMonsterEdit(encounter.id, monster.id)}
+                              className="save-btn"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelMonsterEdit}
+                              className="cancel-btn"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="monster-info">
+                              <strong>{monster.name}</strong>
+                              <span className="monster-stats">
+                                HP: {monster.maxHp} | AC: {monster.armorClass}
+                                {monster.challenge_rating && ` | CR: ${monster.challenge_rating}`}
+                              </span>
+                            </div>
+                            <div className="monster-actions">
+                              <button
+                                onClick={() => handleEditMonster(encounter.id, monster)}
+                                className="edit-btn"
+                                title="Edit"
+                              >
+                                ✎
+                              </button>
+                              <button
+                                onClick={() => removeMonsterFromEncounter(encounter.id, monster.id)}
+                                className="remove-btn"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>

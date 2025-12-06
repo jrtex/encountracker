@@ -9,6 +9,7 @@ interface AppContextType {
   updateCharacter: (id: string, updates: Partial<Character>) => void;
   createEncounter: (name: string, description?: string) => void;
   addMonsterToEncounter: (encounterId: string, monster: Omit<Monster, 'id'>) => void;
+  updateMonsterInEncounter: (encounterId: string, monsterId: string, updates: Partial<Monster>) => void;
   removeMonsterFromEncounter: (encounterId: string, monsterId: string) => void;
   startEncounter: (encounterId: string, characters: Character[], initiatives?: Record<string, number>) => void;
   setInitiative: (combatantId: string, initiative: number) => void;
@@ -97,6 +98,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       encounters: prev.encounters.map(enc =>
         enc.id === encounterId
           ? { ...enc, monsters: [...enc.monsters, newMonster] }
+          : enc
+      ),
+    }));
+  };
+
+  const updateMonsterInEncounter = (encounterId: string, monsterId: string, updates: Partial<Monster>) => {
+    setState(prev => ({
+      ...prev,
+      encounters: prev.encounters.map(enc =>
+        enc.id === encounterId
+          ? { ...enc, monsters: enc.monsters.map(m => m.id === monsterId ? { ...m, ...updates } : m) }
           : enc
       ),
     }));
@@ -241,6 +253,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateCharacter,
         createEncounter,
         addMonsterToEncounter,
+        updateMonsterInEncounter,
         removeMonsterFromEncounter,
         startEncounter,
         setInitiative,
