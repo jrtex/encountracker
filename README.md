@@ -96,12 +96,14 @@ npm run build
 - Great for sharing campaigns or backing up your work
 
 ## To-do Features
-- [] Support editing characters & monsters
-- [] Support statuses (blinded, prone, poisoned, etc)
-- [] Support temporary HP
-- [] Support in-app rolling, including automatic initiative modifier
-- [] DM-only and Player views
-- [] Configuration (port)
+- Support editing characters & monsters
+- Show monster actions
+- Support statuses (blinded, prone, poisoned, etc)
+- Support temporary HP
+- Support in-app rolling, including automatic initiative modifier
+- DM-only and Player views
+- Configuration (port)
+- Build and publish application
 
 
 ## Tech Stack
