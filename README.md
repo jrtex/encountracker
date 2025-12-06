@@ -50,6 +50,14 @@ Visit http://localhost:5173/ to use the application.
 npm run build
 ```
 
+### Testing
+```bash
+npm run test          # Run tests in watch mode
+npm run test:ui       # Run tests with interactive UI
+npm run test:run      # Run tests once (CI mode)
+npm run test:coverage # Run tests with coverage report
+```
+
 ## How to Use
 
 ### 1. Add Player Characters
@@ -96,13 +104,16 @@ npm run build
 - Great for sharing campaigns or backing up your work
 
 ## To-do Features
-- Support editing characters & monsters
-- Show monster actions
+- Show monster actions & features
+- Add multiple of a type of monster
 - Support statuses (blinded, prone, poisoned, etc)
 - Support temporary HP
 - Support in-app rolling, including automatic initiative modifier
+- Nicer UI
 - DM-only and Player views
 - Configuration (port)
+- ✅ unit tests
+  - Github actions to run unit tests on commit
 - Build and publish application
 
 
@@ -112,10 +123,21 @@ npm run build
 - Vite (build tool)
 - D&D 5e API (https://www.dnd5eapi.co/)
 - LocalStorage for persistence
+- Vitest + React Testing Library (testing)
 
 ## Development
 
 Built with React and TypeScript for type safety. Uses Context API for state management. All data is stored in browser LocalStorage and automatically saves on every change.
+
+### Testing
+
+The project uses Vitest and React Testing Library for comprehensive unit testing:
+- All state management functions have tests
+- Components have interaction tests
+- LocalStorage persistence is tested
+- 26 tests covering critical features
+
+**When adding new features, always add corresponding tests!** See `CLAUDE.md` for testing guidelines.
 
 ## License
 
