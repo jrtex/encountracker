@@ -22,6 +22,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonster, setSelectedMonster] = useState<APIMonster | null>(null);
   const [manualMode, setManualMode] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const [manualData, setManualData] = useState({
     name: '',
     maxHp: 10,
@@ -57,32 +58,37 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
   const handleAddFromAPI = () => {
     if (!selectedMonster) return;
 
-    onAddMonster({
-      name: selectedMonster.name,
-      maxHp: selectedMonster.hit_points,
-      currentHp: selectedMonster.hit_points,
-      armorClass: selectedMonster.armor_class[0]?.value || 10,
-      challenge_rating: selectedMonster.challenge_rating.toString(),
-      type: selectedMonster.type,
-      size: selectedMonster.size,
-      apiIndex: selectedMonster.index,
-      isPlayer: false,
-    });
+    for (let i = 0; i < quantity; i++) {
+      onAddMonster({
+        name: selectedMonster.name,
+        maxHp: selectedMonster.hit_points,
+        currentHp: selectedMonster.hit_points,
+        armorClass: selectedMonster.armor_class[0]?.value || 10,
+        challenge_rating: selectedMonster.challenge_rating.toString(),
+        type: selectedMonster.type,
+        size: selectedMonster.size,
+        apiIndex: selectedMonster.index,
+        isPlayer: false,
+      });
+    }
     setSelectedMonster(null);
+    setQuantity(1);
   };
 
   const handleAddManual = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddMonster({
-      name: manualData.name,
-      maxHp: manualData.maxHp,
-      currentHp: manualData.maxHp,
-      armorClass: manualData.armorClass,
-      challenge_rating: manualData.challenge_rating,
-      type: manualData.type,
-      size: manualData.size,
-      isPlayer: false,
-    });
+    for (let i = 0; i < quantity; i++) {
+      onAddMonster({
+        name: manualData.name,
+        maxHp: manualData.maxHp,
+        currentHp: manualData.maxHp,
+        armorClass: manualData.armorClass,
+        challenge_rating: manualData.challenge_rating,
+        type: manualData.type,
+        size: manualData.size,
+        isPlayer: false,
+      });
+    }
     setManualData({
       name: '',
       maxHp: 10,
@@ -91,6 +97,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
       type: '',
       size: 'Medium',
     });
+    setQuantity(1);
   };
 
   const filteredMonsters = monsters.filter(m =>
@@ -153,8 +160,19 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
                     <p>AC: {selectedMonster.armor_class[0]?.value}</p>
                     <p>CR: {selectedMonster.challenge_rating}</p>
                     <p>Type: {selectedMonster.size} {selectedMonster.type}</p>
+                    <label>
+                      <span>Quantity:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={quantity}
+                        onChange={e => setQuantity(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+                        style={{ width: '60px', marginLeft: '8px' }}
+                      />
+                    </label>
                     <button onClick={handleAddFromAPI} className="add-btn">
-                      Add to Encounter
+                      Add to Encounter {quantity > 1 ? `(${quantity}x)` : ''}
                     </button>
                   </div>
                 )}
@@ -227,7 +245,17 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
                 <option>Gargantuan</option>
               </select>
             </label>
-            <button type="submit" className="add-btn">Add Monster/NPC</button>
+            <label>
+              <span>Quantity:</span>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={quantity}
+                onChange={e => setQuantity(Math.min(10, Math.max(1, parseInt(e.target.value) || 1)))}
+              />
+            </label>
+            <button type="submit" className="add-btn">Add Monster/NPC {quantity > 1 ? `(${quantity}x)` : ''}</button>
           </form>
         )}
       </div>
