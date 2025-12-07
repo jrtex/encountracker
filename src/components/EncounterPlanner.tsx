@@ -111,130 +111,159 @@ export const EncounterPlanner = () => {
       )}
 
       <div className="encounters-list">
-        {state.encounters
-          .filter(enc => !enc.isActive)
-          .map(encounter => (
-            <div
-              key={encounter.id}
-              className={`encounter-card ${selectedEncounterId === encounter.id ? 'selected' : ''}`}
-            >
-              <div className="encounter-header">
-                <h3 onClick={() => setSelectedEncounterId(encounter.id)}>
-                  {encounter.name}
-                </h3>
-                <div className="encounter-actions">
+        {state.encounters.map(encounter => (
+          <div
+            key={encounter.id}
+            className={`encounter-card ${selectedEncounterId === encounter.id ? 'selected' : ''} ${encounter.isActive ? 'active-encounter' : ''}`}
+          >
+            <div className="encounter-header">
+              <h3 onClick={() => !encounter.isActive && setSelectedEncounterId(encounter.id)}>
+                {encounter.name}
+                {encounter.isActive && <span className="active-badge"> (Active)</span>}
+              </h3>
+              <div className="encounter-actions">
+                {!encounter.isActive && (
+                  <>
+                    <button
+                      onClick={() => handleStartEncounter(encounter.id)}
+                      className="start-btn"
+                    >
+                      Start
+                    </button>
+                    <button
+                      onClick={() => deleteEncounter(encounter.id)}
+                      className="delete-btn"
+                    >
+                      ×
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {encounter.description && (
+              <p className="encounter-description">{encounter.description}</p>
+            )}
+
+            {selectedEncounterId === encounter.id && !encounter.isActive && (
+              <div className="encounter-details">
+                <div className="monsters-header">
+                  <h4>Monsters ({encounter.monsters.length})</h4>
                   <button
-                    onClick={() => handleStartEncounter(encounter.id)}
-                    className="start-btn"
+                    onClick={() => {
+                      setSelectedEncounterId(encounter.id);
+                      setShowMonsterSelector(true);
+                    }}
+                    className="add-monster-btn"
                   >
-                    Start
-                  </button>
-                  <button
-                    onClick={() => deleteEncounter(encounter.id)}
-                    className="delete-btn"
-                  >
-                    ×
+                    Add Monster/NPC
                   </button>
                 </div>
-              </div>
 
-              {encounter.description && (
-                <p className="encounter-description">{encounter.description}</p>
-              )}
-
-              {selectedEncounterId === encounter.id && (
-                <div className="encounter-details">
-                  <div className="monsters-header">
-                    <h4>Monsters ({encounter.monsters.length})</h4>
-                    <button
-                      onClick={() => {
-                        setSelectedEncounterId(encounter.id);
-                        setShowMonsterSelector(true);
-                      }}
-                      className="add-monster-btn"
-                    >
-                      Add Monster/NPC
-                    </button>
-                  </div>
-
-                  <div className="monsters-list">
-                    {encounter.monsters.map(monster => (
-                      <div key={monster.id} className="monster-card">
-                        {editingMonsterId === monster.id ? (
-                          <div className="monster-edit-form">
-                            <input
-                              type="text"
-                              value={monsterEditData.name}
-                              onChange={e => setMonsterEditData({ ...monsterEditData, name: e.target.value })}
-                              placeholder="Name"
-                            />
-                            <input
-                              type="number"
-                              value={monsterEditData.maxHp}
-                              onChange={e => setMonsterEditData({ ...monsterEditData, maxHp: parseInt(e.target.value) })}
-                              placeholder="HP"
-                              min="1"
-                            />
-                            <input
-                              type="number"
-                              value={monsterEditData.armorClass}
-                              onChange={e => setMonsterEditData({ ...monsterEditData, armorClass: parseInt(e.target.value) })}
-                              placeholder="AC"
-                              min="1"
-                            />
+                <div className="monsters-list">
+                  {encounter.monsters.map(monster => (
+                    <div key={monster.id} className="monster-card">
+                      {editingMonsterId === monster.id ? (
+                        <div className="monster-edit-form">
+                          <input
+                            type="text"
+                            value={monsterEditData.name}
+                            onChange={e => setMonsterEditData({ ...monsterEditData, name: e.target.value })}
+                            placeholder="Name"
+                          />
+                          <input
+                            type="number"
+                            value={monsterEditData.maxHp}
+                            onChange={e => setMonsterEditData({ ...monsterEditData, maxHp: parseInt(e.target.value) })}
+                            placeholder="HP"
+                            min="1"
+                          />
+                          <input
+                            type="number"
+                            value={monsterEditData.armorClass}
+                            onChange={e => setMonsterEditData({ ...monsterEditData, armorClass: parseInt(e.target.value) })}
+                            placeholder="AC"
+                            min="1"
+                          />
+                          <button
+                            onClick={() => handleSaveMonsterEdit(encounter.id, monster.id)}
+                            className="save-btn"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelMonsterEdit}
+                            className="cancel-btn"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="monster-info">
+                            <strong>{monster.name}</strong>
+                            <span className="monster-stats">
+                              HP: {monster.maxHp} | AC: {monster.armorClass}
+                              {monster.challenge_rating && ` | CR: ${monster.challenge_rating}`}
+                            </span>
+                          </div>
+                          <div className="monster-actions">
                             <button
-                              onClick={() => handleSaveMonsterEdit(encounter.id, monster.id)}
-                              className="save-btn"
+                              onClick={() => handleEditMonster(encounter.id, monster)}
+                              className="edit-btn"
+                              title="Edit"
                             >
-                              Save
+                              ✎
                             </button>
                             <button
-                              onClick={handleCancelMonsterEdit}
-                              className="cancel-btn"
+                              onClick={() => removeMonsterFromEncounter(encounter.id, monster.id)}
+                              className="remove-btn"
                             >
-                              Cancel
+                              Remove
                             </button>
                           </div>
-                        ) : (
-                          <>
-                            <div className="monster-info">
-                              <strong>{monster.name}</strong>
-                              <span className="monster-stats">
-                                HP: {monster.maxHp} | AC: {monster.armorClass}
-                                {monster.challenge_rating && ` | CR: ${monster.challenge_rating}`}
-                              </span>
-                            </div>
-                            <div className="monster-actions">
-                              <button
-                                onClick={() => handleEditMonster(encounter.id, monster)}
-                                className="edit-btn"
-                                title="Edit"
-                              >
-                                ✎
-                              </button>
-                              <button
-                                onClick={() => removeMonsterFromEncounter(encounter.id, monster.id)}
-                                className="remove-btn"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {encounter.monsters.length === 0 && (
-                    <p className="empty-message">No monsters added yet.</p>
-                  )}
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          ))}
+
+                {encounter.monsters.length === 0 && (
+                  <p className="empty-message">No monsters added yet.</p>
+                )}
+              </div>
+            )}
+
+            {encounter.isActive && (
+              <div className="encounter-details read-only">
+                <div className="monsters-header">
+                  <h4>Monsters ({encounter.monsters.length})</h4>
+                </div>
+
+                <div className="monsters-list">
+                  {encounter.monsters.map(monster => (
+                    <div key={monster.id} className="monster-card read-only">
+                      <div className="monster-info">
+                        <strong>{monster.name}</strong>
+                        <span className="monster-stats">
+                          HP: {monster.maxHp} | AC: {monster.armorClass}
+                          {monster.challenge_rating && ` | CR: ${monster.challenge_rating}`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {encounter.monsters.length === 0 && (
+                  <p className="empty-message">No monsters in this encounter.</p>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
-      {state.encounters.filter(e => !e.isActive).length === 0 && !showNewEncounterForm && (
+      {state.encounters.length === 0 && !showNewEncounterForm && (
         <p className="empty-message">No planned encounters. Create your first encounter!</p>
       )}
 

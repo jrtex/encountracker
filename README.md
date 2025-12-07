@@ -111,7 +111,7 @@ npm run test:coverage # Run tests with coverage report
 - Support in-app rolling, including automatic initiative modifier
   - Button to roll for all, or all monsters
 - When starting encounter, go to current combat screen
-- Don't hide the encounter when it is active, but list it as read-only
+- ✅ Don't hide the encounter when it is active, but list it as read-only
 - Nicer UI
   - left-right carousel to show turn order instead of top-bottom
 - DM-only and Player views
@@ -123,8 +123,7 @@ npm run test:coverage # Run tests with coverage report
 - Confirmation window when deleting objects
 - Move encounters to finished encounters after combat
 - Edit encounters (rename, desc, status)
-
-
+- Add image map file to Encounter. Track players and npc movements on map during encounter.
 
 ## Tech Stack
 
