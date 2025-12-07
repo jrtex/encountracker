@@ -43,6 +43,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
     name: '',
     maxHp: 10,
     armorClass: 10,
+    initiative: 0,
     challenge_rating: '0',
     type: '',
     size: 'Medium',
@@ -106,6 +107,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
         maxHp: manualData.maxHp,
         currentHp: manualData.maxHp,
         armorClass: manualData.armorClass,
+        initiative: manualData.initiative,
         challenge_rating: manualData.challenge_rating,
         type: manualData.type,
         size: manualData.size,
@@ -116,6 +118,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
       name: '',
       maxHp: 10,
       armorClass: 10,
+      initiative: 0,
       challenge_rating: '0',
       type: '',
       size: 'Medium',
@@ -235,6 +238,15 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
                 onChange={e => setManualData({ ...manualData, armorClass: parseInt(e.target.value) })}
                 required
                 min="1"
+              />
+            </label>
+            <label>
+              <span>Initiative Modifier:</span>
+              <input
+                type="number"
+                placeholder="Initiative Modifier (e.g., +2, -1)"
+                value={manualData.initiative}
+                onChange={e => setManualData({ ...manualData, initiative: parseInt(e.target.value) || 0 })}
               />
             </label>
             <label>

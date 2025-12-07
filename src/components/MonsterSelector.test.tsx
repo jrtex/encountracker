@@ -137,6 +137,7 @@ describe('MonsterSelector', () => {
       maxHp: 10,
       currentHp: 10,
       armorClass: 10,
+      initiative: 0,
       challenge_rating: '0',
       type: '',
       size: 'Medium',
@@ -349,6 +350,82 @@ describe('MonsterSelector', () => {
             desc: expect.any(String),
           },
         ],
+      })
+    );
+  });
+
+  it('should allow setting initiative for manually created monsters', async () => {
+    const user = userEvent.setup();
+    const onAddMonster = vi.fn();
+    const onClose = vi.fn();
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockMonsterList,
+    });
+
+    render(<MonsterSelector onAddMonster={onAddMonster} onClose={onClose} />);
+
+    // Switch to manual mode
+    await user.click(screen.getByRole('button', { name: /Manual Entry/i }));
+
+    // Fill in the form
+    await user.type(screen.getByPlaceholderText(/Name/i), 'Bandit Captain');
+
+    const hpInput = screen.getByPlaceholderText(/Max HP/i);
+    await user.clear(hpInput);
+    await user.type(hpInput, '65');
+
+    const acInput = screen.getByPlaceholderText(/Armor Class/i);
+    await user.clear(acInput);
+    await user.type(acInput, '15');
+
+    // Set initiative modifier to +3
+    const initiativeInput = screen.getByPlaceholderText(/Initiative Modifier/i);
+    await user.clear(initiativeInput);
+    await user.type(initiativeInput, '3');
+
+    // Submit
+    await user.click(screen.getByRole('button', { name: /Add Monster\/NPC$/i }));
+
+    // Verify the monster was created with the initiative value
+    expect(onAddMonster).toHaveBeenCalledWith({
+      name: 'Bandit Captain',
+      maxHp: 65,
+      currentHp: 65,
+      armorClass: 15,
+      initiative: 3,
+      challenge_rating: '0',
+      type: '',
+      size: 'Medium',
+      isPlayer: false,
+    });
+  });
+
+  it('should default to 0 initiative for manual monsters if not specified', async () => {
+    const user = userEvent.setup();
+    const onAddMonster = vi.fn();
+    const onClose = vi.fn();
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockMonsterList,
+    });
+
+    render(<MonsterSelector onAddMonster={onAddMonster} onClose={onClose} />);
+
+    // Switch to manual mode
+    await user.click(screen.getByRole('button', { name: /Manual Entry/i }));
+
+    await user.type(screen.getByPlaceholderText(/Name/i), 'Guard');
+
+    // Don't set initiative, it should default to 0
+    // Submit
+    await user.click(screen.getByRole('button', { name: /Add Monster\/NPC$/i }));
+
+    // Verify initiative defaulted to 0
+    expect(onAddMonster).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Guard',
+        initiative: 0,
       })
     );
   });
