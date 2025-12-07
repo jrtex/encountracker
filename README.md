@@ -104,6 +104,8 @@ npm run test:coverage # Run tests with coverage report
 - Great for sharing campaigns or backing up your work
 
 ## To-do Features
+
+### MVP Features
 - ✅ Show monster actions & features
 - ✅ Add multiple of a type of monster
 - ✅ Support statuses (blinded, prone, poisoned, etc)
@@ -113,15 +115,19 @@ npm run test:coverage # Run tests with coverage report
   - Button to roll for all, or all monsters
 - When starting encounter, go to current combat screen
 - ✅ Don't hide the encounter when it is active, but list it as read-only
+- ✅ Basic unit tests
+- Build and publish application
+- Configuration (port)
+- Confirmation window when deleting objects
+- Mark players/npc as dead or out of combat during encounter.
+
+### Nice-to-Have Features
 - Nicer UI
   - left-right carousel to show turn order instead of top-bottom
-- DM-only and Player views
-- Configuration (port)
-- ✅ unit tests
-  - Github actions to run unit tests on commit
-- Build and publish application
+  - Unified button style
+- Github actions to run unit tests on commit
+- DM-only and Player-only views
 - Campaign management with new sets of players and saved encounters
-- Confirmation window when deleting objects
 - Move encounters to finished encounters after combat
 - Edit encounters (rename, desc, status)
 - Add image map file to Encounter. Track players and npc movements on map during encounter.
