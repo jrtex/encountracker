@@ -45,16 +45,11 @@ export const EncounterPlanner = () => {
     setShowInitiativeSetup(true);
   };
 
-  const handleInitiativeStart = (initiatives: Record<string, number>) => {
+  const handleInitiativeStart = (initiativeRolls: Record<string, number>) => {
     if (!encounterToStart) return;
 
-    // Update characters and monsters with their initiative values
-    const updatedCharacters = state.characters.map(c => ({
-      ...c,
-      initiative: initiatives[c.id] ?? c.initiative ?? 0,
-    }));
-
-    startEncounter(encounterToStart, updatedCharacters, initiatives);
+    // Pass characters and initiative rolls to startEncounter
+    startEncounter(encounterToStart, state.characters, initiativeRolls);
     setShowInitiativeSetup(false);
     setEncounterToStart(null);
   };

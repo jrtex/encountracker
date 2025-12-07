@@ -4,7 +4,7 @@ import type { Character, Monster } from '../types';
 interface InitiativeSetupProps {
   characters: Character[];
   monsters: Monster[];
-  onStart: (initiatives: Record<string, number>) => void;
+  onStart: (initiativeRolls: Record<string, number>) => void;
   onCancel: () => void;
   encounterName: string;
 }
@@ -16,24 +16,36 @@ export const InitiativeSetup = ({
   onCancel,
   encounterName,
 }: InitiativeSetupProps) => {
-  const [initiatives, setInitiatives] = useState<Record<string, number>>(() => {
+  // Toggle between "roll" mode (enter d20 roll) and "total" mode (enter final total)
+  const [pcInputMode, setPcInputMode] = useState<'roll' | 'total'>('total');
+
+  // Store initiative rolls (d20 results), not total initiative
+  const [initiativeRolls, setInitiativeRolls] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     characters.forEach(c => {
-      initial[c.id] = c.initiative || 10;
+      initial[c.id] = 10; // Default d20 roll
     });
     monsters.forEach(m => {
-      initial[m.id] = m.initiative || 10;
+      initial[m.id] = 10; // Default d20 roll
     });
     return initial;
   });
 
-  const handleInitiativeChange = (id: string, value: string) => {
+  const handleInitiativeRollChange = (id: string, value: string, isPC: boolean, modifier: number) => {
     const numValue = parseInt(value) || 0;
-    setInitiatives(prev => ({ ...prev, [id]: numValue }));
+
+    if (isPC && pcInputMode === 'total') {
+      // Player entered a total, back-calculate the roll
+      const roll = numValue - modifier;
+      setInitiativeRolls(prev => ({ ...prev, [id]: roll }));
+    } else {
+      // Direct roll entry (for NPCs or when in roll mode)
+      setInitiativeRolls(prev => ({ ...prev, [id]: numValue }));
+    }
   };
 
   const handleStart = () => {
-    onStart(initiatives);
+    onStart(initiativeRolls);
   };
 
   const allParticipants = [
@@ -49,28 +61,81 @@ export const InitiativeSetup = ({
           <button onClick={onCancel} className="close-btn">×</button>
         </div>
 
+        <div className="initiative-mode-toggle">
+          <label>PC Input Mode:</label>
+          <div className="toggle-buttons">
+            <button
+              className={pcInputMode === 'total' ? 'active' : ''}
+              onClick={() => setPcInputMode('total')}
+            >
+              Total (Players rolled)
+            </button>
+            <button
+              className={pcInputMode === 'roll' ? 'active' : ''}
+              onClick={() => setPcInputMode('roll')}
+            >
+              Roll (DM rolls)
+            </button>
+          </div>
+        </div>
+
         <div className="initiative-setup-list">
-          {allParticipants.map(participant => (
-            <div key={participant.id} className="initiative-setup-row">
-              <div className="participant-info">
-                <span className="participant-name">{participant.name}</span>
-                <span className={`participant-type ${participant.type.toLowerCase()}`}>
-                  {participant.type}
-                </span>
+          {allParticipants.map(participant => {
+            const modifier = participant.initiative || 0;
+            const roll = initiativeRolls[participant.id] ?? 10;
+            const total = roll + modifier;
+            const isPC = participant.type === 'PC';
+            const showAsTotal = isPC && pcInputMode === 'total';
+
+            return (
+              <div key={participant.id} className="initiative-setup-row">
+                <div className="participant-info">
+                  <span className="participant-name">{participant.name}</span>
+                  <span className={`participant-type ${participant.type.toLowerCase()}`}>
+                    {participant.type}
+                  </span>
+                </div>
+                <div className="initiative-input-group">
+                  {showAsTotal ? (
+                    <>
+                      <label htmlFor={`init-${participant.id}`}>Total:</label>
+                      <input
+                        id={`init-${participant.id}`}
+                        type="number"
+                        value={total}
+                        onChange={e => handleInitiativeRollChange(participant.id, e.target.value, isPC, modifier)}
+                        className="initiative-number-input"
+                        autoFocus={participant === allParticipants[0]}
+                      />
+                      <span className="initiative-breakdown">
+                        (modifier: {modifier >= 0 ? '+' : ''}{modifier})
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <label htmlFor={`init-${participant.id}`}>Roll (d20):</label>
+                      <input
+                        id={`init-${participant.id}`}
+                        type="number"
+                        value={roll}
+                        onChange={e => handleInitiativeRollChange(participant.id, e.target.value, isPC, modifier)}
+                        className="initiative-number-input"
+                        autoFocus={participant === allParticipants[0]}
+                        min="1"
+                        max="20"
+                      />
+                      <span className="initiative-modifier">
+                        {modifier >= 0 ? '+' : ''}{modifier}
+                      </span>
+                      <span className="initiative-total">
+                        = {total}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="initiative-input-group">
-                <label htmlFor={`init-${participant.id}`}>Initiative:</label>
-                <input
-                  id={`init-${participant.id}`}
-                  type="number"
-                  value={initiatives[participant.id] ?? 10}
-                  onChange={e => handleInitiativeChange(participant.id, e.target.value)}
-                  className="initiative-number-input"
-                  autoFocus={participant === allParticipants[0]}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="modal-footer">

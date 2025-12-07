@@ -27,7 +27,7 @@ export interface Character {
   maxHp: number;
   currentHp: number;
   armorClass: number;
-  initiative: number;
+  initiative: number; // Initiative modifier (e.g., +2, -1)
   isPlayer: boolean;
 }
 
@@ -37,7 +37,7 @@ export interface Monster {
   maxHp: number;
   currentHp: number;
   armorClass: number;
-  initiative?: number;
+  initiative?: number; // Initiative modifier (e.g., +2, -1)
   challenge_rating?: string;
   type?: string;
   size?: string;
@@ -55,7 +55,9 @@ export interface Combatant {
   maxHp: number;
   currentHp: number;
   armorClass: number;
-  initiative: number;
+  initiative: number; // Initiative modifier (e.g., +2, -1)
+  initiativeRoll: number; // The d20 roll value (1-20)
+  initiativeTotal: number; // initiativeRoll + initiative (computed for sorting)
   isPlayer: boolean;
   conditions?: Condition[];
   dexterity?: number;

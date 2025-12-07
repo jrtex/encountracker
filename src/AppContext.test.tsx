@@ -260,9 +260,9 @@ describe('AppContext', () => {
       expect(activeEncounter.currentTurn).toBe(0);
       expect(result.current.state.activeEncounterId).toBe(encounterId);
 
-      // Check initiative order (higher initiative first)
-      expect(activeEncounter.combatants![0].initiative).toBe(15);
-      expect(activeEncounter.combatants![1].initiative).toBe(10);
+      // Check initiative order (higher initiative total first)
+      expect(activeEncounter.combatants![0].initiativeTotal).toBe(27); // 15 + 12
+      expect(activeEncounter.combatants![1].initiativeTotal).toBe(10); // 10 + 0
     });
 
     it('should update combatant initiative and re-sort', () => {
@@ -308,13 +308,16 @@ describe('AppContext', () => {
 
       const combatantId = result.current.state.encounters[0].combatants![1].id;
 
+      // setInitiative now takes a roll value, not total
       act(() => {
-        result.current.setInitiative(combatantId, 20);
+        result.current.setInitiative(combatantId, 20); // New roll of 20
       });
 
       const combatants = result.current.state.encounters[0].combatants!;
-      expect(combatants[0].initiative).toBe(20);
-      expect(combatants[1].initiative).toBe(15);
+      // combatantId was the second combatant (Ranger with +10 modifier)
+      // New total: 20 + 10 = 30
+      expect(combatants[0].initiativeTotal).toBe(30);
+      expect(combatants[1].initiativeTotal).toBe(25); // Wolf: 10 + 15
     });
 
     it('should update combatant HP with proper clamping', () => {
@@ -635,6 +638,269 @@ describe('AppContext', () => {
 
       expect(result.current.state.characters).toHaveLength(1);
       expect(result.current.state.characters[0].name).toBe('Warlock');
+    });
+  });
+
+  describe('Initiative System', () => {
+    it('should calculate initiative total from roll and modifier', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Fighter',
+        maxHp: 50,
+        currentHp: 50,
+        armorClass: 18,
+        initiative: 2, // +2 modifier
+        isPlayer: true,
+      };
+
+      const monster: Omit<Monster, 'id'> = {
+        name: 'Goblin',
+        maxHp: 7,
+        currentHp: 7,
+        armorClass: 15,
+        initiative: 3, // +3 modifier
+        isPlayer: false,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Initiative Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const characterId = result.current.state.characters[0].id;
+
+      act(() => {
+        result.current.addMonsterToEncounter(encounterId, monster);
+      });
+
+      const monsterId = result.current.state.encounters[0].monsters[0].id;
+
+      // Start encounter with initiative rolls
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [characterId]: 15, // Roll: 15, Modifier: +2, Total: 17
+          [monsterId]: 12,   // Roll: 12, Modifier: +3, Total: 15
+        });
+      });
+
+      const combatants = result.current.state.encounters[0].combatants!;
+
+      // Check character combatant
+      const characterCombatant = combatants.find(c => c.id === characterId);
+      expect(characterCombatant?.initiative).toBe(2); // Modifier
+      expect(characterCombatant?.initiativeRoll).toBe(15); // Roll
+      expect(characterCombatant?.initiativeTotal).toBe(17); // Total
+
+      // Check monster combatant
+      const monsterCombatant = combatants.find(c => c.id === monsterId);
+      expect(monsterCombatant?.initiative).toBe(3); // Modifier
+      expect(monsterCombatant?.initiativeRoll).toBe(12); // Roll
+      expect(monsterCombatant?.initiativeTotal).toBe(15); // Total
+    });
+
+    it('should sort combatants by initiative total in descending order', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const char1: Omit<Character, 'id'> = {
+        name: 'Wizard',
+        maxHp: 30,
+        currentHp: 30,
+        armorClass: 14,
+        initiative: 3, // +3
+        isPlayer: true,
+      };
+
+      const char2: Omit<Character, 'id'> = {
+        name: 'Barbarian',
+        maxHp: 70,
+        currentHp: 70,
+        armorClass: 14,
+        initiative: 1, // +1
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(char1);
+        result.current.addCharacter(char2);
+        result.current.createEncounter('Sort Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const wizardId = result.current.state.characters[0].id;
+      const barbarianId = result.current.state.characters[1].id;
+
+      // Start with rolls that should place Barbarian first despite lower modifier
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [wizardId]: 10,     // Total: 10 + 3 = 13
+          [barbarianId]: 20,  // Total: 20 + 1 = 21
+        });
+      });
+
+      const combatants = result.current.state.encounters[0].combatants!;
+
+      // Barbarian should be first (21 > 13)
+      expect(combatants[0].name).toBe('Barbarian');
+      expect(combatants[0].initiativeTotal).toBe(21);
+      expect(combatants[1].name).toBe('Wizard');
+      expect(combatants[1].initiativeTotal).toBe(13);
+    });
+
+    it('should handle negative initiative modifiers correctly', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Slow Fighter',
+        maxHp: 50,
+        currentHp: 50,
+        armorClass: 18,
+        initiative: -1, // -1 modifier
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Negative Modifier Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const characterId = result.current.state.characters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [characterId]: 15, // Roll: 15, Modifier: -1, Total: 14
+        });
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.initiative).toBe(-1);
+      expect(combatant.initiativeRoll).toBe(15);
+      expect(combatant.initiativeTotal).toBe(14);
+    });
+
+    it('should update initiative roll during combat and recalculate total', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Rogue',
+        maxHp: 40,
+        currentHp: 40,
+        armorClass: 16,
+        initiative: 4, // +4 modifier
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Update Initiative Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const characterId = result.current.state.characters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [characterId]: 10, // Initial roll
+        });
+      });
+
+      let combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.initiativeTotal).toBe(14); // 10 + 4
+
+      // Update the initiative roll
+      act(() => {
+        result.current.setInitiative(characterId, 18); // New roll
+      });
+
+      combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.initiative).toBe(4); // Modifier unchanged
+      expect(combatant.initiativeRoll).toBe(18); // New roll
+      expect(combatant.initiativeTotal).toBe(22); // 18 + 4
+    });
+
+    it('should re-sort combatants when initiative roll changes during combat', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const char1: Omit<Character, 'id'> = {
+        name: 'Fast PC',
+        maxHp: 30,
+        currentHp: 30,
+        armorClass: 14,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      const char2: Omit<Character, 'id'> = {
+        name: 'Slow PC',
+        maxHp: 40,
+        currentHp: 40,
+        armorClass: 16,
+        initiative: 1,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(char1);
+        result.current.addCharacter(char2);
+        result.current.createEncounter('Re-sort Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const fastId = result.current.state.characters[0].id;
+      const slowId = result.current.state.characters[1].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [fastId]: 15,  // Total: 17
+          [slowId]: 10,  // Total: 11
+        });
+      });
+
+      let combatants = result.current.state.encounters[0].combatants!;
+      expect(combatants[0].name).toBe('Fast PC');
+      expect(combatants[1].name).toBe('Slow PC');
+
+      // Change Slow PC's roll to beat Fast PC
+      act(() => {
+        result.current.setInitiative(slowId, 20); // New total: 21
+      });
+
+      combatants = result.current.state.encounters[0].combatants!;
+      expect(combatants[0].name).toBe('Slow PC');
+      expect(combatants[0].initiativeTotal).toBe(21);
+      expect(combatants[1].name).toBe('Fast PC');
+      expect(combatants[1].initiativeTotal).toBe(17);
+    });
+
+    it('should use default roll of 10 when no initiative rolls provided', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Paladin',
+        maxHp: 60,
+        currentHp: 60,
+        armorClass: 19,
+        initiative: 1,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Default Roll Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      // Start without providing initiative rolls
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.initiativeRoll).toBe(10); // Default roll
+      expect(combatant.initiativeTotal).toBe(11); // 10 + 1
     });
   });
 });

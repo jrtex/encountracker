@@ -39,9 +39,9 @@ export const InitiativeTracker = () => {
     }
   };
 
-  const handleSetInitiative = (combatantId: string) => {
-    const initiative = parseInt(initiativeInputs[combatantId] || '0');
-    setInitiative(combatantId, initiative);
+  const handleSetInitiativeRoll = (combatantId: string) => {
+    const roll = parseInt(initiativeInputs[combatantId] || '0');
+    setInitiative(combatantId, roll);
     setInitiativeInputs(prev => ({ ...prev, [combatantId]: '' }));
   };
 
@@ -87,14 +87,23 @@ export const InitiativeTracker = () => {
                     <span className="initiative-label">Init:</span>
                     <input
                       type="number"
-                      value={initiativeInputs[combatant.id] ?? combatant.initiative}
+                      value={initiativeInputs[combatant.id] ?? combatant.initiativeRoll}
                       onChange={e => setInitiativeInputs(prev => ({
                         ...prev,
                         [combatant.id]: e.target.value
                       }))}
-                      onBlur={() => handleSetInitiative(combatant.id)}
+                      onBlur={() => handleSetInitiativeRoll(combatant.id)}
                       className="initiative-input"
+                      min="1"
+                      max="20"
+                      title="Initiative roll (d20)"
                     />
+                    <span className="initiative-modifier">
+                      {combatant.initiative >= 0 ? '+' : ''}{combatant.initiative}
+                    </span>
+                    <span className="initiative-total">
+                      = {combatant.initiativeTotal}
+                    </span>
                   </div>
                 </div>
                 <span className={`combatant-type ${combatant.isPlayer ? 'player' : 'monster'}`}>

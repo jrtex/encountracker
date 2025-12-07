@@ -11,7 +11,7 @@ interface AppContextType {
   addMonsterToEncounter: (encounterId: string, monster: Omit<Monster, 'id'>) => void;
   updateMonsterInEncounter: (encounterId: string, monsterId: string, updates: Partial<Monster>) => void;
   removeMonsterFromEncounter: (encounterId: string, monsterId: string) => void;
-  startEncounter: (encounterId: string, characters: Character[], initiatives?: Record<string, number>) => void;
+  startEncounter: (encounterId: string, characters: Character[], initiativeRolls?: Record<string, number>) => void;
   setInitiative: (combatantId: string, initiative: number) => void;
   updateCombatantHp: (combatantId: string, newHp: number) => void;
   nextTurn: () => void;
@@ -147,27 +147,43 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const startEncounter = (encounterId: string, characters: Character[], initiatives?: Record<string, number>) => {
+  const startEncounter = (encounterId: string, characters: Character[], initiativeRolls?: Record<string, number>) => {
     setState(prev => {
       const encounter = prev.encounters.find(e => e.id === encounterId);
       if (!encounter) return prev;
 
       const combatants: Combatant[] = [
-        ...characters.map(c => ({
-          ...c,
-          initiative: initiatives?.[c.id] ?? c.initiative ?? 0,
-          conditions: [],
-        })),
-        ...encounter.monsters.map(m => ({
-          ...m,
-          initiative: initiatives?.[m.id] ?? m.initiative ?? 0,
-          isPlayer: false,
-          conditions: [],
-          dexterity: m.dexterity,
-          actions: m.actions,
-          special_abilities: m.special_abilities,
-        })),
-      ].sort((a, b) => b.initiative - a.initiative);
+        ...characters.map(c => {
+          const modifier = c.initiative ?? 0;
+          const roll = initiativeRolls?.[c.id] ?? 10;
+          const total = roll + modifier;
+
+          return {
+            ...c,
+            initiative: modifier,
+            initiativeRoll: roll,
+            initiativeTotal: total,
+            conditions: [],
+          };
+        }),
+        ...encounter.monsters.map(m => {
+          const modifier = m.initiative ?? 0;
+          const roll = initiativeRolls?.[m.id] ?? 10;
+          const total = roll + modifier;
+
+          return {
+            ...m,
+            initiative: modifier,
+            initiativeRoll: roll,
+            initiativeTotal: total,
+            isPlayer: false,
+            conditions: [],
+            dexterity: m.dexterity,
+            actions: m.actions,
+            special_abilities: m.special_abilities,
+          };
+        }),
+      ].sort((a, b) => b.initiativeTotal - a.initiativeTotal);
 
       return {
         ...prev,
@@ -181,7 +197,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const setInitiative = (combatantId: string, initiative: number) => {
+  const setInitiative = (combatantId: string, newRoll: number) => {
     setState(prev => {
       if (!prev.activeEncounterId) return prev;
 
@@ -191,8 +207,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
 
           const updatedCombatants = enc.combatants
-            .map(c => c.id === combatantId ? { ...c, initiative } : c)
-            .sort((a, b) => b.initiative - a.initiative);
+            .map(c => {
+              if (c.id === combatantId) {
+                const modifier = c.initiative;
+                const total = newRoll + modifier;
+                return { ...c, initiativeRoll: newRoll, initiativeTotal: total };
+              }
+              return c;
+            })
+            .sort((a, b) => b.initiativeTotal - a.initiativeTotal);
 
           return { ...enc, combatants: updatedCombatants };
         }),
