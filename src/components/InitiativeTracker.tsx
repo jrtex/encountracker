@@ -8,6 +8,7 @@ export const InitiativeTracker = () => {
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [initiativeInputs, setInitiativeInputs] = useState<Record<string, string>>({});
   const [conditionModalOpen, setConditionModalOpen] = useState<string | null>(null);
+  const [expandedCombatants, setExpandedCombatants] = useState<Record<string, boolean>>({});
 
   const activeEncounter = state.encounters.find(e => e.id === state.activeEncounterId);
 
@@ -171,6 +172,52 @@ export const InitiativeTracker = () => {
                   </div>
                 )}
               </div>
+
+              {!combatant.isPlayer && (combatant.actions || combatant.special_abilities) && (
+                <div className="monster-abilities-section">
+                  <button
+                    onClick={() => setExpandedCombatants(prev => ({ ...prev, [combatant.id]: !prev[combatant.id] }))}
+                    className="expand-abilities-btn"
+                  >
+                    {expandedCombatants[combatant.id] ? '▼' : '▶'} Actions & Abilities
+                  </button>
+
+                  {expandedCombatants[combatant.id] && (
+                    <div className="abilities-content">
+                      {combatant.special_abilities && combatant.special_abilities.length > 0 && (
+                        <div className="special-abilities">
+                          <h5>Special Abilities</h5>
+                          {combatant.special_abilities.map((ability, idx) => (
+                            <div key={idx} className="ability-item">
+                              <strong>{ability.name}:</strong> {ability.desc}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {combatant.actions && combatant.actions.length > 0 && (
+                        <div className="actions">
+                          <h5>Actions</h5>
+                          {combatant.actions.map((action, idx) => (
+                            <div key={idx} className="action-item">
+                              <strong>{action.name}</strong>
+                              {action.attack_bonus !== undefined && (
+                                <span className="attack-bonus"> +{action.attack_bonus} to hit</span>
+                              )}
+                              {action.damage && action.damage.length > 0 && (
+                                <span className="damage-info">
+                                  {' '}({action.damage.map(d => `${d.damage_dice} ${d.damage_type.name}`).join(', ')})
+                                </span>
+                              )}
+                              <p className="action-desc">{action.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {isDead && <div className="dead-indicator">UNCONSCIOUS/DEAD</div>}
             </div>

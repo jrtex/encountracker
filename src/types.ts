@@ -4,6 +4,23 @@ export interface Condition {
   desc: string[];
 }
 
+export interface MonsterAction {
+  name: string;
+  desc: string;
+  attack_bonus?: number;
+  damage?: Array<{
+    damage_dice: string;
+    damage_type: {
+      name: string;
+    };
+  }>;
+}
+
+export interface MonsterSpecialAbility {
+  name: string;
+  desc: string;
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -27,6 +44,9 @@ export interface Monster {
   isPlayer: boolean;
   // D&D 5e API fields
   apiIndex?: string;
+  dexterity?: number;
+  actions?: MonsterAction[];
+  special_abilities?: MonsterSpecialAbility[];
 }
 
 export interface Combatant {
@@ -38,6 +58,9 @@ export interface Combatant {
   initiative: number;
   isPlayer: boolean;
   conditions?: Condition[];
+  dexterity?: number;
+  actions?: MonsterAction[];
+  special_abilities?: MonsterSpecialAbility[];
 }
 
 export interface Encounter {

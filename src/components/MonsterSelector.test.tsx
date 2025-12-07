@@ -21,6 +21,26 @@ const mockGoblinDetails = {
   challenge_rating: 0.25,
   type: 'humanoid',
   size: 'Small',
+  dexterity: 14,
+  actions: [
+    {
+      name: 'Scimitar',
+      desc: 'Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage.',
+      attack_bonus: 4,
+      damage: [
+        {
+          damage_dice: '1d6+2',
+          damage_type: { name: 'slashing' },
+        },
+      ],
+    },
+  ],
+  special_abilities: [
+    {
+      name: 'Nimble Escape',
+      desc: 'The goblin can take the Disengage or Hide action as a bonus action on each of its turns.',
+    },
+  ],
 };
 
 describe('MonsterSelector', () => {
@@ -61,7 +81,7 @@ describe('MonsterSelector', () => {
     // Click Add to Encounter
     await user.click(screen.getByRole('button', { name: /Add to Encounter \(3x\)/i }));
 
-    // Verify onAddMonster was called 3 times
+    // Verify onAddMonster was called 3 times with correct data including dexterity and actions
     expect(onAddMonster).toHaveBeenCalledTimes(3);
     expect(onAddMonster).toHaveBeenCalledWith({
       name: 'Goblin',
@@ -72,6 +92,10 @@ describe('MonsterSelector', () => {
       type: 'humanoid',
       size: 'Small',
       apiIndex: 'goblin',
+      dexterity: 14,
+      initiative: 2, // (14 - 10) / 2 = 2
+      actions: mockGoblinDetails.actions,
+      special_abilities: mockGoblinDetails.special_abilities,
       isPlayer: false,
     });
   });
@@ -248,5 +272,84 @@ describe('MonsterSelector', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Add Monster\/NPC \(4x\)/i })).toBeInTheDocument();
     });
+  });
+
+  it('should calculate initiative modifier from dexterity correctly', async () => {
+    const user = userEvent.setup();
+    const onAddMonster = vi.fn();
+    const onClose = vi.fn();
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockMonsterList,
+    });
+
+    render(<MonsterSelector onAddMonster={onAddMonster} onClose={onClose} />);
+
+    await waitFor(() => expect(screen.getByText('Goblin')).toBeInTheDocument());
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockGoblinDetails,
+    });
+
+    await user.click(screen.getByText('Goblin'));
+
+    await waitFor(() => expect(screen.getByText(/HP: 7/)).toBeInTheDocument());
+
+    // Verify initiative modifier is displayed correctly
+    // DEX 14 = +2 modifier
+    expect(screen.getByText(/Init: \+2/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Add to Encounter$/i }));
+
+    // Verify the monster was added with initiative = 2
+    expect(onAddMonster).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dexterity: 14,
+        initiative: 2,
+      })
+    );
+  });
+
+  it('should include actions and special abilities when adding from API', async () => {
+    const user = userEvent.setup();
+    const onAddMonster = vi.fn();
+    const onClose = vi.fn();
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockMonsterList,
+    });
+
+    render(<MonsterSelector onAddMonster={onAddMonster} onClose={onClose} />);
+
+    await waitFor(() => expect(screen.getByText('Goblin')).toBeInTheDocument());
+
+    (global.fetch as any).mockResolvedValueOnce({
+      json: async () => mockGoblinDetails,
+    });
+
+    await user.click(screen.getByText('Goblin'));
+    await waitFor(() => expect(screen.getByText(/HP: 7/)).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /Add to Encounter$/i }));
+
+    // Verify actions were included
+    expect(onAddMonster).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: [
+          {
+            name: 'Scimitar',
+            desc: expect.any(String),
+            attack_bonus: 4,
+            damage: expect.any(Array),
+          },
+        ],
+        special_abilities: [
+          {
+            name: 'Nimble Escape',
+            desc: expect.any(String),
+          },
+        ],
+      })
+    );
   });
 });

@@ -163,6 +163,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           initiative: initiatives?.[m.id] ?? m.initiative ?? 0,
           isPlayer: false,
           conditions: [],
+          dexterity: m.dexterity,
+          actions: m.actions,
+          special_abilities: m.special_abilities,
         })),
       ].sort((a, b) => b.initiative - a.initiative);
 

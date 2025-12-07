@@ -14,6 +14,22 @@ interface APIMonster {
   challenge_rating: number;
   type: string;
   size: string;
+  dexterity: number;
+  actions?: Array<{
+    name: string;
+    desc: string;
+    attack_bonus?: number;
+    damage?: Array<{
+      damage_dice: string;
+      damage_type: {
+        name: string;
+      };
+    }>;
+  }>;
+  special_abilities?: Array<{
+    name: string;
+    desc: string;
+  }>;
 }
 
 export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps) => {
@@ -58,6 +74,9 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
   const handleAddFromAPI = () => {
     if (!selectedMonster) return;
 
+    // Calculate initiative modifier from dexterity: (DEX - 10) / 2, rounded down
+    const dexModifier = Math.floor((selectedMonster.dexterity - 10) / 2);
+
     for (let i = 0; i < quantity; i++) {
       onAddMonster({
         name: selectedMonster.name,
@@ -68,6 +87,10 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
         type: selectedMonster.type,
         size: selectedMonster.size,
         apiIndex: selectedMonster.index,
+        dexterity: selectedMonster.dexterity,
+        initiative: dexModifier,
+        actions: selectedMonster.actions,
+        special_abilities: selectedMonster.special_abilities,
         isPlayer: false,
       });
     }
@@ -160,6 +183,7 @@ export const MonsterSelector = ({ onAddMonster, onClose }: MonsterSelectorProps)
                     <p>AC: {selectedMonster.armor_class[0]?.value}</p>
                     <p>CR: {selectedMonster.challenge_rating}</p>
                     <p>Type: {selectedMonster.size} {selectedMonster.type}</p>
+                    <p>DEX: {selectedMonster.dexterity} (Init: {Math.floor((selectedMonster.dexterity - 10) / 2) >= 0 ? '+' : ''}{Math.floor((selectedMonster.dexterity - 10) / 2)})</p>
                     <label>
                       <span>Quantity:</span>
                       <input

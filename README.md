@@ -104,11 +104,12 @@ npm run test:coverage # Run tests with coverage report
 - Great for sharing campaigns or backing up your work
 
 ## To-do Features
-- Show monster actions & features
-- Add multiple of a type of monster
-- Support statuses (blinded, prone, poisoned, etc)
+- ✅ Show monster actions & features
+- ✅ Add multiple of a type of monster
+- ✅ Support statuses (blinded, prone, poisoned, etc)
 - Support temporary HP
 - Support in-app rolling, including automatic initiative modifier
+  - Button to roll for all, or all monsters
 - When starting encounter, go to current combat screen
 - Don't hide the encounter when it is active, but list it as read-only
 - Nicer UI
@@ -119,6 +120,10 @@ npm run test:coverage # Run tests with coverage report
   - Github actions to run unit tests on commit
 - Build and publish application
 - Campaign management with new sets of players and saved encounters
+- Confirmation window when deleting objects
+- Move encounters to finished encounters after combat
+- Edit encounters (rename, desc, status)
+
 
 
 ## Tech Stack

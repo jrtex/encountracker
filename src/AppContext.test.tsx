@@ -477,6 +477,56 @@ describe('AppContext', () => {
       // Monsters should still be preserved
       expect(result.current.state.encounters[0].monsters).toHaveLength(1);
     });
+
+    it('should preserve monster actions and abilities when starting encounter', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const monster: Omit<Monster, 'id'> = {
+        name: 'Goblin',
+        maxHp: 7,
+        currentHp: 7,
+        armorClass: 15,
+        dexterity: 14,
+        initiative: 2,
+        actions: [
+          {
+            name: 'Scimitar',
+            desc: 'Melee attack',
+            attack_bonus: 4,
+            damage: [{ damage_dice: '1d6+2', damage_type: { name: 'slashing' } }],
+          },
+        ],
+        special_abilities: [
+          {
+            name: 'Nimble Escape',
+            desc: 'Can disengage as bonus action',
+          },
+        ],
+        isPlayer: false,
+      };
+
+      act(() => {
+        result.current.createEncounter('Goblin Ambush');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.addMonsterToEncounter(encounterId, monster);
+      });
+
+      act(() => {
+        result.current.startEncounter(encounterId, []);
+      });
+
+      const encounter = result.current.state.encounters[0];
+      const goblinCombatant = encounter.combatants?.[0];
+
+      expect(goblinCombatant).toBeDefined();
+      expect(goblinCombatant?.dexterity).toBe(14);
+      expect(goblinCombatant?.actions).toEqual(monster.actions);
+      expect(goblinCombatant?.special_abilities).toEqual(monster.special_abilities);
+    });
   });
 
   describe('Data Import/Export', () => {
