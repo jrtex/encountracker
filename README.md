@@ -119,7 +119,7 @@ npm run test:coverage # Run tests with coverage report
 - Build and publish application
 - Configuration (port)
 - Confirmation window when deleting objects
-- Mark players/npc as dead or out of combat during encounter.
+- ✅ Mark players/npc as dead or out of combat during encounter.
 
 ### Nice-to-Have Features
 - Nicer UI

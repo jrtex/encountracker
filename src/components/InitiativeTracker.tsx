@@ -4,7 +4,7 @@ import { ConditionBadge } from './ConditionBadge';
 import { ConditionSelector } from './ConditionSelector';
 
 export const InitiativeTracker = () => {
-  const { state, setInitiative, updateCombatantHp, nextTurn, endEncounter, addConditionToCombatant, removeConditionFromCombatant } = useApp();
+  const { state, setInitiative, updateCombatantHp, removeCombatant, restoreCombatant, nextTurn, endEncounter, addConditionToCombatant, removeConditionFromCombatant } = useApp();
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
   const [initiativeInputs, setInitiativeInputs] = useState<Record<string, string>>({});
   const [conditionModalOpen, setConditionModalOpen] = useState<string | null>(null);
@@ -74,6 +74,33 @@ export const InitiativeTracker = () => {
           const isCurrentTurn = index === activeEncounter.currentTurn;
           const isDead = combatant.currentHp <= 0;
           const hpPercent = (combatant.currentHp / combatant.maxHp) * 100;
+          const isRemoved = combatant.removed === true;
+
+          // Render removed combatants with minimal info
+          if (isRemoved) {
+            return (
+              <div
+                key={combatant.id}
+                className="combatant-card removed"
+              >
+                <div className="combatant-header">
+                  <div className="combatant-name-initiative">
+                    <h4>{combatant.name}</h4>
+                    <span className="removed-label">(Removed from encounter)</span>
+                  </div>
+                  <span className={`combatant-type ${combatant.isPlayer ? 'player' : 'monster'}`}>
+                    {combatant.isPlayer ? 'PC' : 'NPC'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => restoreCombatant(combatant.id)}
+                  className="restore-btn"
+                >
+                  Restore to Encounter
+                </button>
+              </div>
+            );
+          }
 
           return (
             <div
@@ -156,6 +183,13 @@ export const InitiativeTracker = () => {
                   disabled={!damageInputs[combatant.id]}
                 >
                   Heal
+                </button>
+                <button
+                  onClick={() => removeCombatant(combatant.id)}
+                  className="remove-combatant-btn"
+                  title="Remove from encounter"
+                >
+                  Remove
                 </button>
               </div>
 

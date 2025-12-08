@@ -488,6 +488,52 @@
   background: #f5f5f5;
 }
 
+.combatant-card.removed {
+  opacity: 0.5;
+  background: #fafafa;
+  border-color: #ccc;
+  border-style: dashed;
+}
+
+.removed-label {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+.restore-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  width: 100%;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.restore-btn:hover {
+  background: #45a049;
+}
+
+.remove-combatant-btn {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.remove-combatant-btn:hover {
+  background: #f57c00;
+}
+
 .combatant-header {
   display: flex;
   justify-content: space-between;

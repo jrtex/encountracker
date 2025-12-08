@@ -903,4 +903,216 @@ describe('AppContext', () => {
       expect(combatant.initiativeTotal).toBe(11); // 10 + 1
     });
   });
+
+  describe('Remove/Restore Combatants', () => {
+    it('should mark a combatant as removed', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Fighter',
+        maxHp: 50,
+        currentHp: 30,
+        armorClass: 18,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Remove Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+      const characterId = result.current.state.characters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      act(() => {
+        result.current.removeCombatant(combatantId);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.removed).toBe(true);
+      expect(combatant.currentHp).toBe(30); // HP should remain unchanged
+    });
+
+    it('should bump HP to 1 when removing a combatant with 0 HP', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Wizard',
+        maxHp: 30,
+        currentHp: 30,
+        armorClass: 14,
+        initiative: 3,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Dead Remove Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Reduce HP to 0
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 0);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].currentHp).toBe(0);
+
+      // Remove the combatant
+      act(() => {
+        result.current.removeCombatant(combatantId);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.removed).toBe(true);
+      expect(combatant.currentHp).toBe(1); // HP should be bumped to 1
+    });
+
+    it('should restore a removed combatant', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Rogue',
+        maxHp: 40,
+        currentHp: 40,
+        armorClass: 16,
+        initiative: 4,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Restore Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Remove the combatant
+      act(() => {
+        result.current.removeCombatant(combatantId);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].removed).toBe(true);
+
+      // Restore the combatant
+      act(() => {
+        result.current.restoreCombatant(combatantId);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.removed).toBe(false);
+    });
+
+    it('should keep removed combatants in turn order', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const char1: Omit<Character, 'id'> = {
+        name: 'Fighter',
+        maxHp: 50,
+        currentHp: 50,
+        armorClass: 18,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      const char2: Omit<Character, 'id'> = {
+        name: 'Wizard',
+        maxHp: 30,
+        currentHp: 30,
+        armorClass: 14,
+        initiative: 3,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(char1);
+        result.current.addCharacter(char2);
+        result.current.createEncounter('Turn Order Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters, {
+          [result.current.state.characters[0].id]: 15, // Fighter: 17
+          [result.current.state.characters[1].id]: 10, // Wizard: 13
+        });
+      });
+
+      expect(result.current.state.encounters[0].combatants).toHaveLength(2);
+
+      const combatantId = result.current.state.encounters[0].combatants![1].id;
+
+      // Remove the second combatant (Wizard)
+      act(() => {
+        result.current.removeCombatant(combatantId);
+      });
+
+      // Both combatants should still be in the list
+      expect(result.current.state.encounters[0].combatants).toHaveLength(2);
+      expect(result.current.state.encounters[0].combatants![1].removed).toBe(true);
+      expect(result.current.state.encounters[0].combatants![1].name).toBe('Wizard');
+    });
+
+    it('should not affect removed combatants with HP updates', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Cleric',
+        maxHp: 40,
+        currentHp: 40,
+        armorClass: 17,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('HP Update Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Remove the combatant
+      act(() => {
+        result.current.removeCombatant(combatantId);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].currentHp).toBe(40);
+
+      // Try to update HP (this should still work, as removed combatants can be healed/damaged)
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 25);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].currentHp).toBe(25);
+      expect(result.current.state.encounters[0].combatants![0].removed).toBe(true);
+    });
+  });
 });

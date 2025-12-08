@@ -59,6 +59,7 @@ export interface Combatant {
   initiativeRoll: number; // The d20 roll value (1-20)
   initiativeTotal: number; // initiativeRoll + initiative (computed for sorting)
   isPlayer: boolean;
+  removed?: boolean; // If true, combatant is removed from encounter but still visible in tracker
   conditions?: Condition[];
   dexterity?: number;
   actions?: MonsterAction[];

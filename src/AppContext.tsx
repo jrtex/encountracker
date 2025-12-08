@@ -14,6 +14,8 @@ interface AppContextType {
   startEncounter: (encounterId: string, characters: Character[], initiativeRolls?: Record<string, number>) => void;
   setInitiative: (combatantId: string, initiative: number) => void;
   updateCombatantHp: (combatantId: string, newHp: number) => void;
+  removeCombatant: (combatantId: string) => void;
+  restoreCombatant: (combatantId: string) => void;
   nextTurn: () => void;
   endEncounter: () => void;
   deleteEncounter: (encounterId: string) => void;
@@ -243,6 +245,48 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const removeCombatant = (combatantId: string) => {
+    setState(prev => {
+      if (!prev.activeEncounterId) return prev;
+
+      return {
+        ...prev,
+        encounters: prev.encounters.map(enc => {
+          if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
+
+          return {
+            ...enc,
+            combatants: enc.combatants.map(c =>
+              c.id === combatantId
+                ? { ...c, removed: true, currentHp: c.currentHp === 0 ? 1 : c.currentHp }
+                : c
+            ),
+          };
+        }),
+      };
+    });
+  };
+
+  const restoreCombatant = (combatantId: string) => {
+    setState(prev => {
+      if (!prev.activeEncounterId) return prev;
+
+      return {
+        ...prev,
+        encounters: prev.encounters.map(enc => {
+          if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
+
+          return {
+            ...enc,
+            combatants: enc.combatants.map(c =>
+              c.id === combatantId ? { ...c, removed: false } : c
+            ),
+          };
+        }),
+      };
+    });
+  };
+
   const nextTurn = () => {
     setState(prev => {
       if (!prev.activeEncounterId) return prev;
@@ -352,6 +396,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         startEncounter,
         setInitiative,
         updateCombatantHp,
+        removeCombatant,
+        restoreCombatant,
         nextTurn,
         endEncounter,
         deleteEncounter,
