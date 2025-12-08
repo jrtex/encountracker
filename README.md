@@ -118,7 +118,8 @@ npm run test:coverage # Run tests with coverage report
 - ✅ Basic unit tests
 - Build and publish application
 - Configuration (port)
-- Confirmation window when deleting objects
+- Password/security
+- ✅ Confirmation window when deleting objects
 - ✅ Mark players/npc as dead or out of combat during encounter.
 
 ### Nice-to-Have Features
