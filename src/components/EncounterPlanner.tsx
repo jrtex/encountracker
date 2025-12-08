@@ -85,6 +85,15 @@ export const EncounterPlanner = ({ onEncounterStart }: EncounterPlannerProps) =>
     setMonsterEditData({ name: '', maxHp: 10, armorClass: 10 });
   };
 
+  const handleDeleteEncounter = (encounter: typeof state.encounters[0]) => {
+    if (confirm(`Are you sure you want to delete "${encounter.name}"?\n\nThis action cannot be reversed.`)) {
+      deleteEncounter(encounter.id);
+      if (selectedEncounterId === encounter.id) {
+        setSelectedEncounterId(null);
+      }
+    }
+  };
+
   return (
     <div className="encounter-planner">
       <div className="section-header">
@@ -133,8 +142,9 @@ export const EncounterPlanner = ({ onEncounterStart }: EncounterPlannerProps) =>
                       Start
                     </button>
                     <button
-                      onClick={() => deleteEncounter(encounter.id)}
+                      onClick={() => handleDeleteEncounter(encounter)}
                       className="delete-btn"
+                      title="Delete Encounter"
                     >
                       ×
                     </button>

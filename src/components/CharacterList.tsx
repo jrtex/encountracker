@@ -50,6 +50,12 @@ export const CharacterList = () => {
     updateCharacter(id, { currentHp: maxHp });
   };
 
+  const handleDelete = (char: typeof state.characters[0]) => {
+    if (confirm(`Are you sure you want to delete ${char.name}?\n\nThis action cannot be reversed.`)) {
+      removeCharacter(char.id);
+    }
+  };
+
   return (
     <div className="character-list">
       <div className="section-header">
@@ -135,7 +141,7 @@ export const CharacterList = () => {
                 <button onClick={() => handleEdit(char)} className="edit-btn" title="Edit">
                   ✎
                 </button>
-                <button onClick={() => removeCharacter(char.id)} className="delete-btn">
+                <button onClick={() => handleDelete(char)} className="delete-btn" title="Delete">
                   ×
                 </button>
               </div>

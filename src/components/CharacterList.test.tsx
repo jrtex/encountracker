@@ -1,10 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { render } from '../test/test-utils';
 import { CharacterList } from './CharacterList';
 
 describe('CharacterList', () => {
+  beforeEach(() => {
+    // Mock window.confirm to always return true by default
+    vi.stubGlobal('confirm', vi.fn(() => true));
+  });
+
   it('should render empty state message when no characters exist', () => {
     render(<CharacterList />);
     expect(screen.getByText(/no characters yet/i)).toBeInTheDocument();
