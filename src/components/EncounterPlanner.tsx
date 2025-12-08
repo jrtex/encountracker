@@ -3,7 +3,11 @@ import { useApp } from '../AppContext';
 import { MonsterSelector } from './MonsterSelector';
 import { InitiativeSetup } from './InitiativeSetup';
 
-export const EncounterPlanner = () => {
+interface EncounterPlannerProps {
+  onEncounterStart: () => void;
+}
+
+export const EncounterPlanner = ({ onEncounterStart }: EncounterPlannerProps) => {
   const {
     state,
     createEncounter,
@@ -52,6 +56,9 @@ export const EncounterPlanner = () => {
     startEncounter(encounterToStart, state.characters, initiativeRolls);
     setShowInitiativeSetup(false);
     setEncounterToStart(null);
+
+    // Switch to the Active Combat tab
+    onEncounterStart();
   };
 
   const handleEditMonster = (encounterId: string, monster: typeof state.encounters[0]['monsters'][0]) => {

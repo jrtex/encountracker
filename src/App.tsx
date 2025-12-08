@@ -45,7 +45,7 @@ function App() {
 
       <main className="app-main">
         {activeTab === 'characters' && <CharacterList />}
-        {activeTab === 'encounters' && <EncounterPlanner />}
+        {activeTab === 'encounters' && <EncounterPlanner onEncounterStart={() => setActiveTab('combat')} />}
         {activeTab === 'combat' && <InitiativeTracker />}
       </main>
     </div>

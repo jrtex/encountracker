@@ -113,7 +113,7 @@ npm run test:coverage # Run tests with coverage report
 - ✅ Use initiative as modifier, allow PC to roll their own total
 - Support in-app rolling, including automatic initiative modifier
   - Button to roll for all, or all monsters
-- When starting encounter, go to current combat screen
+- ✅ When starting encounter, go to current combat screen
 - ✅ Don't hide the encounter when it is active, but list it as read-only
 - ✅ Basic unit tests
 - Build and publish application
