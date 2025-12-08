@@ -14,6 +14,7 @@ interface AppContextType {
   startEncounter: (encounterId: string, characters: Character[], initiativeRolls?: Record<string, number>) => void;
   setInitiative: (combatantId: string, initiative: number) => void;
   updateCombatantHp: (combatantId: string, newHp: number) => void;
+  setTempHp: (combatantId: string, tempHp: number) => void;
   removeCombatant: (combatantId: string) => void;
   restoreCombatant: (combatantId: string) => void;
   nextTurn: () => void;
@@ -165,6 +166,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             initiative: modifier,
             initiativeRoll: roll,
             initiativeTotal: total,
+            tempHp: 0,
             conditions: [],
           };
         }),
@@ -178,6 +180,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             initiative: modifier,
             initiativeRoll: roll,
             initiativeTotal: total,
+            tempHp: 0,
             isPlayer: false,
             conditions: [],
             dexterity: m.dexterity,
@@ -236,8 +239,50 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
           return {
             ...enc,
+            combatants: enc.combatants.map(c => {
+              if (c.id !== combatantId) return c;
+
+              // Calculate the change in HP
+              const hpChange = newHp - c.currentHp;
+
+              if (hpChange < 0) {
+                // Taking damage - reduce tempHp first, then currentHp
+                const damage = Math.abs(hpChange);
+                const damageToTemp = Math.min(damage, c.tempHp);
+                const damageToRegular = damage - damageToTemp;
+
+                return {
+                  ...c,
+                  tempHp: c.tempHp - damageToTemp,
+                  currentHp: Math.max(0, c.currentHp - damageToRegular),
+                };
+              } else {
+                // Healing - only affects currentHp, not tempHp
+                return {
+                  ...c,
+                  currentHp: Math.min(newHp, c.maxHp),
+                };
+              }
+            }),
+          };
+        }),
+      };
+    });
+  };
+
+  const setTempHp = (combatantId: string, tempHp: number) => {
+    setState(prev => {
+      if (!prev.activeEncounterId) return prev;
+
+      return {
+        ...prev,
+        encounters: prev.encounters.map(enc => {
+          if (enc.id !== prev.activeEncounterId || !enc.combatants) return enc;
+
+          return {
+            ...enc,
             combatants: enc.combatants.map(c =>
-              c.id === combatantId ? { ...c, currentHp: Math.max(0, Math.min(newHp, c.maxHp)) } : c
+              c.id === combatantId ? { ...c, tempHp: Math.max(0, tempHp) } : c
             ),
           };
         }),
@@ -396,6 +441,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         startEncounter,
         setInitiative,
         updateCombatantHp,
+        setTempHp,
         removeCombatant,
         restoreCombatant,
         nextTurn,

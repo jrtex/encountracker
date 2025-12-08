@@ -54,6 +54,7 @@ export interface Combatant {
   name: string;
   maxHp: number;
   currentHp: number;
+  tempHp: number; // Temporary HP (absorbed before regular HP, cannot be healed)
   armorClass: number;
   initiative: number; // Initiative modifier (e.g., +2, -1)
   initiativeRoll: number; // The d20 roll value (1-20)

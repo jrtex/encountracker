@@ -4,8 +4,9 @@ import { ConditionBadge } from './ConditionBadge';
 import { ConditionSelector } from './ConditionSelector';
 
 export const InitiativeTracker = () => {
-  const { state, setInitiative, updateCombatantHp, removeCombatant, restoreCombatant, nextTurn, endEncounter, addConditionToCombatant, removeConditionFromCombatant } = useApp();
+  const { state, setInitiative, updateCombatantHp, setTempHp, removeCombatant, restoreCombatant, nextTurn, endEncounter, addConditionToCombatant, removeConditionFromCombatant } = useApp();
   const [damageInputs, setDamageInputs] = useState<Record<string, string>>({});
+  const [tempHpInputs, setTempHpInputs] = useState<Record<string, string>>({});
   const [initiativeInputs, setInitiativeInputs] = useState<Record<string, string>>({});
   const [conditionModalOpen, setConditionModalOpen] = useState<string | null>(null);
   const [expandedCombatants, setExpandedCombatants] = useState<Record<string, boolean>>({});
@@ -43,6 +44,14 @@ export const InitiativeTracker = () => {
     const roll = parseInt(initiativeInputs[combatantId] || '0');
     setInitiative(combatantId, roll);
     setInitiativeInputs(prev => ({ ...prev, [combatantId]: '' }));
+  };
+
+  const handleSetTempHp = (combatantId: string) => {
+    const tempHp = parseInt(tempHpInputs[combatantId] || '0');
+    if (tempHp >= 0) {
+      setTempHp(combatantId, tempHp);
+      setTempHpInputs(prev => ({ ...prev, [combatantId]: '' }));
+    }
   };
 
   const handleEndEncounter = () => {
@@ -139,24 +148,42 @@ export const InitiativeTracker = () => {
               </div>
 
               <div className="combatant-stats">
-                <div className="hp-display">
-                  <div className="hp-bar-container">
-                    <div
-                      className="hp-bar"
-                      style={{
-                        width: `${hpPercent}%`,
-                        backgroundColor: hpPercent > 50 ? '#4caf50' : hpPercent > 25 ? '#ff9800' : '#f44336'
-                      }}
-                    />
+                <div className="stats-row">
+                  <div className="hp-display">
+                    <div className="hp-bar-container">
+                      <div
+                        className="hp-bar"
+                        style={{
+                          width: `${hpPercent}%`,
+                          backgroundColor: hpPercent > 50 ? '#4caf50' : hpPercent > 25 ? '#ff9800' : '#f44336'
+                        }}
+                      />
+                    </div>
+                    <span className="hp-text">
+                      {combatant.currentHp}/{combatant.maxHp} HP
+                    </span>
                   </div>
-                  <span className="hp-text">
-                    {combatant.currentHp}/{combatant.maxHp} HP
-                  </span>
+                  <div className="ac-display">
+                    <span className="ac-label">AC:</span>
+                    <span className="ac-value">{combatant.armorClass}</span>
+                  </div>
                 </div>
-                <div className="ac-display">
-                  <span className="ac-label">AC:</span>
-                  <span className="ac-value">{combatant.armorClass}</span>
-                </div>
+                {combatant.tempHp > 0 && (
+                  <div className="temp-hp-display">
+                    <div className="temp-hp-bar-container">
+                      <div
+                        className="temp-hp-bar"
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#00bcd4'
+                        }}
+                      />
+                    </div>
+                    <span className="temp-hp-text">
+                      {combatant.tempHp} Temp HP
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="damage-controls">
@@ -190,6 +217,27 @@ export const InitiativeTracker = () => {
                   title="Remove from encounter"
                 >
                   Remove
+                </button>
+              </div>
+
+              <div className="temp-hp-controls">
+                <input
+                  type="number"
+                  placeholder="Temp HP"
+                  value={tempHpInputs[combatant.id] || ''}
+                  onChange={e => setTempHpInputs(prev => ({
+                    ...prev,
+                    [combatant.id]: e.target.value
+                  }))}
+                  className="temp-hp-input"
+                  min="0"
+                />
+                <button
+                  onClick={() => handleSetTempHp(combatant.id)}
+                  className="set-temp-hp-btn"
+                  disabled={!tempHpInputs[combatant.id]}
+                >
+                  Set Temp HP
                 </button>
               </div>
 

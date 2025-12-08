@@ -109,7 +109,7 @@ npm run test:coverage # Run tests with coverage report
 - ✅ Show monster actions & features
 - ✅ Add multiple of a type of monster
 - ✅ Support statuses (blinded, prone, poisoned, etc)
-- Support temporary HP
+- ✅ Support temporary HP
 - ✅ Use initiative as modifier, allow PC to roll their own total
 - Support in-app rolling, including automatic initiative modifier
   - Button to roll for all, or all monsters

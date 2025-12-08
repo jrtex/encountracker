@@ -582,9 +582,16 @@
 
 .combatant-stats {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stats-row {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .hp-display {
@@ -612,12 +619,38 @@
   color: #333;
 }
 
+.temp-hp-display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.temp-hp-bar-container {
+  height: 20px;
+  background: #e0f7fa;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #00bcd4;
+}
+
+.temp-hp-bar {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+  border-radius: 10px;
+}
+
+.temp-hp-text {
+  font-weight: 600;
+  color: #00838f;
+  font-size: 0.9rem;
+}
+
 .ac-display {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 1.1rem;
-  margin-left: 1rem;
 }
 
 .ac-value {
@@ -629,6 +662,7 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .damage-input {
@@ -648,6 +682,38 @@
 }
 
 .damage-btn:disabled, .heal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.temp-hp-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.temp-hp-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #00bcd4;
+  border-radius: 6px;
+}
+
+.set-temp-hp-btn {
+  background: #00bcd4;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.set-temp-hp-btn:hover {
+  background: #00acc1;
+}
+
+.set-temp-hp-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

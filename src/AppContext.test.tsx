@@ -1115,4 +1115,313 @@ describe('AppContext', () => {
       expect(result.current.state.encounters[0].combatants![0].removed).toBe(true);
     });
   });
+
+  describe('Temporary HP', () => {
+    it('should initialize combatants with 0 temporary HP', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Fighter',
+        maxHp: 50,
+        currentHp: 50,
+        armorClass: 18,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Temp HP Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(0);
+    });
+
+    it('should set temporary HP', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Paladin',
+        maxHp: 60,
+        currentHp: 60,
+        armorClass: 19,
+        initiative: 1,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Set Temp HP Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      act(() => {
+        result.current.setTempHp(combatantId, 10);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].tempHp).toBe(10);
+    });
+
+    it('should not allow negative temporary HP', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Wizard',
+        maxHp: 30,
+        currentHp: 30,
+        armorClass: 14,
+        initiative: 3,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Negative Temp HP Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      act(() => {
+        result.current.setTempHp(combatantId, -5);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].tempHp).toBe(0);
+    });
+
+    it('should reduce tempHp first when taking damage', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Barbarian',
+        maxHp: 70,
+        currentHp: 70,
+        armorClass: 14,
+        initiative: 1,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Temp HP Damage Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Set temporary HP
+      act(() => {
+        result.current.setTempHp(combatantId, 15);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].tempHp).toBe(15);
+
+      // Take 10 damage (should only reduce tempHp)
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 60);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(5); // 15 - 10 = 5
+      expect(combatant.currentHp).toBe(70); // Regular HP unchanged
+    });
+
+    it('should overflow damage to regular HP when tempHp is depleted', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Rogue',
+        maxHp: 40,
+        currentHp: 40,
+        armorClass: 16,
+        initiative: 4,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Overflow Damage Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Set temporary HP
+      act(() => {
+        result.current.setTempHp(combatantId, 8);
+      });
+
+      // Take 20 damage (8 to tempHp, 12 to regular HP)
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 20);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(0); // All temp HP depleted
+      expect(combatant.currentHp).toBe(28); // 40 - 12 = 28
+    });
+
+    it('should not heal temporary HP when healing', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Cleric',
+        maxHp: 45,
+        currentHp: 30,
+        armorClass: 17,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Healing Temp HP Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Set initial HP to 30
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 30);
+      });
+
+      // Set temporary HP
+      act(() => {
+        result.current.setTempHp(combatantId, 10);
+      });
+
+      // Take some damage to reduce tempHp
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 25);
+      });
+
+      let combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(5); // 10 - 5 = 5
+      expect(combatant.currentHp).toBe(30); // HP unchanged
+
+      // Heal the combatant
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 40);
+      });
+
+      combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(5); // Temp HP unchanged by healing
+      expect(combatant.currentHp).toBe(40); // Regular HP healed
+    });
+
+    it('should handle damage equal to tempHp exactly', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Monk',
+        maxHp: 42,
+        currentHp: 42,
+        armorClass: 16,
+        initiative: 3,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Exact Damage Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Set temporary HP
+      act(() => {
+        result.current.setTempHp(combatantId, 12);
+      });
+
+      // Take exactly 12 damage (should deplete tempHp but not affect regular HP)
+      act(() => {
+        result.current.updateCombatantHp(combatantId, 30);
+      });
+
+      const combatant = result.current.state.encounters[0].combatants![0];
+      expect(combatant.tempHp).toBe(0); // All temp HP depleted
+      expect(combatant.currentHp).toBe(42); // Regular HP unchanged
+    });
+
+    it('should allow replacing tempHp with a new value', () => {
+      const { result } = renderHook(() => useApp(), { wrapper: AppProvider });
+
+      const character: Omit<Character, 'id'> = {
+        name: 'Sorcerer',
+        maxHp: 32,
+        currentHp: 32,
+        armorClass: 13,
+        initiative: 2,
+        isPlayer: true,
+      };
+
+      act(() => {
+        result.current.addCharacter(character);
+        result.current.createEncounter('Replace Temp HP Test');
+      });
+
+      const encounterId = result.current.state.encounters[0].id;
+
+      act(() => {
+        result.current.startEncounter(encounterId, result.current.state.characters);
+      });
+
+      const combatantId = result.current.state.encounters[0].combatants![0].id;
+
+      // Set initial temporary HP
+      act(() => {
+        result.current.setTempHp(combatantId, 10);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].tempHp).toBe(10);
+
+      // Set new temporary HP value
+      act(() => {
+        result.current.setTempHp(combatantId, 20);
+      });
+
+      expect(result.current.state.encounters[0].combatants![0].tempHp).toBe(20);
+    });
+  });
 });
