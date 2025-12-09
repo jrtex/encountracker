@@ -1,3 +1,22 @@
+/* ===============================================
+   D&D Encounter Tracker - Main Stylesheet
+   Imports design system and component styles
+   =============================================== */
+
+/* Design System Foundation */
+@import './styles/variables.css';
+@import './styles/reset.css';
+@import './styles/utilities.css';
+@import './styles/typography.css';
+@import './styles/buttons.css';
+@import './styles/forms.css';
+@import './styles/cards.css';
+
+/* ===============================================
+   Legacy Component Styles
+   To be refactored in Phase 3
+   =============================================== */
+
 .app {
   min-height: 100vh;
   display: flex;

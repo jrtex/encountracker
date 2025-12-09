@@ -1,0 +1,301 @@
+/* ===============================================
+   Button System
+   Three-size hierarchy with D&D-themed gradients
+   =============================================== */
+
+/* ===== BASE BUTTON ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
+  outline: none;
+  user-select: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ===== BUTTON SIZES ===== */
+
+/* Small - Icon buttons, compact controls */
+.btn--sm {
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  gap: 4px;
+}
+
+/* Medium - Standard actions (DEFAULT) */
+.btn--md {
+  padding: 8px 16px;
+  font-size: var(--font-size-sm);
+  gap: 8px;
+}
+
+/* Large - Primary CTAs, section headers */
+.btn--lg {
+  padding: 12px 24px;
+  font-size: var(--font-size-base);
+  gap: 8px;
+}
+
+/* ===== BUTTON VARIANTS ===== */
+
+/* Primary - Purple/blue for main actions */
+.btn--primary {
+  background: var(--color-primary-700);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-800);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Secondary - Purple for highlights */
+.btn--secondary {
+  background: var(--color-secondary-700);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--color-secondary-800);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Success - Green for positive actions */
+.btn--success {
+  background: var(--color-success-600);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--success:hover:not(:disabled) {
+  background: var(--color-success-700);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--success:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Danger - Red for destructive actions */
+.btn--danger {
+  background: var(--color-danger-600);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-700);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--danger:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Warning - Orange for warning actions */
+.btn--warning {
+  background: var(--color-warning-600);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--warning:hover:not(:disabled) {
+  background: var(--color-warning-700);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--warning:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Info - Blue for informational actions */
+.btn--info {
+  background: var(--color-info-600);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--info:hover:not(:disabled) {
+  background: var(--color-info-700);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn--info:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Ghost - Transparent with border */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-border-dark);
+}
+
+.btn--ghost:active:not(:disabled) {
+  background: var(--color-neutral-200);
+}
+
+/* Outline - Hollow with colored border */
+.btn--outline {
+  background: transparent;
+  color: var(--color-primary-700);
+  border: 2px solid var(--color-primary-700);
+}
+
+.btn--outline:hover:not(:disabled) {
+  background: var(--color-primary-700);
+  color: white;
+}
+
+.btn--outline:active:not(:disabled) {
+  background: var(--color-primary-800);
+  border-color: var(--color-primary-800);
+}
+
+/* Link - Text-only button */
+.btn--link {
+  background: transparent;
+  color: var(--color-primary-700);
+  text-decoration: underline;
+  box-shadow: none;
+}
+
+.btn--link:hover:not(:disabled) {
+  color: var(--color-primary-800);
+  text-decoration: none;
+}
+
+/* ===== ICON BUTTONS ===== */
+.btn--icon {
+  padding: 8px;
+  border-radius: var(--radius-full);
+  aspect-ratio: 1;
+  justify-content: center;
+}
+
+.btn--icon.btn--sm {
+  padding: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
+.btn--icon.btn--md {
+  padding: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+}
+
+.btn--icon.btn--lg {
+  padding: 12px;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+/* ===== BUTTON GROUPS ===== */
+.btn-group {
+  display: inline-flex;
+  gap: 0;
+}
+
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.btn-group .btn + .btn {
+  margin-left: -1px;
+}
+
+/* ===== BUTTON BLOCK ===== */
+.btn--block {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ===== LOADING STATE ===== */
+.btn--loading {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.btn--loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-right-color: transparent;
+  animation: button-loading-spinner 0.6s linear infinite;
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

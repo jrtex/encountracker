@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Showcase - Encountracker Design System</title>
+  <link rel="stylesheet" href="./src/styles/variables.css">
+  <link rel="stylesheet" href="./src/styles/reset.css">
+  <link rel="stylesheet" href="./src/styles/utilities.css">
+  <link rel="stylesheet" href="./src/styles/buttons.css">
+  <style>
+    body {
+      padding: 2rem;
+      background: var(--color-background);
+      font-family: var(--font-family-base);
+    }
+
+    .showcase-section {
+      margin-bottom: 3rem;
+      padding: 2rem;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .showcase-section h2 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      color: var(--color-text-primary);
+      border-bottom: 2px solid var(--color-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .showcase-section h3 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--color-text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .label {
+      font-size: 0.9rem;
+      color: var(--color-text-tertiary);
+      min-width: 100px;
+    }
+
+    code {
+      background: var(--color-neutral-100);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--color-primary-700);
+    }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 2rem; color: var(--color-primary-700);">Encountracker Button Showcase</h1>
+
+  <!-- Primary Buttons by Size -->
+  <div class="showcase-section">
+    <h2>Primary Buttons (Main Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for main CTAs like "Add Character", "Start Encounter", "Add Monster"
+    </p>
+
+    <h3>Sizes</h3>
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--primary btn--sm">Add Character</button>
+      <code>.btn .btn--primary .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium (default):</span>
+      <button class="btn btn--primary btn--md">Add Character</button>
+      <code>.btn .btn--primary .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--primary btn--lg">Add Character</button>
+      <code>.btn .btn--primary .btn--lg</code>
+    </div>
+
+    <h3>States</h3>
+    <div class="button-row">
+      <span class="label">Disabled:</span>
+      <button class="btn btn--primary btn--md" disabled>Add Character</button>
+      <code>disabled attribute</code>
+    </div>
+  </div>
+
+  <!-- Success Buttons -->
+  <div class="showcase-section">
+    <h2>Success Buttons (Positive Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "Next Turn", "Full Heal", "Add" (submit actions)
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--success btn--sm">Full Heal</button>
+      <code>.btn .btn--success .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--success btn--md">Next Turn</button>
+      <code>.btn .btn--success .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--success btn--lg">Start Combat</button>
+      <code>.btn .btn--success .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Danger Buttons -->
+  <div class="showcase-section">
+    <h2>Danger Buttons (Destructive Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "Delete", "End Encounter", "Apply Damage"
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--danger btn--sm">Delete</button>
+      <code>.btn .btn--danger .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--danger btn--md">Apply Damage</button>
+      <code>.btn .btn--danger .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--danger btn--lg">End Encounter</button>
+      <code>.btn .btn--danger .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Warning Buttons -->
+  <div class="showcase-section">
+    <h2>Warning Buttons (Cautionary Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "Remove", "Remove Combatant"
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--warning btn--sm">Remove</button>
+      <code>.btn .btn--warning .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--warning btn--md">Remove Combatant</button>
+      <code>.btn .btn--warning .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--warning btn--lg">Remove Monster</button>
+      <code>.btn .btn--warning .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Secondary Buttons -->
+  <div class="showcase-section">
+    <h2>Secondary Buttons (Alternative Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for secondary CTAs, alternative actions
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--secondary btn--sm">Edit</button>
+      <code>.btn .btn--secondary .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--secondary btn--md">Save Changes</button>
+      <code>.btn .btn--secondary .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--secondary btn--lg">Edit Encounter</button>
+      <code>.btn .btn--secondary .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Info Buttons -->
+  <div class="showcase-section">
+    <h2>Info Buttons (Informational Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "Add Condition", "View Details"
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--info btn--sm">Add Condition</button>
+      <code>.btn .btn--info .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--info btn--md">View Details</button>
+      <code>.btn .btn--info .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--info btn--lg">Show Info</button>
+      <code>.btn .btn--info .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Ghost Buttons -->
+  <div class="showcase-section">
+    <h2>Ghost Buttons (Subtle Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "Cancel", secondary navigation
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--ghost btn--sm">Cancel</button>
+      <code>.btn .btn--ghost .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--ghost btn--md">Cancel</button>
+      <code>.btn .btn--ghost .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--ghost btn--lg">Cancel</button>
+      <code>.btn .btn--ghost .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Outline Buttons -->
+  <div class="showcase-section">
+    <h2>Outline Buttons (Bordered Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for secondary actions with emphasis
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--outline btn--sm">Learn More</button>
+      <code>.btn .btn--outline .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--outline btn--md">Learn More</button>
+      <code>.btn .btn--outline .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--outline btn--lg">Learn More</button>
+      <code>.btn .btn--outline .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Link Buttons -->
+  <div class="showcase-section">
+    <h2>Link Buttons (Text-only Actions)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for inline text actions
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--link btn--sm">View Details</button>
+      <code>.btn .btn--link .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--link btn--md">View Details</button>
+      <code>.btn .btn--link .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--link btn--lg">View Details</button>
+      <code>.btn .btn--link .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Icon Buttons -->
+  <div class="showcase-section">
+    <h2>Icon Buttons (Circular Icons)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for "×" (close), "✎" (edit), "+" (add), etc.
+    </p>
+
+    <div class="button-row">
+      <span class="label">Small:</span>
+      <button class="btn btn--danger btn--icon btn--sm">×</button>
+      <button class="btn btn--primary btn--icon btn--sm">✎</button>
+      <button class="btn btn--success btn--icon btn--sm">+</button>
+      <code>.btn .btn--{variant} .btn--icon .btn--sm</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Medium:</span>
+      <button class="btn btn--danger btn--icon btn--md">×</button>
+      <button class="btn btn--primary btn--icon btn--md">✎</button>
+      <button class="btn btn--success btn--icon btn--md">+</button>
+      <code>.btn .btn--{variant} .btn--icon .btn--md</code>
+    </div>
+
+    <div class="button-row">
+      <span class="label">Large:</span>
+      <button class="btn btn--danger btn--icon btn--lg">×</button>
+      <button class="btn btn--primary btn--icon btn--lg">✎</button>
+      <button class="btn btn--success btn--icon btn--lg">+</button>
+      <code>.btn .btn--{variant} .btn--icon .btn--lg</code>
+    </div>
+  </div>
+
+  <!-- Button Groups -->
+  <div class="showcase-section">
+    <h2>Button Groups (Connected Buttons)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for mode toggles, related actions
+    </p>
+
+    <div class="button-row">
+      <span class="label">Example:</span>
+      <div class="btn-group">
+        <button class="btn btn--primary btn--md">API</button>
+        <button class="btn btn--ghost btn--md">Manual</button>
+      </div>
+      <code>.btn-group</code>
+    </div>
+  </div>
+
+  <!-- Block Buttons -->
+  <div class="showcase-section">
+    <h2>Block Buttons (Full Width)</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Used for form submissions, modal actions
+    </p>
+
+    <div style="max-width: 400px;">
+      <button class="btn btn--primary btn--md btn--block">Submit Form</button>
+      <br><br>
+      <button class="btn btn--success btn--md btn--block">Restore Character</button>
+      <br><br>
+      <button class="btn btn--danger btn--md btn--block">Delete Account</button>
+    </div>
+    <code>.btn--block</code>
+  </div>
+
+  <!-- Loading State -->
+  <div class="showcase-section">
+    <h2>Loading State</h2>
+    <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">
+      Shows a spinner while action is processing
+    </p>
+
+    <div class="button-row">
+      <span class="label">Loading:</span>
+      <button class="btn btn--primary btn--md btn--loading">Loading...</button>
+      <code>.btn--loading</code>
+    </div>
+  </div>
+
+  <!-- Real-world Examples -->
+  <div class="showcase-section">
+    <h2>Real-world Examples from the App</h2>
+
+    <h3>Character List Header</h3>
+    <div class="button-row">
+      <button class="btn btn--primary btn--md">Add Character</button>
+    </div>
+
+    <h3>Character Card Actions</h3>
+    <div class="button-row">
+      <button class="btn btn--primary btn--icon btn--sm">✎</button>
+      <button class="btn btn--danger btn--icon btn--sm">×</button>
+      <button class="btn btn--success btn--sm btn--block" style="max-width: 200px;">Full Heal</button>
+    </div>
+
+    <h3>Encounter Planner</h3>
+    <div class="button-row">
+      <button class="btn btn--success btn--md">Start Encounter</button>
+      <button class="btn btn--primary btn--md">Add Monster</button>
+      <button class="btn btn--danger btn--icon btn--sm">×</button>
+    </div>
+
+    <h3>Initiative Tracker</h3>
+    <div class="button-row">
+      <button class="btn btn--success btn--md">Next Turn</button>
+      <button class="btn btn--danger btn--md">End Encounter</button>
+      <button class="btn btn--danger btn--md">Apply Damage</button>
+      <button class="btn btn--success btn--md">Heal</button>
+      <button class="btn btn--info btn--sm">Set Temp HP</button>
+      <button class="btn btn--warning btn--md">Remove Combatant</button>
+    </div>
+
+    <h3>Modal Actions</h3>
+    <div class="button-row">
+      <button class="btn btn--ghost btn--icon btn--md">×</button>
+      <button class="btn btn--success btn--md">Add Selected</button>
+      <button class="btn btn--ghost btn--md">Cancel</button>
+    </div>
+
+    <h3>Data Manager</h3>
+    <div class="button-row">
+      <button class="btn btn--ghost btn--sm">Export Data</button>
+      <button class="btn btn--ghost btn--sm">Import Data</button>
+    </div>
+  </div>
+
+</body>
+</html>
