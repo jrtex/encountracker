@@ -1,0 +1,176 @@
+/* ===============================================
+   CSS Reset & Baseline Styles
+   Modern CSS Reset with D&D theming
+   =============================================== */
+
+/* Box sizing normalization */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margins and padding */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set core root defaults */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove list styles on ul, ol elements with a list role */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Make images easier to work with */
+img,
+picture,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove default button styles */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Remove link underlines */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Remove text-transform inheritance in Edge and Firefox */
+button,
+select {
+  text-transform: none;
+}
+
+/* Correct the inability to style clickable types in iOS and Safari */
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
+  -webkit-appearance: button;
+}
+
+/* Remove the inner border and padding in Firefox */
+::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+/* Restore the focus styles unset by the previous rule */
+:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+/* Change the border, margin, and padding in all browsers */
+fieldset {
+  border: 1px solid var(--color-border);
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em;
+}
+
+/* Correct the text wrapping in Edge and IE */
+legend {
+  color: inherit;
+  display: table;
+  max-width: 100%;
+  white-space: normal;
+}
+
+/* Add the correct vertical alignment in Chrome and Firefox */
+progress {
+  vertical-align: baseline;
+}
+
+/* Correct the cursor style of increment and decrement buttons in Safari */
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/* Correct the odd appearance in Chrome and Safari */
+[type='search'] {
+  -webkit-appearance: textfield;
+  outline-offset: -2px;
+}
+
+/* Remove the inner padding in Chrome and Safari on macOS */
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* Correct the inability to style clickable types in iOS and Safari */
+::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  font: inherit;
+}
+
+/* Add the correct display in Edge, IE 10+, and Firefox */
+details {
+  display: block;
+}
+
+/* Add the correct display in all browsers */
+summary {
+  display: list-item;
+}
+
+/* Add the correct display in IE 10 */
+template,
+[hidden] {
+  display: none;
+}
+
+/* Remove all animations and transitions for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+   scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

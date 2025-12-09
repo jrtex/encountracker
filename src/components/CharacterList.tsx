@@ -138,10 +138,10 @@ export const CharacterList = () => {
             <div className="character-header">
               <h3>{char.name}</h3>
               <div>
-                <button onClick={() => handleEdit(char)} className="edit-btn" title="Edit">
-                  ✎
+                <button onClick={() => handleEdit(char)} className="btn btn--secondary btn--sm" title="Edit">
+                  Edit
                 </button>
-                <button onClick={() => handleDelete(char)} className="delete-btn" title="Delete">
+                <button onClick={() => handleDelete(char)} className="btn btn--danger btn--icon btn--sm" title="Delete">
                   ×
                 </button>
               </div>

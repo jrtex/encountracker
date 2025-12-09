@@ -126,6 +126,7 @@ npm run test:coverage # Run tests with coverage report
 - Nicer UI
   - left-right carousel to show turn order instead of top-bottom
   - Unified button style
+- Mark players in party as inactive, to exclude them when starting encounters
 - Github actions to run unit tests on commit
 - DM-only and Player-only views
 - Campaign management with new sets of players and saved encounters
