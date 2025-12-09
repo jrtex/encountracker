@@ -222,10 +222,10 @@ export const EncounterPlanner = ({ onEncounterStart }: EncounterPlannerProps) =>
                           <div className="monster-actions">
                             <button
                               onClick={() => handleEditMonster(encounter.id, monster)}
-                              className="btn btn--primary btn--icon btn--sm"
+                              className="btn btn--secondary btn--sm"
                               title="Edit"
                             >
-                              ✎
+                              Edit
                             </button>
                             <button
                               onClick={() => removeMonsterFromEncounter(encounter.id, monster.id)}
