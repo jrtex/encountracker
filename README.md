@@ -111,8 +111,8 @@ npm run test:coverage # Run tests with coverage report
 - ✅ Support statuses (blinded, prone, poisoned, etc)
 - ✅ Support temporary HP
 - ✅ Use initiative as modifier, allow PC to roll their own total
-- Support in-app rolling, including automatic initiative modifier
-  - Button to roll for all, or all monsters
+- ✅ Support in-app rolling, including automatic initiative modifier
+  - ✅ Button to roll for all, or all monsters
 - ✅ When starting encounter, go to current combat screen
 - ✅ Don't hide the encounter when it is active, but list it as read-only
 - ✅ Basic unit tests

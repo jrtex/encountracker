@@ -838,10 +838,17 @@
 
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 1rem;
   padding-top: 1rem;
+  padding-left: 5px;
+  padding-right: 5px;
   border-top: 1px solid #e0e0e0;
+}
+
+.modal-footer-actions {
+  display: flex;
+  gap: 1rem;
 }
 
 .cancel-btn {

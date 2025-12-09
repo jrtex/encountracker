@@ -44,6 +44,29 @@ export const InitiativeSetup = ({
     }
   };
 
+  const handleRollD20 = (id: string) => {
+    const roll = Math.floor(Math.random() * 20) + 1;
+    setInitiativeRolls(prev => ({ ...prev, [id]: roll }));
+  };
+
+  const handleRollForAll = () => {
+    const newRolls: Record<string, number> = { ...initiativeRolls };
+
+    // Always roll for monsters
+    monsters.forEach(m => {
+      newRolls[m.id] = Math.floor(Math.random() * 20) + 1;
+    });
+
+    // Only roll for PCs if in 'roll' mode (DM rolls)
+    if (pcInputMode === 'roll') {
+      characters.forEach(c => {
+        newRolls[c.id] = Math.floor(Math.random() * 20) + 1;
+      });
+    }
+
+    setInitiativeRolls(newRolls);
+  };
+
   const handleStart = () => {
     onStart(initiativeRolls);
   };
@@ -63,15 +86,15 @@ export const InitiativeSetup = ({
 
         <div className="initiative-mode-toggle">
           <label>PC Input Mode:</label>
-          <div className="toggle-buttons">
+          <div className="btn-group">
             <button
-              className={pcInputMode === 'total' ? 'active' : ''}
+              className={`btn btn--sm ${pcInputMode === 'total' ? 'btn--primary' : 'btn--ghost'}`}
               onClick={() => setPcInputMode('total')}
             >
               Total (Players rolled)
             </button>
             <button
-              className={pcInputMode === 'roll' ? 'active' : ''}
+              className={`btn btn--sm ${pcInputMode === 'roll' ? 'btn--primary' : 'btn--ghost'}`}
               onClick={() => setPcInputMode('roll')}
             >
               Roll (DM rolls)
@@ -114,6 +137,14 @@ export const InitiativeSetup = ({
                   ) : (
                     <>
                       <label htmlFor={`init-${participant.id}`}>Roll (d20):</label>
+                      <button
+                        onClick={() => handleRollD20(participant.id)}
+                        className="btn btn--secondary btn--sm"
+                        type="button"
+                        title="Roll d20"
+                      >
+                        🎲
+                      </button>
                       <input
                         id={`init-${participant.id}`}
                         type="number"
@@ -139,8 +170,13 @@ export const InitiativeSetup = ({
         </div>
 
         <div className="modal-footer">
-          <button onClick={onCancel} className="cancel-btn">Cancel</button>
-          <button onClick={handleStart} className="start-btn">Start Encounter</button>
+          <button onClick={handleRollForAll} className="btn btn--secondary" type="button" style={{ paddingLeft: '10px', paddingRight: '10px' }}>
+            Roll for all
+          </button>
+          <div className="modal-footer-actions">
+            <button onClick={onCancel} className="cancel-btn">Cancel</button>
+            <button onClick={handleStart} className="start-btn">Start Encounter</button>
+          </div>
         </div>
       </div>
     </div>
