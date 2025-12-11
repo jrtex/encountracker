@@ -4,12 +4,14 @@ import { EncounterPlanner } from './components/EncounterPlanner';
 import { InitiativeTracker } from './components/InitiativeTracker';
 import { DataManager } from './components/DataManager';
 import { useApp } from './AppContext';
+import { useAuth } from './AuthContext';
 import './App.css';
 
 type Tab = 'characters' | 'encounters' | 'combat';
 
 function App() {
   const { state } = useApp();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('characters');
 
   const hasActiveEncounter = state.encounters.some(e => e.isActive);
@@ -18,7 +20,12 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>D&D Encounter Tracker</h1>
-        <DataManager />
+        <div className="header-actions">
+          <DataManager />
+          <button onClick={logout} className="logout-btn">
+            Logout
+          </button>
+        </div>
       </header>
 
       <nav className="tab-nav">

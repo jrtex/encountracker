@@ -38,6 +38,25 @@ A web application for Dungeon Masters to plan and manage Dungeons & Dragons comb
 npm install
 ```
 
+### Authentication Setup
+
+This app requires password authentication. To set up:
+
+1. Create a file `public/config.json` with the following content:
+   ```json
+   {
+     "password": "yourpassword"
+   }
+   ```
+
+2. Replace `"yourpassword"` with your desired password
+
+3. **Important:** The `config.json` file is git-ignored. Each user must create their own config file.
+
+4. Users will stay logged in via localStorage. Use the "Logout" button in the header to log out.
+
+**Security Note:** This authentication provides basic access control for personal/local use. It is not suitable for production or internet-facing applications. The password is stored in plain text and validated client-side only.
+
 ### Development
 ```bash
 npm run dev

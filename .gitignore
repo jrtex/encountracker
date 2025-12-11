@@ -26,3 +26,6 @@ dist-ssr
 # Claude Code documentation
 CLAUDE.md
 .claude/*
+
+# Authentication config (contains password)
+public/config.json
