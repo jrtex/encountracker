@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+npm-debug.log
+
+# Environment files (use docker-compose env instead)
+.env
+
+# Git
+.git/
+.gitignore
+
+# Database files (should be in volumes)
+data/
+*.sqlite
+*.sqlite3
+*.db
+
+# Documentation
+*.md
+README.md
+
+# Tests
+tests/
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/

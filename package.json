@@ -1,0 +1,45 @@
+{
+  "name": "dnd-encounter-manager",
+  "version": "1.0.0",
+  "description": "Cross-platform D&D 5e encounter manager web application",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "init-db": "node server/utils/initDatabase.js"
+  },
+  "keywords": ["dnd", "encounter", "manager", "5e"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1",
+    "sqlite3": "^5.1.7",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^17.2.3",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.0.1",
+    "winston": "^3.11.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4",
+    "nodemon": "^3.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "server/**/*.js",
+      "!server/index.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  }
+}
