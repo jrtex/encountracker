@@ -1,6 +1,10 @@
-# D&D 5e Encounter Manager
 
 A cross-platform web application for managing D&D 5e encounters, built with a production-ready scaffold that allows for incremental feature implementation.
+
+## Disclaimer
+
+This application is built primarily using AI coding tools. This project is intended as a learning project while providing useful functionality for personal hobbies. While safety is taken into account as part of the development of this application, safety is not guaranteed. Run this application at your own risk.
+
 
 ## Features (Scaffold)
 

@@ -100,16 +100,27 @@
         <!-- Campaigns Page -->
         <div id="campaigns-page" class="page">
             <div class="container">
-                <h2>Campaigns</h2>
-                <p>Campaign management will be implemented here.</p>
+                <div class="page-header">
+                    <h2>Campaigns</h2>
+                    <button id="new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                </div>
+                <div id="campaigns-list"></div>
             </div>
         </div>
 
         <!-- Encounters Page -->
         <div id="encounters-page" class="page">
             <div class="container">
-                <h2>Encounters</h2>
-                <p>Encounter management will be implemented here.</p>
+                <div class="page-header">
+                    <h2>Encounters</h2>
+                    <div class="page-actions">
+                        <select id="encounter-campaign-filter" class="form-control">
+                            <option value="">All Campaigns</option>
+                        </select>
+                        <button id="new-encounter-btn" class="btn btn-primary admin-only">New Encounter</button>
+                    </div>
+                </div>
+                <div id="encounters-list"></div>
             </div>
         </div>
 
@@ -132,6 +143,8 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/campaigns.js"></script>
+    <script src="js/encounters.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

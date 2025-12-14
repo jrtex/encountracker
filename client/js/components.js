@@ -19,11 +19,14 @@ const Components = {
   showModal(title, content, actions = []) {
     const container = document.getElementById('modal-container');
 
+    // Clear any existing modals to prevent ID conflicts
+    container.innerHTML = '';
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
 
     const actionsHTML = actions.map(action =>
-      `<button class="btn ${action.class || 'btn-primary'}" data-action="${action.id}">${action.label}</button>`
+      `<button type="button" class="btn ${action.class || 'btn-primary'}" data-action="${action.id}">${action.label}</button>`
     ).join('');
 
     modal.innerHTML = `
