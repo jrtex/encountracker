@@ -103,9 +103,14 @@ const Players = {
     const classBadge = player.character_class
       ? Components.createBadge(player.character_class, 'secondary')
       : '';
+    const statusBadge = Components.createBadge(
+      player.is_active ? 'Active' : 'Inactive',
+      player.is_active ? 'success' : 'secondary'
+    );
 
     const content = `
       <div class="player-class-info">
+        ${statusBadge.outerHTML}
         ${levelBadge.outerHTML}
         ${classBadge ? classBadge.outerHTML : ''}
       </div>
@@ -151,7 +156,11 @@ const Players = {
       footer.appendChild(deleteBtn);
     }
 
-    return Components.createCard(player.character_name, content, footer);
+    const card = Components.createCard(player.character_name, content, footer);
+    if (!player.is_active) {
+      card.classList.add('player-card-inactive');
+    }
+    return card;
   },
 
   showPlayerModal(player = null) {
@@ -249,6 +258,16 @@ const Players = {
           </div>
         </div>
         <div class="form-group">
+          <label>
+            <input
+              type="checkbox"
+              id="player-active"
+              ${player ? (player.is_active ? 'checked' : '') : 'checked'}
+            >
+            Active
+          </label>
+        </div>
+        <div class="form-group">
           <label for="player-notes">Notes</label>
           <textarea
             id="player-notes"
@@ -290,6 +309,7 @@ const Players = {
     const speedInput = document.getElementById('player-speed');
     const initiativeInput = document.getElementById('player-initiative');
     const notesInput = document.getElementById('player-notes');
+    const activeInput = document.getElementById('player-active');
 
     const campaign_id = campaignHiddenInput ? campaignHiddenInput.value : campaignInput.value;
     const character_name = nameInput.value.trim();
@@ -331,6 +351,7 @@ const Players = {
       armor_class,
       speed: !isNaN(speed) ? speed : 30,
       initiative_bonus: !isNaN(initiative_bonus) ? initiative_bonus : 0,
+      is_active: activeInput.checked,
       notes: notes || ''
     };
 

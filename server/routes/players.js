@@ -72,11 +72,12 @@ router.post(
     body('armor_class').isInt({ min: 0 }).withMessage('Armor class must be non-negative'),
     body('speed').optional().isInt({ min: 0 }).withMessage('Speed must be non-negative'),
     body('initiative_bonus').optional().isInt().withMessage('Initiative bonus must be an integer'),
+    body('is_active').optional().isBoolean().withMessage('Active status must be a boolean'),
     body('notes').optional().trim()
   ],
   validate,
   async (req, res) => {
-    const { campaign_id, character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, notes } = req.body;
+    const { campaign_id, character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, is_active, notes } = req.body;
 
     // Verify campaign belongs to user
     const campaign = await database.get(
@@ -92,7 +93,7 @@ router.post(
     }
 
     const result = await database.run(
-      'INSERT INTO players (campaign_id, character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO players (campaign_id, character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, is_active, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         campaign_id,
         character_name,
@@ -103,6 +104,7 @@ router.post(
         armor_class,
         speed || 30,
         initiative_bonus || 0,
+        is_active !== undefined ? is_active : 1,
         notes || ''
       ]
     );
@@ -133,11 +135,12 @@ router.put(
     body('armor_class').isInt({ min: 0 }).withMessage('Armor class must be non-negative'),
     body('speed').optional().isInt({ min: 0 }).withMessage('Speed must be non-negative'),
     body('initiative_bonus').optional().isInt().withMessage('Initiative bonus must be an integer'),
+    body('is_active').optional().isBoolean().withMessage('Active status must be a boolean'),
     body('notes').optional().trim()
   ],
   validate,
   async (req, res) => {
-    const { character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, notes } = req.body;
+    const { character_name, character_class, level, max_hp, current_hp, armor_class, speed, initiative_bonus, is_active, notes } = req.body;
 
     // Verify player belongs to user's campaign
     const player = await database.get(
@@ -155,7 +158,7 @@ router.put(
     }
 
     await database.run(
-      'UPDATE players SET character_name = ?, character_class = ?, level = ?, max_hp = ?, current_hp = ?, armor_class = ?, speed = ?, initiative_bonus = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE players SET character_name = ?, character_class = ?, level = ?, max_hp = ?, current_hp = ?, armor_class = ?, speed = ?, initiative_bonus = ?, is_active = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
       [
         character_name,
         character_class || null,
@@ -165,6 +168,7 @@ router.put(
         armor_class,
         speed !== undefined ? speed : player.speed,
         initiative_bonus !== undefined ? initiative_bonus : player.initiative_bonus,
+        is_active !== undefined ? is_active : player.is_active,
         notes || '',
         req.params.id
       ]

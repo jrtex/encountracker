@@ -61,6 +61,7 @@ const createTablesSQL = `
     current_hp INTEGER NOT NULL,
     armor_class INTEGER NOT NULL,
     initiative_bonus INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT 1,
     speed INTEGER DEFAULT 30,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
