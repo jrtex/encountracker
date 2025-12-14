@@ -8,7 +8,8 @@
     "dev": "nodemon server/index.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "init-db": "node server/utils/initDatabase.js"
+    "init-db": "node server/utils/initDatabase.js",
+    "migrate": "node server/utils/migrate-add-speed.js"
   },
   "keywords": ["dnd", "encounter", "manager", "5e"],
   "author": "",

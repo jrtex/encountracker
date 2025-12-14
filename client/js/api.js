@@ -141,6 +141,38 @@ const API = {
     }
   },
 
+  // Player endpoints
+  players: {
+    getAll(campaignId) {
+      const query = campaignId ? `?campaign_id=${campaignId}` : '';
+      return API.request(`/players${query}`);
+    },
+
+    getById(id) {
+      return API.request(`/players/${id}`);
+    },
+
+    create(data) {
+      return API.request('/players', {
+        method: 'POST',
+        body: data
+      });
+    },
+
+    update(id, data) {
+      return API.request(`/players/${id}`, {
+        method: 'PUT',
+        body: data
+      });
+    },
+
+    delete(id) {
+      return API.request(`/players/${id}`, {
+        method: 'DELETE'
+      });
+    }
+  },
+
   // Monster endpoints
   monsters: {
     getAll(encounterId) {
