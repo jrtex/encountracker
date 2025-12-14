@@ -32,7 +32,7 @@ This scaffold provides the foundation for a full-featured D&D encounter manager:
 ## Project Structure
 
 ```
-owlbear/
+encountracker/
 ├── server/               # Backend application
 │   ├── routes/          # API route handlers (stubbed)
 │   ├── middleware/      # Authentication, validation, error handling
@@ -62,7 +62,7 @@ owlbear/
 
 1. **Clone and Install**
    ```bash
-   cd owlbear
+   cd encountracker
    npm install
    ```
 
