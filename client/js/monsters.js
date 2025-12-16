@@ -931,7 +931,17 @@ const Monsters = {
     if (isApiSearchTab && modal.dataset.currentApiMonster) {
       try {
         const monster = JSON.parse(modal.dataset.currentApiMonster);
-        await this.addMonsterFromApi(monster, 1, modal);
+
+        // Get quantity from input field
+        const quantityInput = modal.querySelector('#monster-quantity');
+        const quantity = parseInt(quantityInput?.value) || 1;
+
+        if (quantity < 1 || quantity > 20) {
+          Components.showToast('Quantity must be between 1 and 20', 'error');
+          return;
+        }
+
+        await this.addMonsterFromApi(monster, quantity, modal);
       } catch (error) {
         Components.showToast('Please select a monster from the search results first', 'error');
       }
