@@ -125,6 +125,34 @@
             </div>
         </div>
 
+        <!-- Encounter Detail Page -->
+        <div id="encounter-detail-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <button id="back-to-encounters-btn" class="btn btn-secondary">← Back to Encounters</button>
+                    <h2 id="encounter-detail-title">Encounter Details</h2>
+                    <button id="add-monster-btn" class="btn btn-primary admin-only">Add Monster</button>
+                </div>
+                <div id="encounter-detail-info" class="encounter-detail-info"></div>
+                <div id="monsters-list" class="monsters-section">
+                    <h3>Monsters</h3>
+                    <div id="monsters-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monster Detail Page (D&D 5e API) -->
+        <div id="monster-detail-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <button id="back-to-encounter-detail-btn" class="btn btn-secondary">← Back</button>
+                    <h2 id="monster-detail-title">Monster Details</h2>
+                    <button id="add-monster-to-encounter-btn" class="btn btn-primary admin-only">Add to Encounter</button>
+                </div>
+                <div id="monster-detail-content"></div>
+            </div>
+        </div>
+
         <!-- Players Page -->
         <div id="players-page" class="page">
             <div class="container">
@@ -162,6 +190,7 @@
     <script src="js/components.js"></script>
     <script src="js/campaigns.js"></script>
     <script src="js/encounters.js"></script>
+    <script src="js/monsters.js"></script>
     <script src="js/players.js"></script>
     <script src="js/app.js"></script>
 </body>

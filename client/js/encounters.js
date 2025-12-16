@@ -127,6 +127,17 @@ const Encounters = {
     const footer = document.createElement('div');
     footer.className = 'card-actions';
 
+    // View Details button (visible to all users)
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'btn btn-sm btn-primary';
+    viewBtn.textContent = 'View Details';
+    viewBtn.addEventListener('click', () => {
+      const detailPage = document.getElementById('encounter-detail-page');
+      detailPage.dataset.encounterId = encounter.id;
+      App.showPage('encounter-detail-page');
+    });
+    footer.appendChild(viewBtn);
+
     if (Auth.isAdmin()) {
       const editBtn = document.createElement('button');
       editBtn.className = 'btn btn-sm btn-secondary';

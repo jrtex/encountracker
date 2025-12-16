@@ -316,6 +316,314 @@ nav {
   opacity: 0.7;
 }
 
+/* Monster Styling */
+.monster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.monster-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.monster-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.monster-stat strong {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.monster-stat span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.monster-notes {
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.monster-source {
+  color: #666;
+  margin: 0;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.monster-card-wounded {
+  border-left: 4px solid #ffc107;
+}
+
+.monster-card-critical {
+  border-left: 4px solid #dc3545;
+}
+
+/* Encounter Detail Page */
+.encounter-detail-info {
+  margin-bottom: 2rem;
+}
+
+.encounter-info-card {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.encounter-info-card p {
+  margin-bottom: 0.5rem;
+}
+
+.encounter-info-card p:last-of-type {
+  margin-bottom: 1rem;
+}
+
+.encounter-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.monsters-section h3 {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+/* Modal Tabs */
+.modal-tabs {
+  display: flex;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--primary-color);
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.tab-btn.active {
+  border-bottom-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* API Search Styling */
+.api-search-section {
+  min-height: 200px;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-input-group input {
+  flex: 1;
+}
+
+.api-results-list {
+  margin-top: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.api-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s;
+}
+
+.api-result-item:last-child {
+  border-bottom: none;
+}
+
+.api-result-item:hover {
+  background-color: #f8f9fa;
+}
+
+.api-result-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.api-result-arrow {
+  color: var(--primary-color);
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Monster Detail Modal View */
+.monster-detail-modal-view {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Monster Detail Page Styling */
+.monster-detail-full {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.monster-detail-header {
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.monster-meta {
+  font-style: italic;
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.monster-detail-stats-block {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.stat-line {
+  margin-bottom: 0.5rem;
+}
+
+.stat-line:last-child {
+  margin-bottom: 0;
+}
+
+.stat-line strong {
+  color: var(--text-color);
+}
+
+.monster-detail-abilities {
+  margin-bottom: 1rem;
+}
+
+.ability-scores {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.ability-score {
+  text-align: center;
+  padding: 0.75rem;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.ability-label {
+  font-weight: bold;
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.ability-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.monster-detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.monster-detail-section:last-child {
+  border-bottom: none;
+}
+
+.monster-detail-section h3 {
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.5rem;
+}
+
+.ability-block {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid var(--primary-color);
+  border-radius: 4px;
+}
+
+.ability-block:last-child {
+  margin-bottom: 0;
+}
+
+.ability-block strong {
+  color: var(--text-color);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.ability-block p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.ability-block p:last-child {
+  margin-bottom: 0;
+}
+
+.ability-block em {
+  color: #666;
+  font-size: 0.9rem;
+}
+
 /* Form Styling */
 .form-row {
   display: grid;
@@ -356,11 +664,22 @@ nav {
 
   .campaign-grid,
   .encounter-grid,
-  .player-grid {
+  .player-grid,
+  .monster-grid {
     grid-template-columns: 1fr;
   }
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .ability-scores {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ability-scores {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
