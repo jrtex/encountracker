@@ -317,6 +317,12 @@ const Monsters = {
 
     const modal = Components.showModal(title, content, actions);
 
+    // Disable Create button initially if on API search tab (not edit mode)
+    const saveBtn = modal.querySelector('[data-action="save"]');
+    if (!isEdit && saveBtn) {
+      saveBtn.disabled = true;
+    }
+
     // Setup tab switching
     modal.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -326,6 +332,14 @@ const Monsters = {
         e.target.classList.add('active');
         const tabName = e.target.dataset.tab;
         modal.querySelector(`[data-tab-content="${tabName}"]`).classList.add('active');
+
+        // Disable Create button when switching to API search tab if no monster selected
+        const saveBtn = modal.querySelector('[data-action="save"]');
+        if (saveBtn && tabName === 'api-search' && !modal.dataset.currentApiMonster) {
+          saveBtn.disabled = true;
+        } else if (saveBtn && tabName === 'manual') {
+          saveBtn.disabled = false;
+        }
       });
     });
 
@@ -448,10 +462,11 @@ const Monsters = {
     // Clear stored monster data when showing search results
     delete modal.dataset.currentApiMonster;
 
-    // Reset the modal's button text
-    const modalSaveBtn = modal.querySelector('#save');
+    // Reset the modal's button text and disable it
+    const modalSaveBtn = modal.querySelector('[data-action="save"]');
     if (modalSaveBtn) {
       modalSaveBtn.textContent = 'Create';
+      modalSaveBtn.disabled = true;
     }
 
     resultsContainer.innerHTML = '<div class="spinner">Searching...</div>';
@@ -710,10 +725,11 @@ const Monsters = {
       // Store current monster data on modal for the Create button
       modal.dataset.currentApiMonster = JSON.stringify(monster);
 
-      // Update the modal's Create button text
-      const modalSaveBtn = modal.querySelector('#save');
+      // Update the modal's Create button text and enable it
+      const modalSaveBtn = modal.querySelector('[data-action="save"]');
       if (modalSaveBtn) {
         modalSaveBtn.textContent = 'Add to Encounter';
+        modalSaveBtn.disabled = false;
       }
 
       // Setup add to encounter button
