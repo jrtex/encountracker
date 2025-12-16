@@ -166,7 +166,7 @@ const Monsters = {
       const editBtn = document.createElement('button');
       editBtn.className = 'btn btn-sm btn-secondary';
       editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', () => this.showMonsterModal(monster));
+      editBtn.addEventListener('click', () => this.showEditMonsterModal(monster));
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn btn-sm btn-danger';
@@ -346,6 +346,93 @@ const Monsters = {
         }, 300); // 300ms debounce
       });
     }
+  },
+
+  showEditMonsterModal(monster) {
+    const title = `Edit Monster: ${monster.name}`;
+
+    const content = `
+      <div class="monster-edit-header" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #dee2e6;">
+        <h4 style="margin: 0;">${monster.name}</h4>
+        ${monster.dnd_api_id ? `<p class="monster-source"><small>Source: D&D 5e API (${monster.dnd_api_id})</small></p>` : ''}
+      </div>
+
+      <form id="monster-edit-form" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-current-hp">Current HP *</label>
+            <input
+              type="number"
+              id="edit-current-hp"
+              class="form-control"
+              value="${monster.current_hp}"
+              min="0"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="edit-max-hp">Max HP *</label>
+            <input
+              type="number"
+              id="edit-max-hp"
+              class="form-control"
+              value="${monster.max_hp}"
+              min="1"
+              required
+            >
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-ac">Armor Class *</label>
+            <input
+              type="number"
+              id="edit-ac"
+              class="form-control"
+              value="${monster.armor_class}"
+              min="0"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="edit-initiative">Initiative Bonus</label>
+            <input
+              type="number"
+              id="edit-initiative"
+              class="form-control"
+              value="${monster.initiative_bonus}"
+            >
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-notes">Notes</label>
+          <textarea
+            id="edit-notes"
+            class="form-control"
+            rows="3"
+            placeholder="Special abilities, tactics, etc."
+          >${monster.notes || ''}</textarea>
+        </div>
+      </form>
+    `;
+
+    const actions = [
+      {
+        id: 'cancel',
+        label: 'Cancel',
+        class: 'btn-secondary',
+        handler: () => {}
+      },
+      {
+        id: 'save',
+        label: 'Update Monster',
+        class: 'btn-primary',
+        handler: () => this.saveEditMonster(monster),
+        closeOnClick: false
+      }
+    ];
+
+    Components.showModal(title, content, actions);
   },
 
   async searchDndApi(query, modal) {
@@ -1014,6 +1101,50 @@ const Monsters = {
       await this.loadMonsters();
     } catch (error) {
       Components.showToast(error.message || 'Failed to save monster', 'error');
+    }
+  },
+
+  async saveEditMonster(monster) {
+    const currentHp = parseInt(document.getElementById('edit-current-hp').value);
+    const maxHp = parseInt(document.getElementById('edit-max-hp').value);
+    const armorClass = parseInt(document.getElementById('edit-ac').value);
+    const initiativeBonus = parseInt(document.getElementById('edit-initiative').value) || 0;
+    const notes = document.getElementById('edit-notes').value.trim();
+
+    // Validation
+    if (isNaN(maxHp) || maxHp < 1) {
+      Components.showToast('Max HP must be at least 1', 'error');
+      return;
+    }
+
+    if (isNaN(currentHp) || currentHp < 0) {
+      Components.showToast('Current HP must be non-negative', 'error');
+      return;
+    }
+
+    if (isNaN(armorClass) || armorClass < 0) {
+      Components.showToast('Armor class must be non-negative', 'error');
+      return;
+    }
+
+    const data = {
+      encounter_id: this.encounterId,
+      name: monster.name,
+      max_hp: maxHp,
+      current_hp: currentHp,
+      armor_class: armorClass,
+      initiative_bonus: initiativeBonus,
+      notes: notes || null,
+      dnd_api_id: monster.dnd_api_id || null
+    };
+
+    try {
+      await API.monsters.update(monster.id, data);
+      Components.showToast('Monster updated successfully', 'success');
+      document.querySelector('.modal-overlay').remove();
+      await this.loadMonsters();
+    } catch (error) {
+      Components.showToast(error.message || 'Failed to update monster', 'error');
     }
   },
 
