@@ -1,13 +1,11 @@
 // Player Management
 const Players = {
   currentPlayers: [],
-  currentCampaigns: [],
-  selectedCampaignId: null,
 
   async init() {
-    await this.loadCampaigns();
     await this.loadPlayers();
     this.setupEventListeners();
+    CampaignContext.subscribe(() => this.loadPlayers());
   },
 
   setupEventListeners() {
@@ -17,48 +15,26 @@ const Players = {
         this.showPlayerModal();
       });
     }
-
-    const campaignFilter = document.getElementById('player-campaign-filter');
-    if (campaignFilter) {
-      campaignFilter.addEventListener('change', (e) => {
-        this.selectedCampaignId = e.target.value;
-        this.loadPlayers();
-      });
-    }
-  },
-
-  async loadCampaigns() {
-    try {
-      const response = await API.campaigns.getAll();
-      this.currentCampaigns = response.data || [];
-      this.renderCampaignFilter();
-    } catch (error) {
-      console.error('Failed to load campaigns:', error);
-    }
-  },
-
-  renderCampaignFilter() {
-    const filterSelect = document.getElementById('player-campaign-filter');
-    if (!filterSelect) return;
-
-    const options = this.currentCampaigns.map(c =>
-      `<option value="${c.id}" ${this.selectedCampaignId == c.id ? 'selected' : ''}>${c.name}</option>`
-    ).join('');
-
-    filterSelect.innerHTML = `
-      <option value="">All Campaigns</option>
-      ${options}
-    `;
   },
 
   async loadPlayers() {
     const listContainer = document.getElementById('players-list');
     if (!listContainer) return;
 
+    const campaignId = CampaignContext.getActiveCampaignId();
+
+    if (!campaignId) {
+      listContainer.innerHTML = Components.createAlert(
+        'No campaign selected. Please select a campaign from the navigation bar.',
+        'warning'
+      ).outerHTML;
+      return;
+    }
+
     Components.showSpinner(listContainer);
 
     try {
-      const response = await API.players.getAll(this.selectedCampaignId);
+      const response = await API.players.getAll(campaignId);
       this.currentPlayers = response.data || [];
       this.renderPlayers();
     } catch (error) {
@@ -167,8 +143,12 @@ const Players = {
     const isEdit = !!player;
     const title = isEdit ? 'Edit Character' : 'New Character';
 
-    const campaignOptions = this.currentCampaigns.map(c =>
-      `<option value="${c.id}" ${player && player.campaign_id === c.id ? 'selected' : ''}>${c.name}</option>`
+    const campaigns = CampaignContext.getAllCampaigns();
+    const activeCampaignId = CampaignContext.getActiveCampaignId();
+    const selectedCampaignId = player ? player.campaign_id : activeCampaignId;
+
+    const campaignOptions = campaigns.map(c =>
+      `<option value="${c.id}" ${c.id == selectedCampaignId ? 'selected' : ''}>${c.name}</option>`
     ).join('');
 
     const content = `

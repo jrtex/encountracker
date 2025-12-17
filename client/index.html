@@ -12,9 +12,17 @@
     <nav id="main-nav" class="hidden">
         <div class="nav-container">
             <h1 class="nav-brand">D&D Encounter Manager</h1>
+
+            <!-- Campaign Selector -->
+            <div class="nav-campaign-selector">
+                <select id="nav-campaign-select" class="nav-campaign-dropdown">
+                    <option value="">Select Campaign...</option>
+                </select>
+                <span class="nav-campaign-chevron">▼</span>
+            </div>
+
             <ul class="nav-menu">
                 <li><a href="#" data-page="dashboard">Dashboard</a></li>
-                <li><a href="#" data-page="campaigns">Campaigns</a></li>
                 <li><a href="#" data-page="encounters">Encounters</a></li>
                 <li><a href="#" data-page="players">Players</a></li>
                 <li class="admin-only hidden"><a href="#" data-page="settings">Settings</a></li>
@@ -94,18 +102,7 @@
         <div id="dashboard-page" class="page">
             <div class="container">
                 <h2>Dashboard</h2>
-                <p>Dashboard content will be implemented here.</p>
-            </div>
-        </div>
-
-        <!-- Campaigns Page -->
-        <div id="campaigns-page" class="page">
-            <div class="container">
-                <div class="page-header">
-                    <h2>Campaigns</h2>
-                    <button id="new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
-                </div>
-                <div id="campaigns-list"></div>
+                <div id="initiative-tracker-widget"></div>
             </div>
         </div>
 
@@ -114,12 +111,7 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Encounters</h2>
-                    <div class="page-actions">
-                        <select id="encounter-campaign-filter" class="form-control">
-                            <option value="">All Campaigns</option>
-                        </select>
-                        <button id="new-encounter-btn" class="btn btn-primary admin-only">New Encounter</button>
-                    </div>
+                    <button id="new-encounter-btn" class="btn btn-primary admin-only">New Encounter</button>
                 </div>
                 <div id="encounters-list"></div>
             </div>
@@ -131,7 +123,10 @@
                 <div class="page-header">
                     <button id="back-to-encounters-btn" class="btn btn-secondary">← Back to Encounters</button>
                     <h2 id="encounter-detail-title">Encounter Details</h2>
-                    <button id="add-monster-btn" class="btn btn-primary admin-only">Add Monster</button>
+                    <div>
+                        <button id="start-encounter-combat-btn" class="btn btn-success admin-only" style="display: none;">Start Combat</button>
+                        <button id="add-monster-btn" class="btn btn-primary admin-only">Add Monster</button>
+                    </div>
                 </div>
                 <div id="encounter-detail-info" class="encounter-detail-info"></div>
                 <div id="monsters-list" class="monsters-section">
@@ -158,12 +153,7 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Players</h2>
-                    <div class="page-actions">
-                        <select id="player-campaign-filter" class="form-control">
-                            <option value="">All Campaigns</option>
-                        </select>
-                        <button id="new-player-btn" class="btn btn-primary admin-only">New Character</button>
-                    </div>
+                    <button id="new-player-btn" class="btn btn-primary admin-only">New Character</button>
                 </div>
                 <div id="players-list"></div>
             </div>
@@ -173,7 +163,23 @@
         <div id="settings-page" class="page">
             <div class="container">
                 <h2>Settings</h2>
-                <p>Settings will be implemented here.</p>
+
+                <!-- Current Campaign Section -->
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>Current Campaign</h3>
+                    </div>
+                    <div id="current-campaign-info" class="settings-card"></div>
+                </div>
+
+                <!-- Campaign Management Section -->
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>Campaign Management</h3>
+                        <button id="settings-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                    </div>
+                    <div id="settings-campaigns-list" class="settings-campaigns-grid"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -188,10 +194,13 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/components.js"></script>
+    <script src="js/campaignContext.js"></script>
     <script src="js/campaigns.js"></script>
+    <script src="js/settings.js"></script>
     <script src="js/encounters.js"></script>
     <script src="js/monsters.js"></script>
     <script src="js/players.js"></script>
+    <script src="js/initiative.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

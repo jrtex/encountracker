@@ -104,13 +104,32 @@ const App = {
     this.showLogin();
   },
 
-  showApp() {
+  async showApp() {
     // Hide auth pages
     document.getElementById('login-page').classList.remove('active');
     document.getElementById('register-page').classList.remove('active');
 
     // Show navigation
     document.getElementById('main-nav').classList.remove('hidden');
+
+    // Initialize campaign context
+    await CampaignContext.init();
+
+    // Handle no campaigns scenario
+    if (CampaignContext.getAllCampaigns().length === 0) {
+      this.handleNoCampaigns();
+      return;
+    }
+
+    // Populate and setup dropdown
+    this.renderCampaignDropdown();
+
+    const campaignSelect = document.getElementById('nav-campaign-select');
+    if (campaignSelect) {
+      campaignSelect.addEventListener('change', async (e) => {
+        await this.handleCampaignChange(e.target.value);
+      });
+    }
 
     // Update user info
     const user = Auth.getUser();
@@ -130,6 +149,74 @@ const App = {
 
     // Show dashboard
     this.showPage('dashboard-page');
+  },
+
+  renderCampaignDropdown() {
+    const select = document.getElementById('nav-campaign-select');
+    if (!select) return;
+
+    const campaigns = CampaignContext.getAllCampaigns();
+    const currentId = CampaignContext.getActiveCampaignId();
+
+    select.innerHTML = campaigns.map(c =>
+      `<option value="${c.id}" ${c.id == currentId ? 'selected' : ''}>${c.name}</option>`
+    ).join('');
+  },
+
+  async handleCampaignChange(campaignId) {
+    if (!campaignId) return;
+
+    const activePage = document.querySelector('.page.active');
+
+    // Navigate away from detail pages
+    if (activePage && activePage.id === 'encounter-detail-page') {
+      this.showPage('encounters-page');
+    }
+
+    await CampaignContext.setActiveCampaign(parseInt(campaignId));
+
+    // Reload active page
+    if (activePage) {
+      const pageId = activePage.id;
+      if (pageId === 'encounters-page' && typeof Encounters !== 'undefined') {
+        await Encounters.init();
+      } else if (pageId === 'players-page' && typeof Players !== 'undefined') {
+        await Players.init();
+      } else if (pageId === 'dashboard-page' && typeof Initiative !== 'undefined') {
+        await Initiative.init();
+      }
+    }
+
+    Components.showToast('Campaign switched', 'success');
+  },
+
+  handleNoCampaigns() {
+    document.getElementById('main-nav').classList.remove('hidden');
+
+    const select = document.getElementById('nav-campaign-select');
+    if (select) {
+      select.innerHTML = '<option value="">No campaigns available</option>';
+      select.disabled = true;
+    }
+
+    // Update user info
+    const user = Auth.getUser();
+    const userInfo = document.getElementById('user-info');
+    if (userInfo && user) {
+      userInfo.textContent = `${user.username} (${user.role})`;
+    }
+
+    // Show/hide admin-only elements
+    document.querySelectorAll('.admin-only').forEach(el => {
+      if (Auth.isAdmin()) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+
+    this.showPage('settings-page');
+    Components.showToast('Please create a campaign to get started', 'info');
   },
 
   showLogin() {
@@ -162,4 +249,19 @@ const App = {
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
+
+  // Initialize Initiative Tracker when dashboard becomes active
+  const dashboardPage = document.getElementById('dashboard-page');
+  if (dashboardPage) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (dashboardPage.classList.contains('active')) {
+            Initiative.init();
+          }
+        }
+      });
+    });
+    observer.observe(dashboardPage, { attributes: true });
+  }
 });

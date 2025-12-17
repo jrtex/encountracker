@@ -111,9 +111,16 @@ const API = {
 
   // Encounter endpoints
   encounters: {
-    getAll(campaignId) {
-      const query = campaignId ? `?campaign_id=${campaignId}` : '';
+    getAll(campaignId, status) {
+      const params = [];
+      if (campaignId) params.push(`campaign_id=${campaignId}`);
+      if (status) params.push(`status=${status}`);
+      const query = params.length > 0 ? `?${params.join('&')}` : '';
       return API.request(`/encounters${query}`);
+    },
+
+    getActive() {
+      return API.request('/encounters?status=active');
     },
 
     getById(id) {
@@ -215,9 +222,13 @@ const API = {
       return API.request(`/combat/${encounterId}/initiative`);
     },
 
-    startCombat(encounterId) {
+    startCombat(encounterId, mode, manualInitiatives = []) {
       return API.request(`/combat/${encounterId}/start`, {
-        method: 'POST'
+        method: 'POST',
+        body: {
+          initiative_mode: mode,
+          manual_initiatives: manualInitiatives
+        }
       });
     },
 
@@ -231,6 +242,13 @@ const API = {
       return API.request(`/combat/initiative/${id}`, {
         method: 'PUT',
         body: data
+      });
+    },
+
+    updateHealth(initiativeId, currentHp) {
+      return API.request(`/combat/initiative/${initiativeId}`, {
+        method: 'PUT',
+        body: { current_hp: currentHp }
       });
     },
 
