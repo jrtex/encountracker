@@ -25,6 +25,35 @@ const Monsters = {
         App.showPage('encounters-page');
       });
     }
+
+    this.setupStartCombatButton();
+  },
+
+  setupStartCombatButton() {
+    const startCombatBtn = document.getElementById('start-encounter-combat-btn');
+    if (!startCombatBtn || !this.currentEncounter) return;
+
+    // Show button only if encounter status is 'pending'
+    if (this.currentEncounter.status === 'pending') {
+      startCombatBtn.style.display = 'inline-block';
+    } else {
+      startCombatBtn.style.display = 'none';
+    }
+
+    // Remove existing event listener if any
+    const newBtn = startCombatBtn.cloneNode(true);
+    startCombatBtn.parentNode.replaceChild(newBtn, startCombatBtn);
+
+    // Add click handler
+    newBtn.addEventListener('click', async () => {
+      // Set current encounter for Initiative module
+      Initiative.currentEncounter = this.currentEncounter;
+      await Initiative.showStartCombatModal();
+
+      // After combat starts, reload encounter to update status
+      await this.loadEncounter();
+      this.setupStartCombatButton();
+    });
   },
 
   async loadEncounter() {
@@ -69,6 +98,9 @@ const Monsters = {
         </div>
       `;
     }
+
+    // Setup Start Combat button visibility
+    this.setupStartCombatButton();
   },
 
   getDifficultyBadgeType(difficulty) {

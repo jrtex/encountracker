@@ -1,68 +1,5 @@
-// Campaign Management
-const Campaigns = {
-  currentCampaigns: [],
-
-  async init() {
-    await this.loadCampaigns();
-    this.setupEventListeners();
-  },
-
-  setupEventListeners() {
-    const newCampaignBtn = document.getElementById('new-campaign-btn');
-    if (newCampaignBtn) {
-      newCampaignBtn.addEventListener('click', () => {
-        this.showCampaignModal();
-      });
-    }
-  },
-
-  async loadCampaigns() {
-    const listContainer = document.getElementById('campaigns-list');
-    if (!listContainer) return;
-
-    Components.showSpinner(listContainer);
-
-    try {
-      const response = await API.campaigns.getAll();
-      this.currentCampaigns = response.data || [];
-      this.renderCampaigns();
-    } catch (error) {
-      Components.showToast(error.message || 'Failed to load campaigns', 'error');
-      listContainer.innerHTML = Components.createAlert(
-        'Failed to load campaigns. Please try again.',
-        'error'
-      ).outerHTML;
-    } finally {
-      Components.hideSpinner(listContainer);
-    }
-  },
-
-  renderCampaigns() {
-    const listContainer = document.getElementById('campaigns-list');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = '';
-
-    if (this.currentCampaigns.length === 0) {
-      const alert = Components.createAlert(
-        'No campaigns yet. Create your first campaign to get started!',
-        'info'
-      );
-      listContainer.appendChild(alert);
-      return;
-    }
-
-    const grid = document.createElement('div');
-    grid.className = 'campaign-grid';
-
-    this.currentCampaigns.forEach(campaign => {
-      const card = this.createCampaignCard(campaign);
-      grid.appendChild(card);
-    });
-
-    listContainer.appendChild(grid);
-  },
-
+// Campaign Manager - for creating/editing/deleting campaigns
+const CampaignManager = {
   createCampaignCard(campaign) {
     const createdDate = new Date(campaign.created_at).toLocaleDateString();
 
@@ -116,7 +53,7 @@ const Campaigns = {
             id="campaign-description"
             class="form-control"
             rows="4"
-          >${campaign ? campaign.description : ''}</textarea>
+          >${campaign ? campaign.description || '' : ''}</textarea>
         </div>
       </form>
     `;
@@ -157,15 +94,50 @@ const Campaigns = {
     try {
       let response;
       if (campaignId) {
+        // Update existing campaign
         response = await API.campaigns.update(campaignId, data);
         Components.showToast('Campaign updated successfully', 'success');
+
+        // Reload campaigns in context
+        await CampaignContext.loadCampaigns();
+
+        // If this is the active campaign, refresh it
+        if (CampaignContext.getActiveCampaignId() == campaignId) {
+          const updatedCampaign = CampaignContext.getAllCampaigns().find(c => c.id == campaignId);
+          if (updatedCampaign) {
+            CampaignContext.currentCampaign = updatedCampaign;
+          }
+        }
+
+        // Notify listeners
+        CampaignContext.notifyListeners();
       } else {
+        // Create new campaign
         response = await API.campaigns.create(data);
         Components.showToast('Campaign created successfully', 'success');
+
+        // Reload campaigns in context
+        await CampaignContext.loadCampaigns();
+
+        // Auto-select the new campaign
+        if (response.data && response.data.id) {
+          await CampaignContext.setActiveCampaign(response.data.id);
+
+          // Update dropdown if it exists
+          if (typeof App !== 'undefined' && App.renderCampaignDropdown) {
+            App.renderCampaignDropdown();
+          }
+
+          // Enable dropdown if it was disabled (no campaigns scenario)
+          const select = document.getElementById('nav-campaign-select');
+          if (select && select.disabled) {
+            select.disabled = false;
+          }
+        }
       }
 
+      // Close modal
       document.querySelector('.modal-overlay').remove();
-      await this.loadCampaigns();
     } catch (error) {
       Components.showToast(error.message || 'Failed to save campaign', 'error');
     }
@@ -176,9 +148,48 @@ const Campaigns = {
       'Are you sure you want to delete this campaign? This will also delete all associated encounters and data.',
       async () => {
         try {
+          const isActiveCampaign = CampaignContext.getActiveCampaignId() == campaignId;
+
           await API.campaigns.delete(campaignId);
           Components.showToast('Campaign deleted successfully', 'success');
-          await this.loadCampaigns();
+
+          // Reload campaigns in context
+          await CampaignContext.loadCampaigns();
+
+          // If we deleted the active campaign, select another or handle no campaigns
+          if (isActiveCampaign) {
+            const allCampaigns = CampaignContext.getAllCampaigns();
+
+            if (allCampaigns.length > 0) {
+              // Select the first available campaign
+              await CampaignContext.setActiveCampaign(allCampaigns[0].id);
+
+              // Update dropdown
+              if (typeof App !== 'undefined' && App.renderCampaignDropdown) {
+                App.renderCampaignDropdown();
+              }
+            } else {
+              // No campaigns left, handle no campaigns scenario
+              CampaignContext.currentCampaign = null;
+              CampaignContext.currentCampaignId = null;
+
+              const select = document.getElementById('nav-campaign-select');
+              if (select) {
+                select.innerHTML = '<option value="">No campaigns available</option>';
+                select.disabled = true;
+              }
+
+              // Show settings page
+              if (typeof App !== 'undefined' && App.showPage) {
+                App.showPage('settings-page');
+              }
+
+              Components.showToast('Please create a campaign to get started', 'info');
+            }
+          }
+
+          // Notify listeners
+          CampaignContext.notifyListeners();
         } catch (error) {
           Components.showToast(error.message || 'Failed to delete campaign', 'error');
         }
@@ -186,21 +197,3 @@ const Campaigns = {
     );
   }
 };
-
-// Initialize campaigns when the campaigns page is shown
-document.addEventListener('DOMContentLoaded', () => {
-  const campaignsPage = document.getElementById('campaigns-page');
-  if (campaignsPage) {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          if (campaignsPage.classList.contains('active')) {
-            Campaigns.init();
-          }
-        }
-      });
-    });
-
-    observer.observe(campaignsPage, { attributes: true });
-  }
-});

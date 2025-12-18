@@ -75,6 +75,54 @@ nav {
   color: white;
 }
 
+.nav-campaign-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+}
+
+.nav-campaign-dropdown {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  padding-right: 1.5rem;
+  outline: none;
+  transition: color 0.2s ease;
+  text-align: center;
+}
+
+.nav-campaign-dropdown option {
+  background-color: white;
+  color: black;
+  font-size: 1rem;
+  font-weight: normal;
+  text-align: center;
+}
+
+.nav-campaign-dropdown:hover {
+  color: var(--primary-color);
+}
+
+.nav-campaign-chevron {
+  color: white;
+  font-size: 0.75rem;
+  pointer-events: none;
+  margin-left: -1.25rem;
+  transition: color 0.2s ease;
+}
+
+.nav-campaign-selector:hover .nav-campaign-chevron {
+  color: var(--primary-color);
+}
+
 .nav-menu {
   display: flex;
   list-style: none;
@@ -681,5 +729,302 @@ nav {
 @media (max-width: 480px) {
   .ability-scores {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Initiative Tracker ===== */
+.initiative-tracker {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.tracker-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.round-counter {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+}
+
+.tracker-controls-header {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tracker-controls {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.initiative-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.initiative-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 250px 60px auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: var(--border-radius);
+  border-left: 4px solid transparent;
+  transition: var(--transition);
+}
+
+.initiative-row.current-turn {
+  background: #fff3cd;
+  border-left-color: var(--warning-color);
+  box-shadow: 0 0 0 2px var(--warning-color);
+  font-weight: 500;
+}
+
+.initiative-row.unconscious {
+  opacity: 0.6;
+  background: #f8d7da;
+  border-left-color: var(--danger-color);
+}
+
+.turn-indicator {
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.participant-name {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.initiative-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--primary-color);
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius);
+}
+
+.health-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hp-display {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.hp-bar-container {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hp-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.hp-bar-fill.hp-healthy {
+  background: var(--success-color);
+}
+
+.hp-bar-fill.hp-warning {
+  background: var(--warning-color);
+}
+
+.hp-bar-fill.hp-danger {
+  background: var(--danger-color);
+}
+
+.hp-controls {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.hp-input {
+  width: 70px;
+  padding: 0.25rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.hp-damage-btn,
+.hp-heal-btn {
+  min-width: 30px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.participant-ac {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.conditions-badges {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.no-active-encounter {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.no-active-encounter .alert {
+  margin-bottom: 1rem;
+}
+
+.player-init-row {
+  margin-bottom: 0.5rem;
+}
+
+.player-init-row label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+/* Responsive Initiative Tracker */
+@media (max-width: 768px) {
+  .initiative-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .tracker-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .turn-indicator,
+  .initiative-value,
+  .participant-ac {
+    display: inline-block;
+    margin-right: 0.5rem;
+  }
+
+  .health-section {
+    width: 100%;
+  }
+}
+
+/* ===== Settings Page ===== */
+.settings-section {
+  margin-bottom: 3rem;
+}
+
+.settings-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.settings-section-header h3 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1.5rem;
+}
+
+.settings-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.settings-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-card-row:last-child {
+  border-bottom: none;
+}
+
+.settings-card-label {
+  font-weight: 600;
+  color: #666;
+}
+
+.settings-card-value {
+  color: var(--text-color);
+}
+
+.settings-campaigns-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.settings-campaign-card {
+  position: relative;
+}
+
+.settings-campaign-card.active-campaign {
+  border: 2px solid var(--primary-color);
+  border-radius: var(--border-radius);
+}
+
+.settings-campaign-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+@media (max-width: 768px) {
+  .settings-campaigns-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 }

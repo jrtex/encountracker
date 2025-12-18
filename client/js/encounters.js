@@ -1,13 +1,11 @@
 // Encounter Management
 const Encounters = {
   currentEncounters: [],
-  currentCampaigns: [],
-  selectedCampaignId: null,
 
   async init() {
-    await this.loadCampaigns();
     await this.loadEncounters();
     this.setupEventListeners();
+    CampaignContext.subscribe(() => this.loadEncounters());
   },
 
   setupEventListeners() {
@@ -17,49 +15,26 @@ const Encounters = {
         this.showEncounterModal();
       });
     }
-
-    const campaignFilter = document.getElementById('encounter-campaign-filter');
-    if (campaignFilter) {
-      campaignFilter.addEventListener('change', (e) => {
-        this.selectedCampaignId = e.target.value;
-        this.loadEncounters();
-      });
-    }
-  },
-
-  async loadCampaigns() {
-    try {
-      const response = await API.campaigns.getAll();
-      this.currentCampaigns = response.data || [];
-      this.renderCampaignFilter();
-    } catch (error) {
-      console.error('Failed to load campaigns:', error);
-    }
-  },
-
-  renderCampaignFilter() {
-    const filter = document.getElementById('encounter-campaign-filter');
-    if (!filter) return;
-
-    // Keep "All Campaigns" option and add campaign options
-    const campaignOptions = this.currentCampaigns.map(c =>
-      `<option value="${c.id}">${c.name}</option>`
-    ).join('');
-
-    filter.innerHTML = `<option value="">All Campaigns</option>${campaignOptions}`;
   },
 
   async loadEncounters() {
     const listContainer = document.getElementById('encounters-list');
     if (!listContainer) return;
 
+    const campaignId = CampaignContext.getActiveCampaignId();
+
+    if (!campaignId) {
+      listContainer.innerHTML = Components.createAlert(
+        'No campaign selected. Please select a campaign from the navigation bar.',
+        'warning'
+      ).outerHTML;
+      return;
+    }
+
     Components.showSpinner(listContainer);
 
     try {
-      const response = this.selectedCampaignId
-        ? await API.encounters.getAll(this.selectedCampaignId)
-        : await API.encounters.getAll();
-
+      const response = await API.encounters.getAll(campaignId);
       this.currentEncounters = response.data || [];
       this.renderEncounters();
     } catch (error) {
@@ -179,8 +154,12 @@ const Encounters = {
     const isEdit = !!encounter;
     const title = isEdit ? 'Edit Encounter' : 'New Encounter';
 
-    const campaignOptions = this.currentCampaigns.map(c =>
-      `<option value="${c.id}" ${encounter && encounter.campaign_id === c.id ? 'selected' : ''}>${c.name}</option>`
+    const campaigns = CampaignContext.getAllCampaigns();
+    const activeCampaignId = CampaignContext.getActiveCampaignId();
+    const selectedCampaignId = encounter ? encounter.campaign_id : activeCampaignId;
+
+    const campaignOptions = campaigns.map(c =>
+      `<option value="${c.id}" ${c.id == selectedCampaignId ? 'selected' : ''}>${c.name}</option>`
     ).join('');
 
     const content = `
