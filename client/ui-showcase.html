@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Component Showcase - D&D Encounter Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .showcase-section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .showcase-section:last-child {
+            border-bottom: none;
+        }
+        .showcase-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+        }
+        .showcase-section h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        .component-demo {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .code-label {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .demo-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+        .demo-title {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <div class="demo-title">
+            <h1>UI Component Showcase</h1>
+            <p>All UI elements used in the D&D Encounter Manager application</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Buttons Section -->
+        <section class="showcase-section">
+            <h2>Buttons</h2>
+
+            <h3>Button Variants</h3>
+            <div class="component-demo">
+                <div class="component-grid">
+                    <div>
+                        <div class="code-label">.btn.btn-primary</div>
+                        <button class="btn btn-primary">Primary Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-secondary</div>
+                        <button class="btn btn-secondary">Secondary Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-success</div>
+                        <button class="btn btn-success">Success Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-danger</div>
+                        <button class="btn btn-danger">Danger Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-warning</div>
+                        <button class="btn btn-warning">Warning Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-outline</div>
+                        <button class="btn btn-outline">Outline Button</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Button Sizes</h3>
+            <div class="component-demo">
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <div class="code-label">.btn.btn-sm</div>
+                        <button class="btn btn-primary btn-sm">Small Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn (default)</div>
+                        <button class="btn btn-primary">Regular Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn.btn-lg</div>
+                        <button class="btn btn-primary btn-lg">Large Button</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Button States</h3>
+            <div class="component-demo">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div>
+                        <div class="code-label">.btn (normal)</div>
+                        <button class="btn btn-primary">Enabled Button</button>
+                    </div>
+                    <div>
+                        <div class="code-label">.btn:disabled</div>
+                        <button class="btn btn-primary" disabled>Disabled Button</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Block Button</h3>
+            <div class="component-demo">
+                <div class="code-label">.btn.btn-block</div>
+                <button class="btn btn-primary btn-block">Full Width Block Button</button>
+            </div>
+        </section>
+
+        <!-- Badges Section -->
+        <section class="showcase-section">
+            <h2>Badges</h2>
+            <div class="component-demo">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                    <div>
+                        <div class="code-label">.badge.badge-primary</div>
+                        <span class="badge badge-primary">Primary</span>
+                    </div>
+                    <div>
+                        <div class="code-label">.badge.badge-success</div>
+                        <span class="badge badge-success">Success</span>
+                    </div>
+                    <div>
+                        <div class="code-label">.badge.badge-danger</div>
+                        <span class="badge badge-danger">Danger</span>
+                    </div>
+                    <div>
+                        <div class="code-label">.badge.badge-warning</div>
+                        <span class="badge badge-warning">Warning</span>
+                    </div>
+                    <div>
+                        <div class="code-label">.badge.badge-info</div>
+                        <span class="badge badge-info">Info</span>
+                    </div>
+                    <div>
+                        <div class="code-label">.badge.badge-secondary</div>
+                        <span class="badge badge-secondary">Secondary</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Badges in Context</h3>
+            <div class="component-demo">
+                <p>Campaign Status: <span class="badge badge-success">Active</span></p>
+                <p>Difficulty: <span class="badge badge-danger">Hard</span></p>
+                <p>Level Range: <span class="badge badge-info">1-5</span></p>
+            </div>
+        </section>
+
+        <!-- Cards Section -->
+        <section class="showcase-section">
+            <h2>Cards</h2>
+
+            <h3>Basic Card</h3>
+            <div class="component-demo">
+                <div class="code-label">.card</div>
+                <div class="card" style="max-width: 400px;">
+                    <div class="card-header">
+                        <h3>Card Title</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>This is the card body content. Cards are used throughout the application to display content in a contained, organized way.</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary btn-sm">Action</button>
+                        <button class="btn btn-secondary btn-sm">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Card Without Footer</h3>
+            <div class="component-demo">
+                <div class="card" style="max-width: 400px;">
+                    <div class="card-header">
+                        <h3>Simple Card</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>This card doesn't have a footer section.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Campaign Card Example</h3>
+            <div class="component-demo">
+                <div class="card" style="max-width: 400px;">
+                    <div class="card-header">
+                        <h3>Lost Mine of Phandelver</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="campaign-description">
+                            <p>A classic D&D adventure for new players and Dungeon Masters.</p>
+                        </div>
+                        <p class="campaign-meta">Created: 2024-01-15 | Status: <span class="badge badge-success">Active</span></p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="card-actions">
+                            <button class="btn btn-primary btn-sm">View</button>
+                            <button class="btn btn-secondary btn-sm">Edit</button>
+                            <button class="btn btn-danger btn-sm">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forms Section -->
+        <section class="showcase-section">
+            <h2>Forms</h2>
+
+            <h3>Form Controls</h3>
+            <div class="component-demo">
+                <form style="max-width: 500px;">
+                    <div class="form-group">
+                        <div class="code-label">.form-group > label + .form-control</div>
+                        <label for="demo-input">Text Input</label>
+                        <input type="text" id="demo-input" class="form-control" placeholder="Enter text here">
+                    </div>
+
+                    <div class="form-group">
+                        <div class="code-label">select.form-control</div>
+                        <label for="demo-select">Select Dropdown</label>
+                        <select id="demo-select" class="form-control">
+                            <option value="">Choose an option</option>
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="code-label">textarea.form-control</div>
+                        <label for="demo-textarea">Textarea</label>
+                        <textarea id="demo-textarea" class="form-control" placeholder="Enter description here"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="code-label">.form-control.error</div>
+                        <label for="demo-error">Input with Error</label>
+                        <input type="text" id="demo-error" class="form-control error" value="Invalid input">
+                        <div class="form-error">This field is required</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <h3>Form Row Layout</h3>
+            <div class="component-demo">
+                <div class="code-label">.form-row</div>
+                <form style="max-width: 600px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="demo-firstname">First Name</label>
+                            <input type="text" id="demo-firstname" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="demo-lastname">Last Name</label>
+                            <input type="text" id="demo-lastname" class="form-control">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Tables Section -->
+        <section class="showcase-section">
+            <h2>Tables</h2>
+
+            <h3>Basic Table</h3>
+            <div class="component-demo">
+                <div class="code-label">.table</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Level</th>
+                            <th>HP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Aragorn</td>
+                            <td>Ranger</td>
+                            <td>10</td>
+                            <td>85</td>
+                        </tr>
+                        <tr>
+                            <td>Gandalf</td>
+                            <td>Wizard</td>
+                            <td>20</td>
+                            <td>120</td>
+                        </tr>
+                        <tr>
+                            <td>Gimli</td>
+                            <td>Fighter</td>
+                            <td>8</td>
+                            <td>78</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Striped Table</h3>
+            <div class="component-demo">
+                <div class="code-label">.table.table-striped</div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Monster</th>
+                            <th>CR</th>
+                            <th>AC</th>
+                            <th>HP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Goblin</td>
+                            <td>1/4</td>
+                            <td>15</td>
+                            <td>7</td>
+                        </tr>
+                        <tr>
+                            <td>Orc</td>
+                            <td>1/2</td>
+                            <td>13</td>
+                            <td>15</td>
+                        </tr>
+                        <tr>
+                            <td>Dragon</td>
+                            <td>17</td>
+                            <td>19</td>
+                            <td>256</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Alerts Section -->
+        <section class="showcase-section">
+            <h2>Alerts</h2>
+            <div class="component-demo">
+                <div class="code-label">.alert.alert-success</div>
+                <div class="alert alert-success">
+                    Success! Your campaign has been created successfully.
+                </div>
+
+                <div class="code-label">.alert.alert-danger</div>
+                <div class="alert alert-danger">
+                    Error! Failed to delete the encounter. Please try again.
+                </div>
+
+                <div class="code-label">.alert.alert-warning</div>
+                <div class="alert alert-warning">
+                    Warning! This action cannot be undone.
+                </div>
+
+                <div class="code-label">.alert.alert-info</div>
+                <div class="alert alert-info">
+                    Info: You have 3 active campaigns and 12 encounters.
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Spinner Section -->
+        <section class="showcase-section">
+            <h2>Loading Spinners</h2>
+            <div class="component-demo">
+                <div style="display: flex; gap: 3rem; align-items: center;">
+                    <div>
+                        <div class="code-label">.spinner</div>
+                        <div class="spinner"></div>
+                    </div>
+                    <div>
+                        <div class="code-label">.spinner.spinner-sm</div>
+                        <div class="spinner spinner-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Toast Notification Demo -->
+        <section class="showcase-section">
+            <h2>Toast Notifications</h2>
+            <p>Toast notifications appear in the top-right corner and auto-dismiss after 3 seconds.</p>
+            <div class="component-demo">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="showDemoToast('success')">Show Success Toast</button>
+                    <button class="btn btn-danger" onclick="showDemoToast('error')">Show Error Toast</button>
+                    <button class="btn btn-warning" onclick="showDemoToast('warning')">Show Warning Toast</button>
+                    <button class="btn btn-secondary" onclick="showDemoToast('info')">Show Info Toast</button>
+                </div>
+            </div>
+
+            <h3>Toast Examples (Static Display)</h3>
+            <div class="component-demo">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; max-width: 400px;">
+                    <div class="code-label">.toast.success</div>
+                    <div class="toast success">Operation completed successfully!</div>
+
+                    <div class="code-label">.toast.error</div>
+                    <div class="toast error">An error occurred. Please try again.</div>
+
+                    <div class="code-label">.toast.warning</div>
+                    <div class="toast warning">Warning: This action is irreversible.</div>
+
+                    <div class="code-label">.toast.info</div>
+                    <div class="toast info">New update available.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal Demo -->
+        <section class="showcase-section">
+            <h2>Modals</h2>
+            <p>Modals are overlay dialogs that appear on top of the main content.</p>
+            <div class="component-demo">
+                <button class="btn btn-primary" onclick="showDemoModal()">Show Modal</button>
+                <button class="btn btn-danger" onclick="showDemoConfirm()">Show Confirm Dialog</button>
+            </div>
+        </section>
+
+        <!-- Grid Layouts -->
+        <section class="showcase-section">
+            <h2>Grid Layouts</h2>
+
+            <h3>Campaign Grid</h3>
+            <div class="component-demo">
+                <div class="code-label">.campaign-grid</div>
+                <div class="campaign-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Campaign 1</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="campaign-description">Adventure in the Sword Coast.</p>
+                            <p class="campaign-meta"><span class="badge badge-success">Active</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Campaign 2</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="campaign-description">Exploration of the Underdark.</p>
+                            <p class="campaign-meta"><span class="badge badge-warning">Planning</span></p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Campaign 3</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="campaign-description">Rise of Tiamat epic campaign.</p>
+                            <p class="campaign-meta"><span class="badge badge-danger">Completed</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Monster Stats Display</h3>
+            <div class="component-demo">
+                <div class="code-label">.monster-stats</div>
+                <div class="monster-stats">
+                    <div class="monster-stat">
+                        <strong>AC</strong>
+                        <span>15</span>
+                    </div>
+                    <div class="monster-stat">
+                        <strong>HP</strong>
+                        <span>45/52</span>
+                    </div>
+                    <div class="monster-stat">
+                        <strong>Init</strong>
+                        <span>+2</span>
+                    </div>
+                    <div class="monster-stat">
+                        <strong>Speed</strong>
+                        <span>30 ft</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Ability Scores Display</h3>
+            <div class="component-demo">
+                <div class="code-label">.ability-scores</div>
+                <div class="ability-scores">
+                    <div class="ability-score">
+                        <div class="ability-label">STR</div>
+                        <div class="ability-value">16 (+3)</div>
+                    </div>
+                    <div class="ability-score">
+                        <div class="ability-label">DEX</div>
+                        <div class="ability-value">14 (+2)</div>
+                    </div>
+                    <div class="ability-score">
+                        <div class="ability-label">CON</div>
+                        <div class="ability-value">12 (+1)</div>
+                    </div>
+                    <div class="ability-score">
+                        <div class="ability-label">INT</div>
+                        <div class="ability-value">10 (+0)</div>
+                    </div>
+                    <div class="ability-score">
+                        <div class="ability-label">WIS</div>
+                        <div class="ability-value">13 (+1)</div>
+                    </div>
+                    <div class="ability-score">
+                        <div class="ability-label">CHA</div>
+                        <div class="ability-value">8 (-1)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Special Card Styles -->
+        <section class="showcase-section">
+            <h2>Special Card States</h2>
+
+            <h3>Monster Card States</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">Normal Card</div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Healthy Monster</h3>
+                                <p>This monster is at full health.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="code-label">.monster-card-wounded</div>
+                        <div class="card monster-card-wounded">
+                            <div class="card-body">
+                                <h3>Wounded Monster</h3>
+                                <p>This monster is wounded (HP below 50%).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="code-label">.monster-card-critical</div>
+                        <div class="card monster-card-critical">
+                            <div class="card-body">
+                                <h3>Critical Monster</h3>
+                                <p>This monster is critically wounded (HP below 25%).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Player Card States</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">Active Player Card</div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h3>Active Player</h3>
+                                <p>This player is active in the campaign.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="code-label">.player-card-inactive</div>
+                        <div class="card player-card-inactive">
+                            <div class="card-body">
+                                <h3>Inactive Player</h3>
+                                <p>This player is inactive (grayed out).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Initiative Tracker / Character Cards -->
+        <section class="showcase-section">
+            <h2>Initiative Tracker / Character Cards</h2>
+            <p>Character cards used in the active encounter tracker on the dashboard page.</p>
+
+            <h3>Initiative Row - Normal State</h3>
+            <div class="component-demo">
+                <div class="code-label">.initiative-row</div>
+                <div class="initiative-list">
+                    <div class="initiative-row">
+                        <div class="turn-indicator">1</div>
+                        <div class="participant-name">Aragorn the Ranger</div>
+                        <div class="initiative-value">18</div>
+                        <div class="health-section">
+                            <div class="hp-display">45 / 52</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-healthy" style="width: 87%"></div>
+                            </div>
+                            <div class="hp-controls">
+                                <input type="number" class="hp-input" placeholder="Amount">
+                                <button class="btn btn-sm btn-danger hp-damage-btn">−</button>
+                                <button class="btn btn-sm btn-success hp-heal-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 16</div>
+                        <div class="conditions-badges"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Initiative Row - Current Turn</h3>
+            <div class="component-demo">
+                <div class="code-label">.initiative-row.current-turn</div>
+                <div class="initiative-list">
+                    <div class="initiative-row current-turn">
+                        <div class="turn-indicator">2</div>
+                        <div class="participant-name">Goblin Scout</div>
+                        <div class="initiative-value">15</div>
+                        <div class="health-section">
+                            <div class="hp-display">7 / 7</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-healthy" style="width: 100%"></div>
+                            </div>
+                            <div class="hp-controls">
+                                <input type="number" class="hp-input" placeholder="Amount">
+                                <button class="btn btn-sm btn-danger hp-damage-btn">−</button>
+                                <button class="btn btn-sm btn-success hp-heal-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 13</div>
+                        <div class="conditions-badges"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Initiative Row - With Conditions</h3>
+            <div class="component-demo">
+                <div class="code-label">.conditions-badges</div>
+                <div class="initiative-list">
+                    <div class="initiative-row">
+                        <div class="turn-indicator">3</div>
+                        <div class="participant-name">Wizard Gandalf</div>
+                        <div class="initiative-value">14</div>
+                        <div class="health-section">
+                            <div class="hp-display">28 / 38</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-warning" style="width: 74%"></div>
+                            </div>
+                            <div class="hp-controls">
+                                <input type="number" class="hp-input" placeholder="Amount">
+                                <button class="btn btn-sm btn-danger hp-damage-btn">−</button>
+                                <button class="btn btn-sm btn-success hp-heal-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 12</div>
+                        <div class="conditions-badges">
+                            <span class="badge badge-warning">Poisoned</span>
+                            <span class="badge badge-warning">Prone</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>HP Bar States</h3>
+            <div class="component-demo">
+                <div class="initiative-list">
+                    <div class="initiative-row">
+                        <div class="turn-indicator">4</div>
+                        <div class="participant-name">Healthy Character (>75% HP)</div>
+                        <div class="initiative-value">12</div>
+                        <div class="health-section">
+                            <div class="hp-display">38 / 40</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-healthy" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 14</div>
+                        <div class="conditions-badges"></div>
+                    </div>
+
+                    <div class="initiative-row">
+                        <div class="turn-indicator">5</div>
+                        <div class="participant-name">Wounded Character (26-75% HP)</div>
+                        <div class="initiative-value">11</div>
+                        <div class="health-section">
+                            <div class="hp-display">18 / 40</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-warning" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 15</div>
+                        <div class="conditions-badges"></div>
+                    </div>
+
+                    <div class="initiative-row">
+                        <div class="turn-indicator">6</div>
+                        <div class="participant-name">Critical Character (≤25% HP)</div>
+                        <div class="initiative-value">10</div>
+                        <div class="health-section">
+                            <div class="hp-display">5 / 40</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-danger" style="width: 12%"></div>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 13</div>
+                        <div class="conditions-badges"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Initiative Row - Unconscious</h3>
+            <div class="component-demo">
+                <div class="code-label">.initiative-row.unconscious</div>
+                <div class="initiative-list">
+                    <div class="initiative-row unconscious">
+                        <div class="turn-indicator">7</div>
+                        <div class="participant-name">Fallen Hero</div>
+                        <div class="initiative-value">9</div>
+                        <div class="health-section">
+                            <div class="hp-display">0 / 35</div>
+                            <div class="hp-bar-container">
+                                <div class="hp-bar-fill hp-danger" style="width: 0%"></div>
+                            </div>
+                            <div class="hp-controls">
+                                <input type="number" class="hp-input" placeholder="Amount">
+                                <button class="btn btn-sm btn-danger hp-damage-btn">−</button>
+                                <button class="btn btn-sm btn-success hp-heal-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="participant-ac">AC 17</div>
+                        <div class="conditions-badges">
+                            <span class="badge badge-danger">Unconscious</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Full Initiative Tracker Widget</h3>
+            <div class="component-demo">
+                <div class="code-label">.initiative-tracker</div>
+                <div class="initiative-tracker">
+                    <div class="tracker-header">
+                        <div>
+                            <h3>Active Encounter: Goblin Ambush</h3>
+                        </div>
+                        <div class="round-counter">Round: 3</div>
+                        <div class="tracker-controls-header">
+                            <button class="btn btn-danger btn-sm">End Combat</button>
+                        </div>
+                    </div>
+
+                    <div class="tracker-controls">
+                        <button class="btn btn-primary">Next Turn ➜</button>
+                    </div>
+
+                    <div class="initiative-list">
+                        <div class="initiative-row">
+                            <div class="turn-indicator">1</div>
+                            <div class="participant-name">Elven Archer</div>
+                            <div class="initiative-value">20</div>
+                            <div class="health-section">
+                                <div class="hp-display">32 / 32</div>
+                                <div class="hp-bar-container">
+                                    <div class="hp-bar-fill hp-healthy" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="participant-ac">AC 15</div>
+                            <div class="conditions-badges"></div>
+                        </div>
+
+                        <div class="initiative-row current-turn">
+                            <div class="turn-indicator">2</div>
+                            <div class="participant-name">Orc Warrior</div>
+                            <div class="initiative-value">16</div>
+                            <div class="health-section">
+                                <div class="hp-display">10 / 15</div>
+                                <div class="hp-bar-container">
+                                    <div class="hp-bar-fill hp-warning" style="width: 67%"></div>
+                                </div>
+                            </div>
+                            <div class="participant-ac">AC 13</div>
+                            <div class="conditions-badges"></div>
+                        </div>
+
+                        <div class="initiative-row">
+                            <div class="turn-indicator">3</div>
+                            <div class="participant-name">Dwarf Cleric</div>
+                            <div class="initiative-value">12</div>
+                            <div class="health-section">
+                                <div class="hp-display">18 / 42</div>
+                                <div class="hp-bar-container">
+                                    <div class="hp-bar-fill hp-warning" style="width: 43%"></div>
+                                </div>
+                            </div>
+                            <div class="participant-ac">AC 18</div>
+                            <div class="conditions-badges">
+                                <span class="badge badge-warning">Blessed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Utility Classes -->
+        <section class="showcase-section">
+            <h2>Utility Classes</h2>
+
+            <h3>Text Alignment</h3>
+            <div class="component-demo">
+                <div class="code-label">.text-center</div>
+                <p class="text-center">This text is centered</p>
+
+                <div class="code-label">.text-right</div>
+                <p class="text-right">This text is right-aligned</p>
+            </div>
+
+            <h3>Spacing Utilities</h3>
+            <div class="component-demo">
+                <div class="code-label">.mt-1, .mt-2, .mt-3</div>
+                <div style="background: #e9ecef; padding: 0.5rem;">
+                    <div style="background: white; padding: 0.5rem;">No margin</div>
+                    <div style="background: white; padding: 0.5rem;" class="mt-1">Margin top .mt-1 (0.5rem)</div>
+                    <div style="background: white; padding: 0.5rem;" class="mt-2">Margin top .mt-2 (1rem)</div>
+                    <div style="background: white; padding: 0.5rem;" class="mt-3">Margin top .mt-3 (1.5rem)</div>
+                </div>
+            </div>
+
+            <h3>Visibility</h3>
+            <div class="component-demo">
+                <div class="code-label">.hidden</div>
+                <p>Visible text</p>
+                <p class="hidden">This text is hidden with .hidden class</p>
+                <p>More visible text</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/components.js"></script>
+    <script>
+        // Demo functions
+        function showDemoToast(type) {
+            const messages = {
+                success: 'Operation completed successfully!',
+                error: 'An error occurred. Please try again.',
+                warning: 'Warning: This action is irreversible.',
+                info: 'New update available.'
+            };
+            Components.showToast(messages[type], type);
+        }
+
+        function showDemoModal() {
+            Components.showModal(
+                'Example Modal',
+                `
+                    <p>This is a modal dialog with a custom title and content.</p>
+                    <p>Modals can contain any HTML content, including forms, lists, and other components.</p>
+                    <div class="form-group">
+                        <label for="modal-input">Example Input</label>
+                        <input type="text" id="modal-input" class="form-control" placeholder="Type something...">
+                    </div>
+                `,
+                [
+                    {
+                        id: 'cancel',
+                        label: 'Cancel',
+                        class: 'btn-secondary'
+                    },
+                    {
+                        id: 'save',
+                        label: 'Save Changes',
+                        class: 'btn-primary',
+                        handler: () => {
+                            Components.showToast('Changes saved!', 'success');
+                        }
+                    }
+                ]
+            );
+        }
+
+        function showDemoConfirm() {
+            Components.confirm(
+                'Are you sure you want to delete this item? This action cannot be undone.',
+                () => {
+                    Components.showToast('Item deleted successfully', 'success');
+                }
+            );
+        }
+    </script>
+</body>
+</html>
