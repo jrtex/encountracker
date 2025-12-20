@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const net = require('net');
 const database = require('./utils/database');
 const logger = require('./utils/logger');
 const initializeDatabase = require('./utils/initDatabase');
@@ -80,10 +81,42 @@ app.use((req, res, next) => {
 app.use(notFound);
 app.use(errorHandler);
 
+// Check if port is already in use
+async function isPortInUse(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(false);
+    });
+    server.listen(port);
+  });
+}
+
 // Initialize database and start server
 async function startServer() {
   try {
     logger.info('Starting D&D Encounter Manager...');
+
+    // Check if port is already in use
+    const portInUse = await isPortInUse(PORT);
+    if (portInUse) {
+      const errorMsg = `Port ${PORT} is already in use. Another instance may be running.`;
+      logger.error(errorMsg);
+      console.error(`\n❌ ERROR: ${errorMsg}\n`);
+      console.error('To fix this:');
+      console.error(`  1. Run "npm run stop" to kill existing processes on port ${PORT}`);
+      console.error(`  2. Or manually kill the process using the port`);
+      console.error(`  3. Then run "npm run dev" again\n`);
+      process.exit(1);
+    }
 
     // Connect to database
     await database.connect();

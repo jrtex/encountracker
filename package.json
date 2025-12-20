@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "nodemon server/index.js",
+    "stop": "node scripts/kill-port.js",
+    "restart": "npm run stop && npm run dev",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:csv": "jest --reporters=default --reporters=./tests/reporters/csv-reporter.js",
