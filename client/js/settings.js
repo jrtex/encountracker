@@ -3,22 +3,6 @@ const Settings = {
   async init() {
     await this.renderCurrentCampaign();
     await this.renderAllCampaigns();
-    this.setupEventListeners();
-  },
-
-  setupEventListeners() {
-    const newBtn = document.getElementById('settings-new-campaign-btn');
-    if (newBtn) {
-      newBtn.addEventListener('click', () => {
-        CampaignManager.showCampaignModal();
-      });
-    }
-
-    // Subscribe to campaign changes
-    CampaignContext.subscribe(() => {
-      this.renderCurrentCampaign();
-      this.renderAllCampaigns();
-    });
   },
 
   renderCurrentCampaign() {
@@ -56,12 +40,22 @@ const Settings = {
       ${Auth.isAdmin() ? `
         <div class="settings-card-row">
           <span class="settings-card-label">Actions:</span>
-          <button class="btn btn-sm btn-primary" onclick="CampaignManager.showCampaignModal(${JSON.stringify(campaign).replace(/"/g, '&quot;')})">
+          <button class="btn btn-sm btn-primary" id="edit-current-campaign-btn">
             Edit Campaign
           </button>
         </div>
       ` : ''}
     `;
+
+    // Attach event listener to the edit button
+    if (Auth.isAdmin()) {
+      const editBtn = document.getElementById('edit-current-campaign-btn');
+      if (editBtn) {
+        editBtn.addEventListener('click', () => {
+          CampaignManager.showCampaignModal(campaign);
+        });
+      }
+    }
   },
 
   async renderAllCampaigns() {
@@ -106,6 +100,23 @@ const Settings = {
 
 // Initialize settings when the settings page is shown
 document.addEventListener('DOMContentLoaded', () => {
+  // Set up event listener for the New Campaign button immediately
+  const newBtn = document.getElementById('settings-new-campaign-btn');
+  if (newBtn) {
+    newBtn.addEventListener('click', () => {
+      CampaignManager.showCampaignModal();
+    });
+  }
+
+  // Subscribe to campaign changes
+  CampaignContext.subscribe(() => {
+    if (document.getElementById('settings-page').classList.contains('active')) {
+      Settings.renderCurrentCampaign();
+      Settings.renderAllCampaigns();
+    }
+  });
+
+  // Set up observer for when the page becomes active
   const settingsPage = document.getElementById('settings-page');
   if (settingsPage) {
     const observer = new MutationObserver((mutations) => {
