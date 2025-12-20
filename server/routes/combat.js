@@ -385,7 +385,15 @@ router.put('/initiative/:id',
   authorize('admin'),
   param('id').isInt(),
   body('current_hp').optional().isInt(),
-  body('conditions').optional().isArray(),
+  body('conditions').optional().isArray().custom((value) => {
+    // Validate mixed array: strings (standard conditions) or objects (custom conditions)
+    for (const item of value) {
+      if (typeof item === 'string') continue;
+      if (typeof item === 'object' && item !== null && item.name && item.description && item.type === 'custom') continue;
+      throw new Error('Invalid condition format. Must be string or {name, description, type: "custom"}');
+    }
+    return true;
+  }),
   body('initiative').optional().isInt(),
   validate,
   async (req, res, next) => {
@@ -422,10 +430,21 @@ router.put('/initiative/:id',
         let updatedConditions = conditions !== undefined ? conditions :
           (entry.conditions ? JSON.parse(entry.conditions) : []);
 
-        if (current_hp <= 0 && !updatedConditions.includes('unconscious')) {
+        // Helper to check if condition exists (handles both string and object)
+        const hasCondition = (conditions, name) => {
+          return conditions.some(c =>
+            (typeof c === 'string' && c === name) ||
+            (typeof c === 'object' && c.name === name)
+          );
+        };
+
+        if (current_hp <= 0 && !hasCondition(updatedConditions, 'unconscious')) {
           updatedConditions.push('unconscious');
         } else if (current_hp > 0) {
-          updatedConditions = updatedConditions.filter(c => c !== 'unconscious');
+          updatedConditions = updatedConditions.filter(c =>
+            (typeof c === 'string' && c !== 'unconscious') ||
+            (typeof c === 'object' && c.name !== 'unconscious')
+          );
         }
 
         await database.run(

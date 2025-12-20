@@ -252,6 +252,13 @@ const API = {
       });
     },
 
+    updateConditions(initiativeId, conditions) {
+      return API.request(`/combat/initiative/${initiativeId}`, {
+        method: 'PUT',
+        body: { conditions }
+      });
+    },
+
     endCombat(encounterId) {
       return API.request(`/combat/${encounterId}/end`, {
         method: 'POST'
