@@ -128,7 +128,21 @@ const Encounters = {
       footer.appendChild(deleteBtn);
     }
 
-    return Components.createCard(encounter.name, content, footer);
+    const card = Components.createCard(encounter.name, content, footer);
+
+    // Make the card header (title) clickable
+    const cardHeader = card.querySelector('.card-header');
+    if (cardHeader) {
+      cardHeader.classList.add('clickable');
+      cardHeader.style.cursor = 'pointer';
+      cardHeader.addEventListener('click', () => {
+        const detailPage = document.getElementById('encounter-detail-page');
+        detailPage.dataset.encounterId = encounter.id;
+        App.showPage('encounter-detail-page');
+      });
+    }
+
+    return card;
   },
 
   getDifficultyBadgeType(difficulty) {

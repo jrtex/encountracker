@@ -110,6 +110,20 @@
   font-size: 1.25rem;
 }
 
+.card-header.clickable {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  user-select: none;
+}
+
+.card-header.clickable:hover {
+  background-color: var(--primary-color-light, #e3f2fd);
+  transform: translateY(-1px);
+}
+
+.card-header.clickable:active {
+  transform: translateY(0);
+}
+
 .card-body {
   padding: 1.5rem;
 }
