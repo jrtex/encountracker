@@ -103,6 +103,7 @@ describe('Combat Routes - Status Effects', () => {
         turn_order INTEGER NOT NULL,
         is_current_turn BOOLEAN DEFAULT 0,
         conditions TEXT,
+        temp_hp INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
@@ -535,6 +536,190 @@ describe('Combat Routes - Status Effects', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.initiative).toBe(20);
       expect(response.body.data.conditions).toContain('poisoned');
+    });
+  });
+
+  describe('PUT /api/combat/initiative/:id/temp-hp - Temporary HP', () => {
+    test('should add temporary HP to participant', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 10 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.temp_hp).toBe(10);
+    });
+
+    test('should add to existing temporary HP', async () => {
+      // Add initial temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 5 });
+
+      // Add more temp HP
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 8 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(13); // 5 + 8
+    });
+
+    test('should reject negative temporary HP', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: -5 });
+
+      expect(response.status).toBe(400);
+    });
+
+    test('should require admin role to add temp HP', async () => {
+      // Create player user
+      const playerPasswordHash = await bcrypt.hash('player123', 10);
+      const playerUser = await database.run(
+        'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+        ['player', 'player@test.com', playerPasswordHash, 'player']
+      );
+      const playerToken = generateToken({
+        id: playerUser.lastID,
+        username: 'player',
+        email: 'player@test.com',
+        role: 'player'
+      });
+
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${playerToken}`)
+        .send({ temp_hp: 10 });
+
+      expect(response.status).toBe(403);
+    });
+
+    test('should require authentication', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .send({ temp_hp: 10 });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe('PUT /api/combat/initiative/:id - Damage with Temporary HP', () => {
+    test('should apply damage to temp HP first', async () => {
+      // Add temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 10 });
+
+      // Get current HP
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      const initialHp = player.current_hp;
+
+      // Apply 5 damage (less than temp HP)
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: initialHp - 5 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(5); // 10 - 5
+      expect(response.body.data.current_hp).toBe(initialHp); // HP unchanged
+    });
+
+    test('should apply damage to temp HP then overflow to regular HP', async () => {
+      // Add temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 10 });
+
+      // Get current HP
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      const initialHp = player.current_hp;
+
+      // Apply 15 damage (more than temp HP)
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: initialHp - 15 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(0); // All temp HP consumed
+      expect(response.body.data.current_hp).toBe(initialHp - 5); // 15 - 10 temp HP = 5 damage to regular HP
+    });
+
+    test('should remove all temp HP when damage exceeds it', async () => {
+      // Add temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 3 });
+
+      // Get current HP
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      const initialHp = player.current_hp;
+
+      // Apply 20 damage
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: initialHp - 20 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(0);
+      expect(response.body.data.current_hp).toBe(initialHp - 17); // 20 - 3 temp HP
+    });
+
+    test('should not affect temp HP when healing', async () => {
+      // Damage player first
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      const initialHp = player.current_hp;
+
+      await database.run('UPDATE players SET current_hp = ? WHERE id = ?', [initialHp - 10, playerId]);
+
+      // Add temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 5 });
+
+      // Heal
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: initialHp - 5 }); // Heal 5 HP
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(5); // Temp HP unchanged
+      expect(response.body.data.current_hp).toBe(initialHp - 5);
+    });
+
+    test('should auto-add unconscious when temp HP is present but regular HP drops to 0', async () => {
+      // Add temp HP
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/temp-hp`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ temp_hp: 10 });
+
+      // Get current HP
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      const initialHp = player.current_hp;
+
+      // Apply damage equal to (temp HP + regular HP)
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: initialHp - (10 + initialHp) });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.temp_hp).toBe(0);
+      expect(response.body.data.current_hp).toBe(0);
+      expect(response.body.data.conditions).toContain('unconscious');
     });
   });
 });

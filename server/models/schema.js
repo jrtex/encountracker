@@ -80,6 +80,7 @@ const createTablesSQL = `
     turn_order INTEGER NOT NULL,
     is_current_turn BOOLEAN DEFAULT 0,
     conditions TEXT,
+    temp_hp INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
   );

@@ -46,6 +46,7 @@ router.get('/:encounter_id/initiative',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -244,6 +245,7 @@ router.post('/:encounter_id/start',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -420,10 +422,58 @@ router.put('/initiative/:id',
 
       // Update current_hp if provided
       if (current_hp !== undefined) {
+        // Get current temp_hp to apply damage correctly
+        const currentEntry = await database.get(
+          'SELECT temp_hp FROM initiative_tracker WHERE id = ?',
+          [id]
+        );
+
+        const currentTempHp = currentEntry.temp_hp || 0;
+
+        // Calculate damage/healing
+        const currentHp = await database.get(
+          `SELECT current_hp FROM ${entry.participant_type === 'player' ? 'players' : 'monsters'} WHERE id = ?`,
+          [entry.participant_id]
+        );
+
+        const hpDiff = current_hp - currentHp.current_hp;
+
+        let newTempHp = currentTempHp;
+        let newActualHp = currentHp.current_hp; // Start with current HP from database
+
+        // If taking damage (negative hpDiff), apply to temp HP first
+        if (hpDiff < 0) {
+          const damage = Math.abs(hpDiff);
+          if (currentTempHp > 0) {
+            if (damage <= currentTempHp) {
+              // All damage absorbed by temp HP
+              newTempHp = currentTempHp - damage;
+              newActualHp = currentHp.current_hp; // HP unchanged
+            } else {
+              // Temp HP absorbed some, rest goes to regular HP
+              const remainingDamage = damage - currentTempHp;
+              newTempHp = 0;
+              newActualHp = Math.max(0, currentHp.current_hp - remainingDamage);
+            }
+          } else {
+            // No temp HP, apply all damage to regular HP
+            newActualHp = Math.max(0, current_hp);
+          }
+        } else {
+          // Healing - just use the provided HP value
+          newActualHp = current_hp;
+        }
+
         const table = entry.participant_type === 'player' ? 'players' : 'monsters';
         await database.run(
           `UPDATE ${table} SET current_hp = ? WHERE id = ?`,
-          [current_hp, entry.participant_id]
+          [newActualHp, entry.participant_id]
+        );
+
+        // Update temp HP
+        await database.run(
+          'UPDATE initiative_tracker SET temp_hp = ? WHERE id = ?',
+          [newTempHp, id]
         );
 
         // Auto-manage unconscious condition
@@ -438,9 +488,9 @@ router.put('/initiative/:id',
           );
         };
 
-        if (current_hp <= 0 && !hasCondition(updatedConditions, 'unconscious')) {
+        if (newActualHp <= 0 && !hasCondition(updatedConditions, 'unconscious')) {
           updatedConditions.push('unconscious');
-        } else if (current_hp > 0) {
+        } else if (newActualHp > 0) {
           updatedConditions = updatedConditions.filter(c =>
             (typeof c === 'string' && c !== 'unconscious') ||
             (typeof c === 'object' && c.name !== 'unconscious')
@@ -492,6 +542,7 @@ router.put('/initiative/:id',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -518,6 +569,96 @@ router.put('/initiative/:id',
       res.json({
         success: true,
         message: 'Initiative entry updated',
+        data: {
+          ...updatedEntry,
+          is_current_turn: Boolean(updatedEntry.is_current_turn),
+          conditions: updatedEntry.conditions ? JSON.parse(updatedEntry.conditions) : []
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PUT /api/combat/initiative/:id/temp-hp - Update temporary HP (admin only)
+router.put('/initiative/:id/temp-hp',
+  authorize('admin'),
+  param('id').isInt(),
+  body('temp_hp').isInt({ min: 0 }),
+  validate,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { temp_hp } = req.body;
+
+      // Get initiative tracker entry and verify ownership
+      const entry = await database.get(
+        `SELECT it.*, e.campaign_id
+         FROM initiative_tracker it
+         JOIN encounters e ON it.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE it.id = ? AND c.dm_user_id = ?`,
+        [id, req.user.id]
+      );
+
+      if (!entry) {
+        return res.status(404).json({
+          success: false,
+          message: 'Initiative entry not found or access denied'
+        });
+      }
+
+      // Get current temp_hp
+      const currentTempHp = entry.temp_hp || 0;
+
+      // According to D&D 5e rules, adding temp HP replaces existing temp HP if new value is higher
+      // But based on user requirement: "If temporary is added to a player with existing temporary HP, it should be added to the existing"
+      const newTempHp = currentTempHp + temp_hp;
+
+      // Update temp HP
+      await database.run(
+        'UPDATE initiative_tracker SET temp_hp = ? WHERE id = ?',
+        [newTempHp, id]
+      );
+
+      // Get updated entry with participant details
+      const updatedEntry = await database.get(
+        `SELECT
+          it.id,
+          it.participant_type,
+          it.participant_id,
+          it.initiative,
+          it.turn_order,
+          it.is_current_turn,
+          it.conditions,
+          it.temp_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.character_name
+            WHEN it.participant_type = 'monster' THEN m.name
+          END as name,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.current_hp
+            WHEN it.participant_type = 'monster' THEN m.current_hp
+          END as current_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.max_hp
+            WHEN it.participant_type = 'monster' THEN m.max_hp
+          END as max_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.armor_class
+            WHEN it.participant_type = 'monster' THEN m.armor_class
+          END as armor_class
+         FROM initiative_tracker it
+         LEFT JOIN players p ON it.participant_type = 'player' AND it.participant_id = p.id
+         LEFT JOIN monsters m ON it.participant_type = 'monster' AND it.participant_id = m.id
+         WHERE it.id = ?`,
+        [id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Temporary HP updated',
         data: {
           ...updatedEntry,
           is_current_turn: Boolean(updatedEntry.is_current_turn),

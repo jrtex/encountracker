@@ -252,6 +252,9 @@ const Initiative = {
     const unconsciousBadge = isUnconscious ?
       '<span class="badge badge-danger condition-badge" data-condition="unconscious" data-init-id="' + participant.id + '">Unconscious</span>' : '';
 
+    const tempHpBadge = (participant.temp_hp && participant.temp_hp > 0) ?
+      '<span class="badge temp-hp-badge" data-init-id="' + participant.id + '" title="Temporary HP">+' + participant.temp_hp + ' Temp HP</span>' : '';
+
     const conditionBadges = participant.conditions
       .filter(c => this.getConditionName(c) !== 'unconscious')
       .map(c => {
@@ -264,6 +267,7 @@ const Initiative = {
       .join('');
 
     const addStatusBtn = '<button class="btn btn-sm btn-outline add-status-btn admin-only" data-init-id="' + participant.id + '" title="Add Status Effect">+ Status</button>';
+    const addTempHpBtn = '<button class="btn btn-sm btn-outline add-temp-hp-btn admin-only" data-init-id="' + participant.id + '" title="Add Temporary HP">+ Temp HP</button>';
 
     const rowClass = `initiative-row ${isCurrent ? 'current-turn' : ''} ${isUnconscious ? 'unconscious' : ''}`;
 
@@ -286,8 +290,10 @@ const Initiative = {
         <div class="participant-ac">AC ${participant.armor_class}</div>
         <div class="conditions-badges">
           ${unconsciousBadge}
+          ${tempHpBadge}
           ${conditionBadges}
           ${addStatusBtn}
+          ${addTempHpBtn}
         </div>
       </div>
     `;
@@ -337,6 +343,14 @@ const Initiative = {
       btn.addEventListener('click', (e) => {
         const initId = e.target.getAttribute('data-init-id');
         this.showAddStatusModal(initId);
+      });
+    });
+
+    // Add temp HP buttons
+    this.container.querySelectorAll('.add-temp-hp-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const initId = e.target.getAttribute('data-init-id');
+        this.showAddTempHpModal(initId);
       });
     });
 
@@ -582,6 +596,86 @@ const Initiative = {
     } catch (error) {
       Components.hideSpinner(this.container);
       Components.showToast('Error ending combat: ' + error.message, 'error');
+    }
+  },
+
+  async showAddTempHpModal(initiativeId) {
+    const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+    if (!participant) return;
+
+    const currentTempHp = participant.temp_hp || 0;
+
+    const content = `
+      <form id="add-temp-hp-form">
+        <div class="form-group">
+          <label>Current Temporary HP: ${currentTempHp}</label>
+        </div>
+        <div class="form-group">
+          <label>Add Temporary HP</label>
+          <input type="number"
+                 class="form-control"
+                 id="temp-hp-amount"
+                 min="1"
+                 placeholder="Amount to add"
+                 value="">
+          <small class="form-text">This will be added to existing temporary HP</small>
+        </div>
+      </form>
+    `;
+
+    const actions = [
+      {
+        id: 'cancel',
+        label: 'Cancel',
+        class: 'btn-secondary',
+        handler: () => {}
+      },
+      {
+        id: 'add',
+        label: 'Add Temp HP',
+        class: 'btn-primary',
+        handler: () => this.handleAddTempHp(initiativeId),
+        closeOnClick: false
+      }
+    ];
+
+    Components.showModal('Add Temporary HP', content, actions);
+
+    // Focus the input
+    setTimeout(() => {
+      const input = document.getElementById('temp-hp-amount');
+      if (input) input.focus();
+    }, 100);
+  },
+
+  async handleAddTempHp(initiativeId) {
+    const input = document.getElementById('temp-hp-amount');
+    const amount = parseInt(input.value);
+
+    if (!amount || amount <= 0) {
+      Components.showToast('Please enter a valid amount', 'error');
+      return;
+    }
+
+    try {
+      // Close modal
+      const modal = document.querySelector('.modal-overlay');
+      if (modal) modal.remove();
+
+      // Show loading
+      Components.showSpinner(this.container);
+
+      // Update via API
+      await API.combat.updateTempHp(initiativeId, amount);
+
+      // Reload initiative
+      await this.loadInitiative();
+      this.render();
+
+      Components.showToast(`Added ${amount} temporary HP`, 'success');
+    } catch (error) {
+      Components.hideSpinner(this.container);
+      Components.showToast('Error adding temporary HP: ' + error.message, 'error');
     }
   },
 

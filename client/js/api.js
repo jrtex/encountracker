@@ -259,6 +259,13 @@ const API = {
       });
     },
 
+    updateTempHp(initiativeId, tempHp) {
+      return API.request(`/combat/initiative/${initiativeId}/temp-hp`, {
+        method: 'PUT',
+        body: { temp_hp: tempHp }
+      });
+    },
+
     endCombat(encounterId) {
       return API.request(`/combat/${encounterId}/end`, {
         method: 'POST'
