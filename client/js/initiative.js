@@ -240,6 +240,11 @@ const Initiative = {
     const isUnconscious = this.hasCondition(participant.conditions, 'unconscious');
     const isCurrent = participant.is_current_turn;
 
+    // Determine participant type (player vs monster)
+    const participantType = participant.participant_type || 'player';
+    const typeClass = participantType === 'player' ? 'type-player' : 'type-monster';
+    const typeLabel = participantType === 'player' ? 'Player' : 'Monster';
+
     let hpBarClass = 'hp-bar-fill';
     if (hpPercentage > 75) {
       hpBarClass += ' hp-healthy';
@@ -266,34 +271,55 @@ const Initiative = {
       })
       .join('');
 
-    const addStatusBtn = '<button class="btn btn-sm btn-outline add-status-btn admin-only" data-init-id="' + participant.id + '" title="Add Status Effect">+ Status</button>';
-    const addTempHpBtn = '<button class="btn btn-sm btn-outline add-temp-hp-btn admin-only" data-init-id="' + participant.id + '" title="Add Temporary HP">+ Temp HP</button>';
-
     const rowClass = `initiative-row ${isCurrent ? 'current-turn' : ''} ${isUnconscious ? 'unconscious' : ''}`;
 
     return `
       <div class="${rowClass}" data-initiative-id="${participant.id}">
+        <!-- Column 1: Turn Indicator -->
         <div class="turn-indicator">${participant.turn_order}</div>
-        <div class="participant-name">${participant.name}</div>
-        <div class="initiative-value">${participant.initiative}</div>
+
+        <!-- Column 2: Creature Information -->
+        <div class="creature-info">
+          <div class="creature-name">${participant.name}</div>
+          <div class="creature-stats">
+            <span class="creature-initiative">Init: ${participant.initiative}</span>
+            <span class="creature-ac">AC ${participant.armor_class}</span>
+          </div>
+          <span class="participant-type ${typeClass}">${typeLabel}</span>
+        </div>
+
+        <!-- Column 3: Temporary Badges -->
+        <div class="temporary-badges">
+          ${tempHpBadge}
+          ${unconsciousBadge}
+          ${conditionBadges}
+        </div>
+
+        <!-- Column 4: Health Section + Menu -->
         <div class="health-section">
+          <!-- Actions Menu (3-Dot) -->
+          <div class="actions-menu admin-only">
+            <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions">⋮</button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Add Status Effect</button>
+              <button class="dropdown-item add-temp-hp-btn" data-init-id="${participant.id}">Add Temporary HP</button>
+            </div>
+          </div>
+
+          <!-- HP Display -->
           <div class="hp-display">${participant.current_hp} / ${participant.max_hp}</div>
+
+          <!-- HP Bar -->
           <div class="hp-bar-container">
             <div class="${hpBarClass}" style="width: ${Math.max(0, hpPercentage)}%"></div>
           </div>
+
+          <!-- HP Controls -->
           <div class="hp-controls admin-only">
             <input type="number" class="hp-input" placeholder="Amount" data-init-id="${participant.id}">
             <button class="btn btn-sm btn-danger hp-damage-btn" data-init-id="${participant.id}">−</button>
             <button class="btn btn-sm btn-success hp-heal-btn" data-init-id="${participant.id}">+</button>
           </div>
-        </div>
-        <div class="participant-ac">AC ${participant.armor_class}</div>
-        <div class="conditions-badges">
-          ${unconsciousBadge}
-          ${tempHpBadge}
-          ${conditionBadges}
-          ${addStatusBtn}
-          ${addTempHpBtn}
         </div>
       </div>
     `;
@@ -342,6 +368,10 @@ const Initiative = {
     this.container.querySelectorAll('.add-status-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const initId = e.target.getAttribute('data-init-id');
+        // Close any open dropdowns
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
         this.showAddStatusModal(initId);
       });
     });
@@ -350,8 +380,39 @@ const Initiative = {
     this.container.querySelectorAll('.add-temp-hp-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const initId = e.target.getAttribute('data-init-id');
+        // Close any open dropdowns
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
         this.showAddTempHpModal(initId);
       });
+    });
+
+    // Dropdown menu toggles
+    this.container.querySelectorAll('.menu-toggle').forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dropdown = toggle.nextElementSibling;
+
+        // Close all other dropdowns
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          if (menu !== dropdown) {
+            menu.classList.remove('show');
+          }
+        });
+
+        // Toggle this dropdown
+        dropdown.classList.toggle('show');
+      });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.actions-menu')) {
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      }
     });
 
     // Condition badge click handlers

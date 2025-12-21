@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Encounter Card Redesign - Temporary Showcase</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* ========================================
+           CUSTOM COLOR VARIABLES
+           ======================================== */
+        :root {
+            --player-badge-color: #2196f3;
+        }
+
+        /* ========================================
+           SHOWCASE-SPECIFIC STYLING
+           ======================================== */
+        .demo-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .demo-title {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .demo-title h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+        }
+
+        .demo-title p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .showcase-section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .showcase-section:last-child {
+            border-bottom: none;
+        }
+
+        .showcase-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+        }
+
+        .showcase-section h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .component-demo {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .code-label {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+
+        .design-note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .design-note strong {
+            color: #1976d2;
+        }
+
+        /* ========================================
+           NEW CARD DESIGN - EXPERIMENTAL
+           ======================================== */
+
+        /* Updated Grid Layout for Initiative Row */
+        .initiative-row-new {
+            display: grid;
+            grid-template-columns: 50px minmax(200px, 1fr) minmax(150px, 2fr) 250px;
+            gap: 1rem;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .initiative-row-new.current-turn {
+            background: #fff3cd;
+            border-left-color: var(--warning-color);
+            box-shadow: 0 0 0 2px var(--warning-color);
+            font-weight: 500;
+        }
+
+        .initiative-row-new.unconscious {
+            opacity: 0.6;
+            background: #f8d7da;
+            border-left-color: var(--danger-color);
+        }
+
+        /* Column 1: Turn Indicator */
+        .turn-indicator-new {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        /* Column 2: Creature Info */
+        .creature-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .creature-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            line-height: 1.2;
+        }
+
+        .creature-stats {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--secondary-color);
+            align-items: center;
+        }
+
+        .creature-initiative,
+        .creature-ac {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .participant-type {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            width: fit-content;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .participant-type.type-player {
+            background-color: var(--player-badge-color);
+            color: white;
+        }
+
+        .participant-type.type-monster {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Column 3: Temporary Badges */
+        .temporary-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            justify-content: flex-end;
+            align-items: center;
+            padding-right: 0.5rem;
+        }
+
+        /* Column 4: Health Section */
+        .health-section-new {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .hp-display-new {
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            color: var(--dark-color);
+        }
+
+        .hp-bar-container-new {
+            width: 100%;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .hp-bar-fill-new {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .hp-bar-fill-new.hp-healthy {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+
+        .hp-bar-fill-new.hp-warning {
+            background: linear-gradient(90deg, #e67e22, #f39c12);
+        }
+
+        .hp-bar-fill-new.hp-danger {
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
+        }
+
+        .hp-controls-new {
+            display: flex;
+            gap: 0.35rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hp-input-new {
+            flex: 1;
+            min-width: 0; /* Allow flex item to shrink below content size */
+            padding: 0.35rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        .hp-btn {
+            min-width: 32px;
+            max-width: 32px;
+            padding: 0.35rem 0.25rem;
+            font-size: 0.875rem;
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        /* Actions Menu (3-Dot) */
+        .actions-menu {
+            position: absolute;
+            top: -0.5rem;
+            right: -0.5rem;
+            z-index: 10;
+        }
+
+        .btn-icon {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.25rem;
+            color: var(--secondary-color);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-icon:hover {
+            color: var(--primary-color);
+            background: #f8f9fa;
+            transform: scale(1.05);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+
+        .dropdown-menu-demo {
+            position: absolute;
+            top: calc(100% + 0.25rem);
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 200px;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .dropdown-item-demo {
+            display: block;
+            width: 100%;
+            padding: 0.65rem 1rem;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background-color 0.15s ease;
+            color: var(--dark-color);
+        }
+
+        .dropdown-item-demo:hover {
+            background: var(--light-color);
+        }
+
+        .dropdown-item-demo:not(:last-child) {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        /* Actions Section (Expandable) */
+        .actions-section {
+            grid-column: 1 / -1; /* Span all columns */
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .actions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s ease;
+            user-select: none;
+        }
+
+        .actions-header:hover {
+            background: #e9ecef;
+        }
+
+        .actions-header-text {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark-color);
+        }
+
+        .actions-toggle {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .actions-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .actions-content {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .actions-content.collapsed {
+            display: none;
+        }
+
+        .action-item {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .action-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .action-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 0.35rem;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .action-type {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-radius: 3px;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .initiative-row-new {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .turn-indicator-new {
+                text-align: left;
+                font-size: 1.2rem;
+            }
+
+            .temporary-badges {
+                justify-content: flex-start;
+                padding-right: 0;
+            }
+
+            .actions-menu {
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+
+            .actions-section {
+                grid-column: 1;
+            }
+        }
+
+        /* Comparison Layout */
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 900px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .comparison-label {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <div class="demo-title">
+            <h1>🎲 Active Encounter Card Redesign</h1>
+            <p>Temporary showcase for experimenting with new participant card layouts</p>
+            <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+                ⚠️ This is a temporary design file. Do not commit to production.
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ==================== DESIGN OVERVIEW ==================== -->
+        <section class="showcase-section">
+            <h2>📋 Design Overview</h2>
+
+            <div class="design-note">
+                <strong>Key Changes:</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li><strong>4-Column Grid Layout</strong> - Fixed positions for all elements</li>
+                    <li><strong>Column 1:</strong> Turn indicator (#1, #2, #3)</li>
+                    <li><strong>Column 2:</strong> Creature info (Name, Init, AC, Type badge)</li>
+                    <li><strong>Column 3:</strong> Temporary badges (Conditions, Temp HP) - right-aligned</li>
+                    <li><strong>Column 4:</strong> Health section (HP bar, controls, 3-dot menu)</li>
+                    <li><strong>Consistent HP Bar Location</strong> - Always in the same spot regardless of badges</li>
+                    <li><strong>Dropdown Menu</strong> - Replaces scattered "+ Status" and "+ Temp HP" buttons</li>
+                    <li><strong>⚔️ Actions Section (NEW)</strong> - Expandable section below grid showing monster/player actions (collapsed by default)</li>
+                </ul>
+            </div>
+
+            <div class="component-demo">
+                <div class="code-label">.initiative-row-new (4-column grid)</div>
+                <p style="margin: 0.5rem 0; font-family: monospace; font-size: 0.85rem; color: #666;">
+                    grid-template-columns: 50px minmax(200px, 1fr) minmax(150px, 2fr) 250px
+                </p>
+                <div style="background: white; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                    <div style="display: grid; grid-template-columns: 50px minmax(200px, 1fr) minmax(150px, 2fr) 250px; gap: 1rem; border: 2px dashed #ccc; padding: 1rem;">
+                        <div style="background: #e3f2fd; padding: 0.5rem; text-align: center; border-radius: 3px;">
+                            <small style="font-weight: 600;">Col 1</small><br>
+                            <small>Turn #</small>
+                        </div>
+                        <div style="background: #f3e5f5; padding: 0.5rem; border-radius: 3px;">
+                            <small style="font-weight: 600;">Col 2</small><br>
+                            <small>Creature Info</small>
+                        </div>
+                        <div style="background: #fff3e0; padding: 0.5rem; border-radius: 3px;">
+                            <small style="font-weight: 600;">Col 3</small><br>
+                            <small>Badges (right-align)</small>
+                        </div>
+                        <div style="background: #e8f5e9; padding: 0.5rem; border-radius: 3px;">
+                            <small style="font-weight: 600;">Col 4</small><br>
+                            <small>Health + Menu</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== INDIVIDUAL COMPONENTS ==================== -->
+        <section class="showcase-section">
+            <h2>🧩 Individual Components</h2>
+
+            <h3>Turn Indicator</h3>
+            <div class="component-demo">
+                <div class="code-label">.turn-indicator-new</div>
+                <div style="display: flex; gap: 2rem; align-items: center;">
+                    <div class="turn-indicator-new">1</div>
+                    <div class="turn-indicator-new">2</div>
+                    <div class="turn-indicator-new">3</div>
+                </div>
+            </div>
+
+            <h3>Creature Info Section</h3>
+            <div class="component-demo">
+                <div class="code-label">.creature-info</div>
+                <div class="creature-info" style="max-width: 300px;">
+                    <div class="creature-name">Thorin Ironforge</div>
+                    <div class="creature-stats">
+                        <span class="creature-initiative">Init: 18</span>
+                        <span class="creature-ac">AC 16</span>
+                    </div>
+                    <span class="participant-type type-player">Player</span>
+                </div>
+            </div>
+
+            <div class="component-demo">
+                <div class="code-label">.creature-info (Monster)</div>
+                <div class="creature-info" style="max-width: 300px;">
+                    <div class="creature-name">Goblin Shaman</div>
+                    <div class="creature-stats">
+                        <span class="creature-initiative">Init: 11</span>
+                        <span class="creature-ac">AC 13</span>
+                    </div>
+                    <span class="participant-type type-monster">Monster</span>
+                </div>
+            </div>
+
+            <h3>HP Display & Bar States</h3>
+            <div class="component-demo">
+                <div class="code-label">.hp-display-new + .hp-bar-container-new</div>
+
+                <div style="display: grid; gap: 1.5rem;">
+                    <div>
+                        <small style="font-weight: 600; color: #666;">Healthy (>75% HP)</small>
+                        <div style="max-width: 250px; margin-top: 0.5rem;">
+                            <div class="hp-display-new">45 / 52</div>
+                            <div class="hp-bar-container-new">
+                                <div class="hp-bar-fill-new hp-healthy" style="width: 86%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <small style="font-weight: 600; color: #666;">Warning (25-75% HP)</small>
+                        <div style="max-width: 250px; margin-top: 0.5rem;">
+                            <div class="hp-display-new">18 / 35</div>
+                            <div class="hp-bar-container-new">
+                                <div class="hp-bar-fill-new hp-warning" style="width: 51%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <small style="font-weight: 600; color: #666;">Danger (≤25% HP)</small>
+                        <div style="max-width: 250px; margin-top: 0.5rem;">
+                            <div class="hp-display-new">8 / 48</div>
+                            <div class="hp-bar-container-new">
+                                <div class="hp-bar-fill-new hp-danger" style="width: 16%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <small style="font-weight: 600; color: #666;">Unconscious (0 HP)</small>
+                        <div style="max-width: 250px; margin-top: 0.5rem;">
+                            <div class="hp-display-new">0 / 42</div>
+                            <div class="hp-bar-container-new">
+                                <div class="hp-bar-fill-new hp-danger" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>HP Controls</h3>
+            <div class="component-demo">
+                <div class="code-label">.hp-controls-new (Admin only)</div>
+                <div style="max-width: 250px;">
+                    <div class="hp-controls-new">
+                        <input type="number" class="hp-input-new" placeholder="Amount">
+                        <button class="btn btn-sm btn-danger hp-btn">−</button>
+                        <button class="btn btn-sm btn-success hp-btn">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Actions Menu (3-Dot Dropdown)</h3>
+            <div class="component-demo">
+                <div class="code-label">.actions-menu + .dropdown-menu-demo</div>
+                <div style="position: relative; display: inline-block;">
+                    <button class="btn-icon">⋮</button>
+                    <div class="dropdown-menu-demo" style="position: static; margin-top: 1rem;">
+                        <button class="dropdown-item-demo">Add Status Effect</button>
+                        <button class="dropdown-item-demo">Add Temporary HP</button>
+                        <button class="dropdown-item-demo">Edit Initiative</button>
+                        <button class="dropdown-item-demo">Remove from Combat</button>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Badge Showcase</h3>
+            <div class="component-demo">
+                <div class="code-label">.temporary-badges (right-aligned)</div>
+                <div class="temporary-badges">
+                    <span class="badge temp-hp-badge">+8 Temp HP</span>
+                    <span class="badge badge-danger">Unconscious</span>
+                    <span class="badge badge-warning">Poisoned</span>
+                    <span class="badge badge-warning">Frightened</span>
+                    <span class="badge badge-info">Hex</span>
+                </div>
+            </div>
+
+            <h3>Actions Section (Expandable)</h3>
+            <div class="component-demo">
+                <div class="code-label">.actions-section (collapsed by default)</div>
+                <div class="design-note">
+                    <strong>Note:</strong> Actions section spans full width below the 4-column grid. Only shown if the participant has defined actions. Click to expand/collapse.
+                </div>
+
+                <div style="max-width: 100%; margin-top: 1rem;">
+                    <div class="actions-section">
+                        <div class="actions-header" onclick="toggleActionsDemo(this)">
+                            <span class="actions-header-text">Actions</span>
+                            <button class="actions-toggle">▼</button>
+                        </div>
+                        <div class="actions-content collapsed">
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Multiattack
+                                </div>
+                                <div class="action-description">
+                                    The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Bite <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 10 ft., one target. <em>Hit:</em> 17 (2d10 + 6) piercing damage plus 7 (2d6) poison damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Claw <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 5 ft., one target. <em>Hit:</em> 13 (2d6 + 6) slashing damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Poison Breath <span class="action-type">Recharge 5-6</span>
+                                </div>
+                                <div class="action-description">
+                                    The dragon exhales poisonous gas in a 60-foot cone. Each creature in that area must make a DC 18 Constitution saving throw, taking 56 (16d6) poison damage on a failed save, or half as much damage on a successful one.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== COMPLETE PARTICIPANT CARDS ==================== -->
+        <section class="showcase-section">
+            <h2>🎴 Complete Participant Cards (New Design)</h2>
+
+            <h3>1. Healthy Player (Current Turn)</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new current-turn">
+                    <!-- Column 1: Turn -->
+                    <div class="turn-indicator-new">1</div>
+
+                    <!-- Column 2: Creature Info -->
+                    <div class="creature-info">
+                        <div class="creature-name">Thorin Ironforge</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 22</span>
+                            <span class="creature-ac">AC 18</span>
+                        </div>
+                        <span class="participant-type type-player">Player</span>
+                    </div>
+
+                    <!-- Column 3: Badges -->
+                    <div class="temporary-badges">
+                        <!-- No conditions -->
+                    </div>
+
+                    <!-- Column 4: Health -->
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">45 / 52</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-healthy" style="width: 86%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>2. Damaged Player with Temp HP</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new">
+                    <div class="turn-indicator-new">2</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Lyra Moonwhisper</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 17</span>
+                            <span class="creature-ac">AC 14</span>
+                        </div>
+                        <span class="participant-type type-player">Player</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <span class="badge temp-hp-badge">+8 Temp HP</span>
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">18 / 35</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-warning" style="width: 51%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>3. Heavily Damaged Player with Multiple Conditions</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new">
+                    <div class="turn-indicator-new">3</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Grimjaw the Bold</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 14</span>
+                            <span class="creature-ac">AC 16</span>
+                        </div>
+                        <span class="participant-type type-player">Player</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <span class="badge badge-warning">Poisoned</span>
+                        <span class="badge badge-warning">Frightened</span>
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">8 / 48</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-danger" style="width: 16%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>4. Unconscious Player (0 HP)</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new unconscious">
+                    <div class="turn-indicator-new">4</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Eldrin Swiftfoot</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 9</span>
+                            <span class="creature-ac">AC 12</span>
+                        </div>
+                        <span class="participant-type type-player">Player</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <span class="badge badge-danger">Unconscious</span>
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">0 / 42</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-danger" style="width: 0%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>5. Monster with Multiple Conditions & Temp HP</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new">
+                    <div class="turn-indicator-new">5</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Goblin Shaman</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 11</span>
+                            <span class="creature-ac">AC 13</span>
+                        </div>
+                        <span class="participant-type type-monster">Monster</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <span class="badge temp-hp-badge">+5 Temp HP</span>
+                        <span class="badge badge-info">Hex</span>
+                        <span class="badge badge-warning">Restrained</span>
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">15 / 22</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-warning" style="width: 68%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>6. Full HP Player with Buffs</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new">
+                    <div class="turn-indicator-new">6</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Seraphina Divine</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 19</span>
+                            <span class="creature-ac">AC 20</span>
+                        </div>
+                        <span class="participant-type type-player">Player</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <span class="badge temp-hp-badge">+15 Temp HP</span>
+                        <span class="badge badge-warning">Invisible</span>
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">60 / 60</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-healthy" style="width: 100%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+                    <!-- NO Actions section - players without defined actions -->
+                </div>
+            </div>
+
+            <h3>7. Adult Green Dragon with Actions (Collapsed)</h3>
+            <div class="component-demo">
+                <div class="initiative-row-new">
+                    <div class="turn-indicator-new">7</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Adult Green Dragon</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 15</span>
+                            <span class="creature-ac">AC 19</span>
+                        </div>
+                        <span class="participant-type type-monster">Monster</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <!-- No conditions -->
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">207 / 207</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-healthy" style="width: 100%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Actions Section -->
+                    <div class="actions-section">
+                        <div class="actions-header" onclick="toggleActionsDemo(this)">
+                            <span class="actions-header-text">Actions</span>
+                            <button class="actions-toggle">▼</button>
+                        </div>
+                        <div class="actions-content collapsed">
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Multiattack
+                                </div>
+                                <div class="action-description">
+                                    The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Bite <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 10 ft., one target. <em>Hit:</em> 17 (2d10 + 6) piercing damage plus 7 (2d6) poison damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Claw <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 5 ft., one target. <em>Hit:</em> 13 (2d6 + 6) slashing damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Tail <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 15 ft., one target. <em>Hit:</em> 15 (2d8 + 6) bludgeoning damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Frightful Presence
+                                </div>
+                                <div class="action-description">
+                                    Each creature of the dragon's choice that is within 120 feet of the dragon and aware of it must succeed on a DC 16 Wisdom saving throw or become frightened for 1 minute.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Poison Breath <span class="action-type">Recharge 5-6</span>
+                                </div>
+                                <div class="action-description">
+                                    The dragon exhales poisonous gas in a 60-foot cone. Each creature in that area must make a DC 18 Constitution saving throw, taking 56 (16d6) poison damage on a failed save, or half as much damage on a successful one.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>8. Adult Green Dragon with Actions (Expanded)</h3>
+            <div class="component-demo">
+                <div class="design-note">
+                    <strong>Example:</strong> This shows the same dragon with the actions section expanded.
+                </div>
+                <div class="initiative-row-new" style="margin-top: 1rem;">
+                    <div class="turn-indicator-new">7</div>
+
+                    <div class="creature-info">
+                        <div class="creature-name">Adult Green Dragon</div>
+                        <div class="creature-stats">
+                            <span class="creature-initiative">Init: 15</span>
+                            <span class="creature-ac">AC 19</span>
+                        </div>
+                        <span class="participant-type type-monster">Monster</span>
+                    </div>
+
+                    <div class="temporary-badges">
+                        <!-- No conditions -->
+                    </div>
+
+                    <div class="health-section-new">
+                        <div class="actions-menu">
+                            <button class="btn-icon">⋮</button>
+                        </div>
+                        <div class="hp-display-new">207 / 207</div>
+                        <div class="hp-bar-container-new">
+                            <div class="hp-bar-fill-new hp-healthy" style="width: 100%;"></div>
+                        </div>
+                        <div class="hp-controls-new">
+                            <input type="number" class="hp-input-new" placeholder="Amount">
+                            <button class="btn btn-sm btn-danger hp-btn">−</button>
+                            <button class="btn btn-sm btn-success hp-btn">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Actions Section (Expanded) -->
+                    <div class="actions-section">
+                        <div class="actions-header" onclick="toggleActionsDemo(this)">
+                            <span class="actions-header-text">Actions</span>
+                            <button class="actions-toggle expanded">▼</button>
+                        </div>
+                        <div class="actions-content">
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Multiattack
+                                </div>
+                                <div class="action-description">
+                                    The dragon can use its Frightful Presence. It then makes three attacks: one with its bite and two with its claws.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Bite <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 10 ft., one target. <em>Hit:</em> 17 (2d10 + 6) piercing damage plus 7 (2d6) poison damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Claw <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 5 ft., one target. <em>Hit:</em> 13 (2d6 + 6) slashing damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Tail <span class="action-type">Melee</span>
+                                </div>
+                                <div class="action-description">
+                                    <em>Melee Weapon Attack:</em> +11 to hit, reach 15 ft., one target. <em>Hit:</em> 15 (2d8 + 6) bludgeoning damage.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Frightful Presence
+                                </div>
+                                <div class="action-description">
+                                    Each creature of the dragon's choice that is within 120 feet of the dragon and aware of it must succeed on a DC 16 Wisdom saving throw or become frightened for 1 minute.
+                                </div>
+                            </div>
+                            <div class="action-item">
+                                <div class="action-name">
+                                    Poison Breath <span class="action-type">Recharge 5-6</span>
+                                </div>
+                                <div class="action-description">
+                                    The dragon exhales poisonous gas in a 60-foot cone. Each creature in that area must make a DC 18 Constitution saving throw, taking 56 (16d6) poison damage on a failed save, or half as much damage on a successful one.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== FULL INITIATIVE TRACKER ==================== -->
+        <section class="showcase-section">
+            <h2>📜 Full Initiative Tracker Layout</h2>
+
+            <div class="component-demo">
+                <div class="code-label">Complete Initiative Tracker with New Card Design</div>
+
+                <div class="initiative-tracker">
+                    <div class="tracker-header">
+                        <div>
+                            <h3 style="margin: 0;">Active Encounter: Goblin Ambush</h3>
+                        </div>
+                        <div class="round-counter">Round: 3</div>
+                        <div class="tracker-controls-header">
+                            <button class="btn btn-danger btn-sm">End Combat</button>
+                        </div>
+                    </div>
+
+                    <div class="tracker-controls">
+                        <button class="btn btn-primary">Next Turn ➜</button>
+                    </div>
+
+                    <div class="initiative-list">
+                        <!-- Participant 1: Current Turn -->
+                        <div class="initiative-row-new current-turn">
+                            <div class="turn-indicator-new">1</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Thorin Ironforge</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 22</span>
+                                    <span class="creature-ac">AC 18</span>
+                                </div>
+                                <span class="participant-type type-player">Player</span>
+                            </div>
+                            <div class="temporary-badges"></div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">45 / 52</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-healthy" style="width: 86%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participant 2 -->
+                        <div class="initiative-row-new">
+                            <div class="turn-indicator-new">2</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Seraphina Divine</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 19</span>
+                                    <span class="creature-ac">AC 20</span>
+                                </div>
+                                <span class="participant-type type-player">Player</span>
+                            </div>
+                            <div class="temporary-badges">
+                                <span class="badge temp-hp-badge">+15 Temp HP</span>
+                                <span class="badge badge-warning">Invisible</span>
+                            </div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">60 / 60</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-healthy" style="width: 100%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participant 3 -->
+                        <div class="initiative-row-new">
+                            <div class="turn-indicator-new">3</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Lyra Moonwhisper</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 17</span>
+                                    <span class="creature-ac">AC 14</span>
+                                </div>
+                                <span class="participant-type type-player">Player</span>
+                            </div>
+                            <div class="temporary-badges">
+                                <span class="badge temp-hp-badge">+8 Temp HP</span>
+                            </div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">18 / 35</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-warning" style="width: 51%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participant 4 -->
+                        <div class="initiative-row-new">
+                            <div class="turn-indicator-new">4</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Grimjaw the Bold</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 14</span>
+                                    <span class="creature-ac">AC 16</span>
+                                </div>
+                                <span class="participant-type type-player">Player</span>
+                            </div>
+                            <div class="temporary-badges">
+                                <span class="badge badge-warning">Poisoned</span>
+                                <span class="badge badge-warning">Frightened</span>
+                            </div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">8 / 48</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-danger" style="width: 16%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participant 5: Monster -->
+                        <div class="initiative-row-new">
+                            <div class="turn-indicator-new">5</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Goblin Shaman</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 11</span>
+                                    <span class="creature-ac">AC 13</span>
+                                </div>
+                                <span class="participant-type type-monster">Monster</span>
+                            </div>
+                            <div class="temporary-badges">
+                                <span class="badge temp-hp-badge">+5 Temp HP</span>
+                                <span class="badge badge-info">Hex</span>
+                                <span class="badge badge-warning">Restrained</span>
+                            </div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">15 / 22</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-warning" style="width: 68%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Participant 6: Unconscious -->
+                        <div class="initiative-row-new unconscious">
+                            <div class="turn-indicator-new">6</div>
+                            <div class="creature-info">
+                                <div class="creature-name">Eldrin Swiftfoot</div>
+                                <div class="creature-stats">
+                                    <span class="creature-initiative">Init: 9</span>
+                                    <span class="creature-ac">AC 12</span>
+                                </div>
+                                <span class="participant-type type-player">Player</span>
+                            </div>
+                            <div class="temporary-badges">
+                                <span class="badge badge-danger">Unconscious</span>
+                            </div>
+                            <div class="health-section-new">
+                                <div class="actions-menu">
+                                    <button class="btn-icon">⋮</button>
+                                </div>
+                                <div class="hp-display-new">0 / 42</div>
+                                <div class="hp-bar-container-new">
+                                    <div class="hp-bar-fill-new hp-danger" style="width: 0%;"></div>
+                                </div>
+                                <div class="hp-controls-new">
+                                    <input type="number" class="hp-input-new" placeholder="Amount">
+                                    <button class="btn btn-sm btn-danger hp-btn">−</button>
+                                    <button class="btn btn-sm btn-success hp-btn">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DESIGN NOTES ==================== -->
+        <section class="showcase-section">
+            <h2>📝 Design Notes & Observations</h2>
+
+            <div class="design-note">
+                <strong>✅ Problems Solved:</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li><strong>Consistent HP Bar Location</strong> - Always in column 4, never shifts</li>
+                    <li><strong>Clear Information Hierarchy</strong> - Fixed info (left) vs. temporary info (middle-right)</li>
+                    <li><strong>Reduced Button Clutter</strong> - Dropdown menu consolidates actions</li>
+                    <li><strong>Better Scalability</strong> - Can add many badges without breaking layout</li>
+                    <li><strong>Type Identification</strong> - Player/Monster badge helps DM quickly identify</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>🎨 Visual Improvements:</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li>Gradient HP bars with subtle shadow for depth</li>
+                    <li>Cleaner 3-dot menu icon with hover effects</li>
+                    <li>Consistent spacing across all cards</li>
+                    <li>Right-aligned badges create visual balance</li>
+                    <li>Type badges use distinctive colors (blue=player, red=monster)</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>📱 Mobile Considerations:</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li>Grid collapses to single column on mobile (≤768px)</li>
+                    <li>Maintains vertical order: Turn → Info → Badges → Health</li>
+                    <li>Touch-friendly button sizes (min 35px)</li>
+                    <li>3-dot menu remains accessible in corner</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>⚔️ Actions Section (NEW):</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li><strong>Expandable Actions List</strong> - Shows monster/player actions below the main card</li>
+                    <li><strong>Spans Full Width</strong> - Uses grid-column: 1 / -1 to span all 4 columns</li>
+                    <li><strong>Collapsed by Default</strong> - Minimizes card height, expands on click</li>
+                    <li><strong>Conditional Display</strong> - Only shown if participant has defined actions</li>
+                    <li><strong>Action Types</strong> - Badges indicate attack type (Melee, Ranged, Recharge 5-6, etc.)</li>
+                    <li><strong>Clean Formatting</strong> - Each action clearly separated with name and description</li>
+                </ul>
+            </div>
+
+            <div class="design-note">
+                <strong>🔮 Future Enhancements:</strong>
+                <ul style="margin: 0.5rem 0 0 1.25rem; line-height: 1.6;">
+                    <li>Add character class/level to creature info (optional display)</li>
+                    <li>Collapsible badge section for extreme badge overflow</li>
+                    <li>"... +3 more" indicator for many conditions</li>
+                    <li>Tooltip on creature name for full name if truncated</li>
+                    <li>Color-blind friendly patterns on HP bars</li>
+                    <li>Animated HP bar transitions</li>
+                    <li>Track action usage (e.g., mark Breath Weapon as used until recharge)</li>
+                    <li>Add Legendary Actions and Reactions sections</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== FOOTER ==================== -->
+        <div style="text-align: center; padding: 2rem 0; border-top: 2px solid var(--border-color); margin-top: 3rem; color: #666;">
+            <p><strong>End of Showcase</strong></p>
+            <p style="font-size: 0.9rem;">
+                This file is for design experimentation only.<br>
+                After approval, implement changes in <code>client/js/initiative.js</code> and <code>client/css/styles.css</code>
+            </p>
+            <p style="font-size: 0.85rem; margin-top: 1rem;">
+                📖 Access this showcase at: <code>http://localhost:3000/encounter-showcase.html</code>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle actions section expand/collapse
+        function toggleActionsDemo(headerElement) {
+            const toggleButton = headerElement.querySelector('.actions-toggle');
+            const contentElement = headerElement.nextElementSibling;
+
+            // Toggle expanded class on button
+            toggleButton.classList.toggle('expanded');
+
+            // Toggle collapsed class on content
+            contentElement.classList.toggle('collapsed');
+        }
+    </script>
+</body>
+</html>
