@@ -29,6 +29,7 @@ const createTablesSQL = `
     description TEXT,
     difficulty TEXT CHECK(difficulty IN ('easy', 'medium', 'hard', 'deadly')),
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'completed')),
+    current_round INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE

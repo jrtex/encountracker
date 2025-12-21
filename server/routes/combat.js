@@ -78,9 +78,8 @@ router.get('/:encounter_id/initiative',
         conditions: p.conditions ? JSON.parse(p.conditions) : []
       }));
 
-      // Calculate current round (count how many times we've wrapped through the turn order)
-      const currentParticipant = formattedParticipants.find(p => p.is_current_turn);
-      const currentRound = 1; // Simple implementation: always round 1 for now
+      // Get current round from encounter
+      const currentRound = encounter.current_round || 1;
 
       res.json({
         success: true,
@@ -229,10 +228,10 @@ router.post('/:encounter_id/start',
         );
       }
 
-      // Update encounter status to active
+      // Update encounter status to active and reset round counter
       await database.run(
-        'UPDATE encounters SET status = ? WHERE id = ?',
-        ['active', encounter_id]
+        'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
+        ['active', 1, encounter_id]
       );
 
       // Get full initiative state to return
@@ -337,6 +336,15 @@ router.post('/:encounter_id/next-turn',
       const nextIndex = (currentParticipantIndex + 1) % participants.length;
       const nextParticipant = participants[nextIndex];
 
+      // If we wrapped around to the first participant, increment the round
+      if (nextIndex === 0) {
+        const currentRound = encounter.current_round || 1;
+        await database.run(
+          'UPDATE encounters SET current_round = ? WHERE id = ?',
+          [currentRound + 1, encounter_id]
+        );
+      }
+
       // Update all is_current_turn to 0
       await database.run(
         'UPDATE initiative_tracker SET is_current_turn = 0 WHERE encounter_id = ?',
@@ -367,12 +375,18 @@ router.post('/:encounter_id/next-turn',
         [nextParticipant.id]
       );
 
+      // Get updated encounter to get current round
+      const updatedEncounter = await database.get(
+        'SELECT current_round FROM encounters WHERE id = ?',
+        [encounter_id]
+      );
+
       res.json({
         success: true,
         message: 'Advanced to next turn',
         data: {
           encounter_id: parseInt(encounter_id),
-          current_round: 1, // Simple implementation
+          current_round: updatedEncounter.current_round || 1,
           next_participant: participantDetails
         }
       });
@@ -701,10 +715,10 @@ router.post('/:encounter_id/end',
         [encounter_id]
       );
 
-      // Update encounter status to completed
+      // Update encounter status to completed and reset round counter
       await database.run(
-        'UPDATE encounters SET status = ? WHERE id = ?',
-        ['completed', encounter_id]
+        'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
+        ['completed', 1, encounter_id]
       );
 
       res.json({
