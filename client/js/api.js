@@ -213,6 +213,10 @@ const API = {
       return API.request(`/monsters/${id}`, {
         method: 'DELETE'
       });
+    },
+
+    getActions(id) {
+      return API.request(`/monsters/${id}/actions`);
     }
   },
 

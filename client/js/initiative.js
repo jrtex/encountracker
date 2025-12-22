@@ -115,6 +115,23 @@ const Initiative = {
     try {
       const response = await API.combat.getInitiative(this.currentEncounter.id);
       this.initiativeData = response.data;
+
+      // Load actions for each monster participant
+      if (this.initiativeData && this.initiativeData.participants) {
+        for (let participant of this.initiativeData.participants) {
+          if (participant.participant_type === 'monster' && participant.participant_id) {
+            try {
+              const actionsResponse = await API.monsters.getActions(participant.participant_id);
+              participant.actions = actionsResponse.data || [];
+            } catch (error) {
+              // If actions can't be loaded, just set to empty array
+              participant.actions = [];
+            }
+          } else {
+            participant.actions = [];
+          }
+        }
+      }
     } catch (error) {
       console.error('Error loading initiative:', error);
       this.initiativeData = null;
@@ -321,6 +338,77 @@ const Initiative = {
             <button class="btn btn-sm btn-success hp-heal-btn" data-init-id="${participant.id}">+</button>
           </div>
         </div>
+
+        <!-- Actions Section (only show if participant has actions) -->
+        ${this.renderActionsSection(participant)}
+      </div>
+    `;
+  },
+
+  renderActionsSection(participant) {
+    // Only show actions for monsters that have actions defined
+    if (!participant.actions || participant.actions.length === 0) {
+      return '';
+    }
+
+    // Group actions by category
+    const actionsByCategory = {
+      action: [],
+      legendary: [],
+      special: [],
+      reaction: []
+    };
+
+    participant.actions.forEach(action => {
+      if (actionsByCategory[action.action_category]) {
+        actionsByCategory[action.action_category].push(action);
+      }
+    });
+
+    // Generate HTML for action items
+    const actionItems = [];
+
+    // Add regular actions first
+    actionsByCategory.action.forEach(action => {
+      actionItems.push(this.renderActionItem(action, 'Action'));
+    });
+
+    // Add legendary actions
+    actionsByCategory.legendary.forEach(action => {
+      actionItems.push(this.renderActionItem(action, 'Legendary'));
+    });
+
+    // Add special abilities
+    actionsByCategory.special.forEach(action => {
+      actionItems.push(this.renderActionItem(action, 'Special'));
+    });
+
+    // Add reactions
+    actionsByCategory.reaction.forEach(action => {
+      actionItems.push(this.renderActionItem(action, 'Reaction'));
+    });
+
+    return `
+      <div class="actions-section">
+        <div class="actions-header" data-init-id="${participant.id}">
+          <span class="actions-header-text">Actions (${participant.actions.length})</span>
+          <span class="actions-toggle">▼</span>
+        </div>
+        <div class="actions-content collapsed">
+          ${actionItems.join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  renderActionItem(action, categoryLabel) {
+    return `
+      <div class="action-item">
+        <div class="action-name">
+          ${action.name}
+          <span class="action-type">${categoryLabel}</span>
+        </div>
+        <div class="action-description">${action.description}</div>
       </div>
     `;
   },
@@ -429,6 +517,16 @@ const Initiative = {
         }
 
         this.showConditionDetailModal(condition, initId);
+      });
+    });
+
+    // Actions toggle handlers
+    this.container.querySelectorAll('.actions-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        const toggle = header.querySelector('.actions-toggle');
+        const content = header.nextElementSibling;
+        toggle.classList.toggle('expanded');
+        content.classList.toggle('collapsed');
       });
     });
   },

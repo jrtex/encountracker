@@ -50,6 +50,17 @@ const createTablesSQL = `
     FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
   );
 
+  -- Monster actions table (combat abilities for monsters)
+  CREATE TABLE IF NOT EXISTS monster_actions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    monster_id INTEGER NOT NULL,
+    action_category TEXT NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (monster_id) REFERENCES monsters(id) ON DELETE CASCADE
+  );
+
   -- Players table (campaign participants)
   CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +101,8 @@ const createTablesSQL = `
   CREATE INDEX IF NOT EXISTS idx_campaigns_dm ON campaigns(dm_user_id);
   CREATE INDEX IF NOT EXISTS idx_encounters_campaign ON encounters(campaign_id);
   CREATE INDEX IF NOT EXISTS idx_monsters_encounter ON monsters(encounter_id);
+  CREATE INDEX IF NOT EXISTS idx_monster_actions_monster ON monster_actions(monster_id);
+  CREATE INDEX IF NOT EXISTS idx_monster_actions_category ON monster_actions(monster_id, action_category);
   CREATE INDEX IF NOT EXISTS idx_players_campaign ON players(campaign_id);
   CREATE INDEX IF NOT EXISTS idx_players_user ON players(user_id);
   CREATE INDEX IF NOT EXISTS idx_initiative_encounter ON initiative_tracker(encounter_id);

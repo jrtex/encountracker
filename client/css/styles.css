@@ -1019,6 +1019,100 @@ nav {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* Actions Section (Expandable) */
+.actions-section {
+  grid-column: 1 / -1; /* Span all columns */
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.actions-header:hover {
+  background: #e9ecef;
+}
+
+.actions-header-text {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--dark-color);
+}
+
+.actions-toggle {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.actions-toggle.expanded {
+  transform: rotate(180deg);
+}
+
+.actions-content {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.actions-content.collapsed {
+  display: none;
+}
+
+.action-item {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.action-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.action-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--primary-color);
+  margin-bottom: 0.35rem;
+}
+
+.action-description {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.action-type {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 3px;
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 /* Add status modal */
 .conditions-list {
   display: grid;

@@ -124,11 +124,15 @@ router.post('/',
     body('initiative_bonus').optional().isInt().withMessage('Initiative bonus must be an integer'),
     body('dnd_api_id').optional().trim(),
     body('notes').optional().trim(),
+    body('actions').optional().isArray().withMessage('Actions must be an array'),
+    body('actions.*.category').optional().isIn(['action', 'legendary', 'special', 'reaction']).withMessage('Invalid action category'),
+    body('actions.*.name').optional().trim().notEmpty().withMessage('Action name is required'),
+    body('actions.*.description').optional().trim().notEmpty().withMessage('Action description is required'),
     validate
   ],
   async (req, res, next) => {
     try {
-      const { encounter_id, name, max_hp, armor_class, initiative_bonus, dnd_api_id, notes } = req.body;
+      const { encounter_id, name, max_hp, armor_class, initiative_bonus, dnd_api_id, notes, actions } = req.body;
       const userId = req.user.id;
 
       // Verify encounter exists and user owns it through campaign
@@ -157,13 +161,36 @@ router.post('/',
         [encounter_id, name, dnd_api_id || null, max_hp, current_hp, armor_class, initiative_bonus || 0, notes || null]
       );
 
+      const monsterId = result.lastID;
+
+      // Insert actions if provided
+      if (actions && Array.isArray(actions) && actions.length > 0) {
+        const actionInsertPromises = actions.map(action => {
+          return database.run(
+            `INSERT INTO monster_actions (monster_id, action_category, name, description)
+             VALUES (?, ?, ?, ?)`,
+            [monsterId, action.category, action.name, action.description]
+          );
+        });
+        await Promise.all(actionInsertPromises);
+      }
+
       // Get the created monster
-      const monster = await database.get('SELECT * FROM monsters WHERE id = ?', [result.lastID]);
+      const monster = await database.get('SELECT * FROM monsters WHERE id = ?', [monsterId]);
+
+      // Get actions for the response
+      const monsterActions = await database.all(
+        'SELECT * FROM monster_actions WHERE monster_id = ? ORDER BY action_category, name',
+        [monsterId]
+      );
 
       res.status(201).json({
         success: true,
         message: 'Monster created successfully',
-        data: monster
+        data: {
+          ...monster,
+          actions: monsterActions
+        }
       });
     } catch (error) {
       next(error);
@@ -301,6 +328,53 @@ router.delete('/:id', authorize('admin'), async (req, res, next) => {
         id: parseInt(id),
         deleted: true
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/monsters/:id/actions - Get monster actions
+router.get('/:id/actions', authenticate, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Verify monster exists and user owns it through encounter → campaign
+    const monster = await database.get(
+      `SELECT m.id
+       FROM monsters m
+       JOIN encounters e ON m.encounter_id = e.id
+       JOIN campaigns c ON e.campaign_id = c.id
+       WHERE m.id = ? AND c.dm_user_id = ?`,
+      [id, userId]
+    );
+
+    if (!monster) {
+      return res.status(404).json({
+        success: false,
+        message: 'Monster not found'
+      });
+    }
+
+    // Get all actions for this monster
+    const actions = await database.all(
+      `SELECT * FROM monster_actions
+       WHERE monster_id = ?
+       ORDER BY
+         CASE action_category
+           WHEN 'action' THEN 1
+           WHEN 'legendary' THEN 2
+           WHEN 'special' THEN 3
+           WHEN 'reaction' THEN 4
+         END,
+         name`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: actions
     });
   } catch (error) {
     next(error);
