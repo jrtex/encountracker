@@ -310,6 +310,11 @@ textarea.form-control {
   color: white;
 }
 
+.temp-hp-badge {
+  background-color: #5DADE2;
+  color: white;
+}
+
 /* Loading Spinner */
 .spinner {
   border: 3px solid var(--light-color);

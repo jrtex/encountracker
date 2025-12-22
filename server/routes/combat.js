@@ -46,6 +46,7 @@ router.get('/:encounter_id/initiative',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -77,9 +78,8 @@ router.get('/:encounter_id/initiative',
         conditions: p.conditions ? JSON.parse(p.conditions) : []
       }));
 
-      // Calculate current round (count how many times we've wrapped through the turn order)
-      const currentParticipant = formattedParticipants.find(p => p.is_current_turn);
-      const currentRound = 1; // Simple implementation: always round 1 for now
+      // Get current round from encounter
+      const currentRound = encounter.current_round || 1;
 
       res.json({
         success: true,
@@ -228,10 +228,10 @@ router.post('/:encounter_id/start',
         );
       }
 
-      // Update encounter status to active
+      // Update encounter status to active and reset round counter
       await database.run(
-        'UPDATE encounters SET status = ? WHERE id = ?',
-        ['active', encounter_id]
+        'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
+        ['active', 1, encounter_id]
       );
 
       // Get full initiative state to return
@@ -244,6 +244,7 @@ router.post('/:encounter_id/start',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -335,6 +336,15 @@ router.post('/:encounter_id/next-turn',
       const nextIndex = (currentParticipantIndex + 1) % participants.length;
       const nextParticipant = participants[nextIndex];
 
+      // If we wrapped around to the first participant, increment the round
+      if (nextIndex === 0) {
+        const currentRound = encounter.current_round || 1;
+        await database.run(
+          'UPDATE encounters SET current_round = ? WHERE id = ?',
+          [currentRound + 1, encounter_id]
+        );
+      }
+
       // Update all is_current_turn to 0
       await database.run(
         'UPDATE initiative_tracker SET is_current_turn = 0 WHERE encounter_id = ?',
@@ -365,12 +375,18 @@ router.post('/:encounter_id/next-turn',
         [nextParticipant.id]
       );
 
+      // Get updated encounter to get current round
+      const updatedEncounter = await database.get(
+        'SELECT current_round FROM encounters WHERE id = ?',
+        [encounter_id]
+      );
+
       res.json({
         success: true,
         message: 'Advanced to next turn',
         data: {
           encounter_id: parseInt(encounter_id),
-          current_round: 1, // Simple implementation
+          current_round: updatedEncounter.current_round || 1,
           next_participant: participantDetails
         }
       });
@@ -385,7 +401,15 @@ router.put('/initiative/:id',
   authorize('admin'),
   param('id').isInt(),
   body('current_hp').optional().isInt(),
-  body('conditions').optional().isArray(),
+  body('conditions').optional().isArray().custom((value) => {
+    // Validate mixed array: strings (standard conditions) or objects (custom conditions)
+    for (const item of value) {
+      if (typeof item === 'string') continue;
+      if (typeof item === 'object' && item !== null && item.name && item.description && item.type === 'custom') continue;
+      throw new Error('Invalid condition format. Must be string or {name, description, type: "custom"}');
+    }
+    return true;
+  }),
   body('initiative').optional().isInt(),
   validate,
   async (req, res, next) => {
@@ -412,20 +436,79 @@ router.put('/initiative/:id',
 
       // Update current_hp if provided
       if (current_hp !== undefined) {
+        // Get current temp_hp to apply damage correctly
+        const currentEntry = await database.get(
+          'SELECT temp_hp FROM initiative_tracker WHERE id = ?',
+          [id]
+        );
+
+        const currentTempHp = currentEntry.temp_hp || 0;
+
+        // Calculate damage/healing
+        const currentHp = await database.get(
+          `SELECT current_hp FROM ${entry.participant_type === 'player' ? 'players' : 'monsters'} WHERE id = ?`,
+          [entry.participant_id]
+        );
+
+        const hpDiff = current_hp - currentHp.current_hp;
+
+        let newTempHp = currentTempHp;
+        let newActualHp = currentHp.current_hp; // Start with current HP from database
+
+        // If taking damage (negative hpDiff), apply to temp HP first
+        if (hpDiff < 0) {
+          const damage = Math.abs(hpDiff);
+          if (currentTempHp > 0) {
+            if (damage <= currentTempHp) {
+              // All damage absorbed by temp HP
+              newTempHp = currentTempHp - damage;
+              newActualHp = currentHp.current_hp; // HP unchanged
+            } else {
+              // Temp HP absorbed some, rest goes to regular HP
+              const remainingDamage = damage - currentTempHp;
+              newTempHp = 0;
+              newActualHp = Math.max(0, currentHp.current_hp - remainingDamage);
+            }
+          } else {
+            // No temp HP, apply all damage to regular HP
+            newActualHp = Math.max(0, current_hp);
+          }
+        } else {
+          // Healing - just use the provided HP value
+          newActualHp = current_hp;
+        }
+
         const table = entry.participant_type === 'player' ? 'players' : 'monsters';
         await database.run(
           `UPDATE ${table} SET current_hp = ? WHERE id = ?`,
-          [current_hp, entry.participant_id]
+          [newActualHp, entry.participant_id]
+        );
+
+        // Update temp HP
+        await database.run(
+          'UPDATE initiative_tracker SET temp_hp = ? WHERE id = ?',
+          [newTempHp, id]
         );
 
         // Auto-manage unconscious condition
         let updatedConditions = conditions !== undefined ? conditions :
           (entry.conditions ? JSON.parse(entry.conditions) : []);
 
-        if (current_hp <= 0 && !updatedConditions.includes('unconscious')) {
+        // Helper to check if condition exists (handles both string and object)
+        const hasCondition = (conditions, name) => {
+          return conditions.some(c =>
+            (typeof c === 'string' && c === name) ||
+            (typeof c === 'object' && c.name === name)
+          );
+        };
+
+        if (newActualHp <= 0 && !hasCondition(updatedConditions, 'unconscious')) {
           updatedConditions.push('unconscious');
-        } else if (current_hp > 0) {
-          updatedConditions = updatedConditions.filter(c => c !== 'unconscious');
+        } else if (newActualHp > 0) {
+          updatedConditions = updatedConditions.filter(c =>
+            (typeof c === 'string' && c !== 'unconscious') ||
+            (typeof c === 'object' && c.name !== 'unconscious')
+          );
         }
 
         await database.run(
@@ -473,6 +556,7 @@ router.put('/initiative/:id',
           it.turn_order,
           it.is_current_turn,
           it.conditions,
+          it.temp_hp,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -499,6 +583,96 @@ router.put('/initiative/:id',
       res.json({
         success: true,
         message: 'Initiative entry updated',
+        data: {
+          ...updatedEntry,
+          is_current_turn: Boolean(updatedEntry.is_current_turn),
+          conditions: updatedEntry.conditions ? JSON.parse(updatedEntry.conditions) : []
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PUT /api/combat/initiative/:id/temp-hp - Update temporary HP (admin only)
+router.put('/initiative/:id/temp-hp',
+  authorize('admin'),
+  param('id').isInt(),
+  body('temp_hp').isInt({ min: 0 }),
+  validate,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { temp_hp } = req.body;
+
+      // Get initiative tracker entry and verify ownership
+      const entry = await database.get(
+        `SELECT it.*, e.campaign_id
+         FROM initiative_tracker it
+         JOIN encounters e ON it.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE it.id = ? AND c.dm_user_id = ?`,
+        [id, req.user.id]
+      );
+
+      if (!entry) {
+        return res.status(404).json({
+          success: false,
+          message: 'Initiative entry not found or access denied'
+        });
+      }
+
+      // Get current temp_hp
+      const currentTempHp = entry.temp_hp || 0;
+
+      // According to D&D 5e rules, adding temp HP replaces existing temp HP if new value is higher
+      // But based on user requirement: "If temporary is added to a player with existing temporary HP, it should be added to the existing"
+      const newTempHp = currentTempHp + temp_hp;
+
+      // Update temp HP
+      await database.run(
+        'UPDATE initiative_tracker SET temp_hp = ? WHERE id = ?',
+        [newTempHp, id]
+      );
+
+      // Get updated entry with participant details
+      const updatedEntry = await database.get(
+        `SELECT
+          it.id,
+          it.participant_type,
+          it.participant_id,
+          it.initiative,
+          it.turn_order,
+          it.is_current_turn,
+          it.conditions,
+          it.temp_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.character_name
+            WHEN it.participant_type = 'monster' THEN m.name
+          END as name,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.current_hp
+            WHEN it.participant_type = 'monster' THEN m.current_hp
+          END as current_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.max_hp
+            WHEN it.participant_type = 'monster' THEN m.max_hp
+          END as max_hp,
+          CASE
+            WHEN it.participant_type = 'player' THEN p.armor_class
+            WHEN it.participant_type = 'monster' THEN m.armor_class
+          END as armor_class
+         FROM initiative_tracker it
+         LEFT JOIN players p ON it.participant_type = 'player' AND it.participant_id = p.id
+         LEFT JOIN monsters m ON it.participant_type = 'monster' AND it.participant_id = m.id
+         WHERE it.id = ?`,
+        [id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Temporary HP updated',
         data: {
           ...updatedEntry,
           is_current_turn: Boolean(updatedEntry.is_current_turn),
@@ -541,10 +715,10 @@ router.post('/:encounter_id/end',
         [encounter_id]
       );
 
-      // Update encounter status to completed
+      // Update encounter status to completed and reset round counter
       await database.run(
-        'UPDATE encounters SET status = ? WHERE id = ?',
-        ['completed', encounter_id]
+        'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
+        ['completed', 1, encounter_id]
       );
 
       res.json({

@@ -182,6 +182,57 @@
             </div>
         </section>
 
+        <!-- Status Effects Section -->
+        <section class="showcase-section">
+            <h2>Status Effects (Initiative Tracker)</h2>
+
+            <h3>Clickable Condition Badges</h3>
+            <div class="component-demo">
+                <div class="code-label">.badge.badge-danger.condition-badge (Unconscious)</div>
+                <span class="badge badge-danger condition-badge" style="cursor: pointer;">Unconscious</span>
+                <br><br>
+
+                <div class="code-label">.badge.badge-warning.condition-badge (Standard Condition)</div>
+                <span class="badge badge-warning condition-badge" style="cursor: pointer;">Poisoned</span>
+                <span class="badge badge-warning condition-badge" style="cursor: pointer;">Frightened</span>
+                <span class="badge badge-warning condition-badge" style="cursor: pointer;">Stunned</span>
+                <br><br>
+
+                <div class="code-label">.badge.badge-info.condition-badge (Custom Condition)</div>
+                <span class="badge badge-info condition-badge" style="cursor: pointer;">Hex</span>
+                <span class="badge badge-info condition-badge" style="cursor: pointer;">Hunter's Mark</span>
+            </div>
+
+            <h3>Add Status Button</h3>
+            <div class="component-demo">
+                <div class="code-label">.btn.btn-sm.btn-outline.add-status-btn</div>
+                <button class="btn btn-sm btn-outline add-status-btn">+ Status</button>
+            </div>
+
+            <h3>Condition Selection List</h3>
+            <div class="component-demo">
+                <div class="code-label">.conditions-list with .condition-option</div>
+                <div class="conditions-list" style="max-height: 200px; max-width: 600px;">
+                    <label class="condition-option">
+                        <input type="checkbox" name="condition" value="blinded">
+                        <span class="condition-name">Blinded</span>
+                    </label>
+                    <label class="condition-option">
+                        <input type="checkbox" name="condition" value="charmed">
+                        <span class="condition-name">Charmed</span>
+                    </label>
+                    <label class="condition-option disabled">
+                        <input type="checkbox" name="condition" value="poisoned" checked disabled>
+                        <span class="condition-name">Poisoned</span>
+                    </label>
+                    <label class="condition-option">
+                        <input type="checkbox" name="condition" value="stunned">
+                        <span class="condition-name">Stunned</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
         <!-- Cards Section -->
         <section class="showcase-section">
             <h2>Cards</h2>

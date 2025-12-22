@@ -821,6 +821,53 @@ const Monsters = {
 
       let startNumber = existingMonsters.length + 1;
 
+      // Extract actions from D&D API
+      const actions = [];
+
+      // Extract regular actions
+      if (monster.actions && Array.isArray(monster.actions)) {
+        monster.actions.forEach(action => {
+          actions.push({
+            category: 'action',
+            name: action.name,
+            description: action.desc
+          });
+        });
+      }
+
+      // Extract legendary actions
+      if (monster.legendary_actions && Array.isArray(monster.legendary_actions)) {
+        monster.legendary_actions.forEach(action => {
+          actions.push({
+            category: 'legendary',
+            name: action.name,
+            description: action.desc
+          });
+        });
+      }
+
+      // Extract special abilities
+      if (monster.special_abilities && Array.isArray(monster.special_abilities)) {
+        monster.special_abilities.forEach(ability => {
+          actions.push({
+            category: 'special',
+            name: ability.name,
+            description: ability.desc
+          });
+        });
+      }
+
+      // Extract reactions
+      if (monster.reactions && Array.isArray(monster.reactions)) {
+        monster.reactions.forEach(reaction => {
+          actions.push({
+            category: 'reaction',
+            name: reaction.name,
+            description: reaction.desc
+          });
+        });
+      }
+
       // Create monsters in database
       const promises = [];
       for (let i = 0; i < quantity; i++) {
@@ -835,7 +882,8 @@ const Monsters = {
           armor_class: monster.armor_class?.[0]?.value || 10,
           initiative_bonus: dexMod,
           dnd_api_id: monster.index,
-          notes: `${monster.size} ${monster.type} (CR ${monster.challenge_rating})`
+          notes: `${monster.size} ${monster.type} (CR ${monster.challenge_rating})`,
+          actions: actions
         };
         promises.push(API.monsters.create(data));
       }

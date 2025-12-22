@@ -213,6 +213,10 @@ const API = {
       return API.request(`/monsters/${id}`, {
         method: 'DELETE'
       });
+    },
+
+    getActions(id) {
+      return API.request(`/monsters/${id}/actions`);
     }
   },
 
@@ -249,6 +253,20 @@ const API = {
       return API.request(`/combat/initiative/${initiativeId}`, {
         method: 'PUT',
         body: { current_hp: currentHp }
+      });
+    },
+
+    updateConditions(initiativeId, conditions) {
+      return API.request(`/combat/initiative/${initiativeId}`, {
+        method: 'PUT',
+        body: { conditions }
+      });
+    },
+
+    updateTempHp(initiativeId, tempHp) {
+      return API.request(`/combat/initiative/${initiativeId}/temp-hp`, {
+        method: 'PUT',
+        body: { temp_hp: tempHp }
       });
     },
 

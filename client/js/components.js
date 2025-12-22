@@ -74,23 +74,48 @@ const Components = {
 
   // Confirm Dialog
   confirm(message, onConfirm) {
-    return this.showModal(
-      'Confirm',
-      `<p>${message}</p>`,
-      [
-        {
-          id: 'cancel',
-          label: 'Cancel',
-          class: 'btn-secondary'
-        },
-        {
-          id: 'confirm',
-          label: 'Confirm',
-          class: 'btn-danger',
-          handler: onConfirm
-        }
-      ]
-    );
+    // If onConfirm callback is provided, use legacy callback-based behavior
+    if (onConfirm) {
+      return this.showModal(
+        'Confirm',
+        `<p>${message}</p>`,
+        [
+          {
+            id: 'cancel',
+            label: 'Cancel',
+            class: 'btn-secondary'
+          },
+          {
+            id: 'confirm',
+            label: 'Confirm',
+            class: 'btn-danger',
+            handler: onConfirm
+          }
+        ]
+      );
+    }
+
+    // Promise-based behavior for await/async usage
+    return new Promise((resolve) => {
+      this.showModal(
+        'Confirm',
+        `<p>${message}</p>`,
+        [
+          {
+            id: 'cancel',
+            label: 'Cancel',
+            class: 'btn-secondary',
+            handler: () => resolve(false)
+          },
+          {
+            id: 'confirm',
+            label: 'Confirm',
+            class: 'btn-danger',
+            handler: () => resolve(true)
+          }
+        ]
+      );
+    });
   },
 
   // Loading Spinner
