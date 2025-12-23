@@ -171,24 +171,95 @@ const Initiative = {
     return conditions.some(c => this.getConditionName(c) === conditionName);
   },
 
-  renderNoActiveEncounter() {
-    this.container.innerHTML = `
-      <div class="no-active-encounter">
-        <div class="alert alert-info">
-          <p>No active encounter. Start an encounter to begin combat tracking.</p>
-        </div>
-        <a href="#" data-page="encounters" class="btn btn-primary">Go to Encounters</a>
-      </div>
-    `;
+  async renderNoActiveEncounter() {
+    // Load pending encounters for the active campaign
+    const campaignId = CampaignContext.getActiveCampaignId();
 
-    // Set up navigation link
-    const link = this.container.querySelector('[data-page="encounters"]');
-    if (link) {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        App.showPage('encounters');
+    if (!campaignId) {
+      this.container.innerHTML = `
+        <div class="no-active-encounter">
+          <div class="alert alert-info">
+            <p>No campaign selected. Please select a campaign from the navigation bar.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    let pendingEncounters = [];
+    try {
+      const response = await API.encounters.getAll(campaignId, 'pending');
+      pendingEncounters = response.data || [];
+    } catch (error) {
+      console.error('Error loading pending encounters:', error);
+    }
+
+    if (pendingEncounters.length === 0) {
+      this.container.innerHTML = `
+        <div class="no-active-encounter">
+          <div class="alert alert-info">
+            <p>No pending encounters. Create an encounter first.</p>
+          </div>
+          <a href="#" data-page="encounters" class="btn btn-primary">Go to Encounters</a>
+        </div>
+      `;
+
+      // Set up navigation link
+      const link = this.container.querySelector('[data-page="encounters"]');
+      if (link) {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          App.showPage('encounters');
+        });
+      }
+    } else {
+      // Show list of pending encounters with "Start" button for each
+      const encounterCards = pendingEncounters.map(enc => `
+        <div class="pending-encounter-card">
+          <div class="pending-encounter-header">
+            <h4>${enc.name}</h4>
+            <span class="badge badge-${this.getDifficultyBadgeType(enc.difficulty)}">${enc.difficulty}</span>
+          </div>
+          <p class="pending-encounter-description">${enc.description || 'No description'}</p>
+          <button class="btn btn-success btn-sm start-encounter-btn admin-only" data-encounter-id="${enc.id}">
+            Start Combat
+          </button>
+        </div>
+      `).join('');
+
+      this.container.innerHTML = `
+        <div class="pending-encounters-list">
+          <h3>Select an Encounter to Start</h3>
+          <div class="pending-encounters-grid">
+            ${encounterCards}
+          </div>
+        </div>
+      `;
+
+      // Hide admin buttons if not admin
+      if (Auth.currentUser && Auth.currentUser.role !== 'admin') {
+        this.container.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+      }
+
+      // Set up start buttons
+      this.container.querySelectorAll('.start-encounter-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const encounterId = e.target.getAttribute('data-encounter-id');
+          this.currentEncounter = pendingEncounters.find(enc => enc.id == encounterId);
+          await this.showStartCombatModal();
+        });
       });
     }
+  },
+
+  getDifficultyBadgeType(difficulty) {
+    const types = {
+      'easy': 'success',
+      'medium': 'info',
+      'hard': 'warning',
+      'deadly': 'danger'
+    };
+    return types[difficulty] || 'info';
   },
 
   renderStartCombat() {

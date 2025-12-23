@@ -228,6 +228,12 @@ router.post('/:encounter_id/start',
         );
       }
 
+      // Deactivate other active encounters in this campaign first
+      await database.run(
+        'UPDATE encounters SET status = ? WHERE campaign_id = ? AND status = ? AND id != ?',
+        ['pending', encounter.campaign_id, 'active', encounter_id]
+      );
+
       // Update encounter status to active and reset round counter
       await database.run(
         'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
@@ -715,10 +721,10 @@ router.post('/:encounter_id/end',
         [encounter_id]
       );
 
-      // Update encounter status to completed and reset round counter
+      // Set encounter back to pending (can be restarted) and reset round counter
       await database.run(
         'UPDATE encounters SET status = ?, current_round = ? WHERE id = ?',
-        ['completed', 1, encounter_id]
+        ['pending', 1, encounter_id]
       );
 
       res.json({
@@ -726,7 +732,7 @@ router.post('/:encounter_id/end',
         message: 'Combat ended successfully',
         data: {
           encounter_id: parseInt(encounter_id),
-          status: 'completed'
+          status: 'pending'
         }
       });
     } catch (error) {

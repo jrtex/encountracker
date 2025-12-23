@@ -10,7 +10,7 @@ router.use(authenticate);
 
 // GET /api/encounters - List encounters (optionally filtered by campaign)
 router.get('/', async (req, res) => {
-  const { campaign_id } = req.query;
+  const { campaign_id, status } = req.query;
 
   let query = `
     SELECT e.*, c.name as campaign_name
@@ -23,6 +23,11 @@ router.get('/', async (req, res) => {
   if (campaign_id) {
     query += ' AND e.campaign_id = ?';
     params.push(campaign_id);
+  }
+
+  if (status) {
+    query += ' AND e.status = ?';
+    params.push(status);
   }
 
   query += ' ORDER BY e.created_at DESC';
@@ -66,12 +71,11 @@ router.post(
     body('campaign_id').isInt().withMessage('Campaign ID is required'),
     body('name').trim().notEmpty().withMessage('Encounter name is required'),
     body('description').optional().trim(),
-    body('difficulty').optional().isIn(['easy', 'medium', 'hard', 'deadly']).withMessage('Invalid difficulty level'),
-    body('status').optional().isIn(['pending', 'active', 'completed']).withMessage('Invalid status')
+    body('difficulty').optional().isIn(['easy', 'medium', 'hard', 'deadly']).withMessage('Invalid difficulty level')
   ],
   validate,
   async (req, res) => {
-    const { campaign_id, name, description, difficulty, status } = req.body;
+    const { campaign_id, name, description, difficulty } = req.body;
 
     // Verify campaign belongs to user
     const campaign = await database.get(
@@ -88,7 +92,7 @@ router.post(
 
     const result = await database.run(
       'INSERT INTO encounters (campaign_id, name, description, difficulty, status) VALUES (?, ?, ?, ?, ?)',
-      [campaign_id, name, description || '', difficulty || 'medium', status || 'pending']
+      [campaign_id, name, description || '', difficulty || 'medium', 'pending']
     );
 
     const encounter = await database.get(
@@ -111,12 +115,11 @@ router.put(
   [
     body('name').trim().notEmpty().withMessage('Encounter name is required'),
     body('description').optional().trim(),
-    body('difficulty').optional().isIn(['easy', 'medium', 'hard', 'deadly']).withMessage('Invalid difficulty level'),
-    body('status').optional().isIn(['pending', 'active', 'completed']).withMessage('Invalid status')
+    body('difficulty').optional().isIn(['easy', 'medium', 'hard', 'deadly']).withMessage('Invalid difficulty level')
   ],
   validate,
   async (req, res) => {
-    const { name, description, difficulty, status } = req.body;
+    const { name, description, difficulty } = req.body;
 
     // Verify encounter belongs to user's campaign
     const encounter = await database.get(
@@ -134,8 +137,8 @@ router.put(
     }
 
     await database.run(
-      'UPDATE encounters SET name = ?, description = ?, difficulty = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [name, description || '', difficulty || encounter.difficulty, status || encounter.status, req.params.id]
+      'UPDATE encounters SET name = ?, description = ?, difficulty = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [name, description || '', difficulty || encounter.difficulty, req.params.id]
     );
 
     const updatedEncounter = await database.get(

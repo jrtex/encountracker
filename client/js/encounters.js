@@ -214,14 +214,6 @@ const Encounters = {
               <option value="deadly" ${encounter && encounter.difficulty === 'deadly' ? 'selected' : ''}>Deadly</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="encounter-status">Status</label>
-            <select id="encounter-status" class="form-control">
-              <option value="pending" ${!encounter || encounter.status === 'pending' ? 'selected' : ''}>Pending</option>
-              <option value="active" ${encounter && encounter.status === 'active' ? 'selected' : ''}>Active</option>
-              <option value="completed" ${encounter && encounter.status === 'completed' ? 'selected' : ''}>Completed</option>
-            </select>
-          </div>
         </div>
       </form>
     `;
@@ -251,13 +243,11 @@ const Encounters = {
     const nameInput = document.getElementById('encounter-name');
     const descriptionInput = document.getElementById('encounter-description');
     const difficultyInput = document.getElementById('encounter-difficulty');
-    const statusInput = document.getElementById('encounter-status');
 
     const campaign_id = campaignHiddenInput ? campaignHiddenInput.value : campaignInput.value;
     const name = nameInput.value.trim();
     const description = descriptionInput.value.trim();
     const difficulty = difficultyInput.value;
-    const status = statusInput.value;
 
     if (!campaign_id) {
       Components.showToast('Please select a campaign', 'error');
@@ -269,7 +259,7 @@ const Encounters = {
       return;
     }
 
-    const data = { campaign_id: parseInt(campaign_id), name, description, difficulty, status };
+    const data = { campaign_id: parseInt(campaign_id), name, description, difficulty };
 
     try {
       if (encounterId) {

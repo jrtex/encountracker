@@ -12,7 +12,8 @@
     "test:watch": "jest --watch",
     "test:csv": "jest --reporters=default --reporters=./tests/reporters/csv-reporter.js",
     "init-db": "node server/utils/initDatabase.js",
-    "migrate": "node server/utils/migrate-add-speed.js"
+    "migrate": "node server/utils/migrate-add-speed.js",
+    "reset-password": "node server/utils/resetPassword.js"
   },
   "keywords": ["dnd", "encounter", "manager", "5e"],
   "author": "",
