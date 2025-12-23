@@ -101,11 +101,12 @@ router.post('/:encounter_id/start',
   param('encounter_id').isInt(),
   body('initiative_mode').isIn(['manual', 'auto']),
   body('manual_initiatives').optional().isArray(),
+  body('start_with_full_health').optional().isBoolean(),
   validate,
   async (req, res, next) => {
     try {
       const { encounter_id } = req.params;
-      const { initiative_mode, manual_initiatives = [] } = req.body;
+      const { initiative_mode, manual_initiatives = [], start_with_full_health = true } = req.body;
 
       // Verify encounter belongs to user
       const encounter = await database.get(
@@ -155,6 +156,25 @@ router.post('/:encounter_id/start',
           success: false,
           message: 'No monsters in encounter. Add monsters before starting combat.'
         });
+      }
+
+      // Reset HP to full if setting is enabled
+      if (start_with_full_health) {
+        // Reset all players to full HP
+        for (const player of players) {
+          await database.run(
+            'UPDATE players SET current_hp = max_hp WHERE id = ?',
+            [player.id]
+          );
+        }
+
+        // Reset all monsters to full HP
+        for (const monster of monsters) {
+          await database.run(
+            'UPDATE monsters SET current_hp = max_hp WHERE id = ?',
+            [monster.id]
+          );
+        }
       }
 
       // Build participants array with initiatives

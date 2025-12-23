@@ -649,6 +649,16 @@ const Initiative = {
     const content = `
       <form id="start-combat-form">
         <div class="form-group">
+          <label>Encounter Settings</label>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem;">
+              <input type="checkbox" name="start-with-full-health" checked>
+              Start encounter with full health
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label>Initiative Mode</label>
           <div>
             <label style="display: block; margin-bottom: 0.5rem;">
@@ -718,6 +728,7 @@ const Initiative = {
   async handleStartCombat() {
     const form = document.getElementById('start-combat-form');
     const mode = form.querySelector('input[name="init-mode"]:checked').value;
+    const startWithFullHealth = form.querySelector('input[name="start-with-full-health"]').checked;
 
     let manualInitiatives = [];
 
@@ -748,7 +759,7 @@ const Initiative = {
       Components.showSpinner(this.container);
 
       // Start combat
-      await API.combat.startCombat(this.currentEncounter.id, mode, manualInitiatives);
+      await API.combat.startCombat(this.currentEncounter.id, mode, manualInitiatives, startWithFullHealth);
 
       // Reload initiative data
       await this.loadInitiative();

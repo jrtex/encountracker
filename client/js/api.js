@@ -226,12 +226,13 @@ const API = {
       return API.request(`/combat/${encounterId}/initiative`);
     },
 
-    startCombat(encounterId, mode, manualInitiatives = []) {
+    startCombat(encounterId, mode, manualInitiatives = [], startWithFullHealth = true) {
       return API.request(`/combat/${encounterId}/start`, {
         method: 'POST',
         body: {
           initiative_mode: mode,
-          manual_initiatives: manualInitiatives
+          manual_initiatives: manualInitiatives,
+          start_with_full_health: startWithFullHealth
         }
       });
     },
