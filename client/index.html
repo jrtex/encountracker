@@ -15,10 +15,15 @@
 
             <!-- Campaign Selector -->
             <div class="nav-campaign-selector">
-                <select id="nav-campaign-select" class="nav-campaign-dropdown">
-                    <option value="">Select Campaign...</option>
-                </select>
-                <span class="nav-campaign-chevron">▼</span>
+                <button id="nav-campaign-btn" class="nav-campaign-btn">
+                    <span id="nav-campaign-label">Select Campaign...</span>
+                    <svg class="nav-campaign-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <div id="nav-campaign-dropdown" class="campaign-dropdown-menu">
+                    <!-- Campaigns will be populated here -->
+                </div>
             </div>
 
             <ul class="nav-menu">

@@ -114,7 +114,6 @@ const CampaignManager = {
       } else {
         // Create new campaign
         response = await API.campaigns.create(data);
-        Components.showToast('Campaign created successfully', 'success');
 
         // Reload campaigns in context
         await CampaignContext.loadCampaigns();

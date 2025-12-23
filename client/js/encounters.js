@@ -267,7 +267,6 @@ const Encounters = {
         Components.showToast('Encounter updated successfully', 'success');
       } else {
         await API.encounters.create(data);
-        Components.showToast('Encounter created successfully', 'success');
       }
 
       document.querySelector('.modal-overlay').remove();

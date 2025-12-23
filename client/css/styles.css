@@ -76,17 +76,14 @@ nav {
   color: white;
 }
 
+/* Campaign Selector */
 .nav-campaign-selector {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  position: relative;
 }
 
-.nav-campaign-dropdown {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+.nav-campaign-btn {
   background: transparent;
   border: none;
   color: white;
@@ -94,34 +91,82 @@ nav {
   font-weight: bold;
   cursor: pointer;
   padding: 0;
-  padding-right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition);
   outline: none;
-  transition: color 0.2s ease;
-  text-align: center;
 }
 
-.nav-campaign-dropdown option {
-  background-color: white;
-  color: black;
-  font-size: 1rem;
-  font-weight: normal;
-  text-align: center;
-}
-
-.nav-campaign-dropdown:hover {
+.nav-campaign-btn:hover {
   color: var(--primary-color);
+}
+
+.nav-campaign-btn:hover .nav-campaign-chevron {
+  stroke: var(--primary-color);
+}
+
+#nav-campaign-label {
+  white-space: nowrap;
 }
 
 .nav-campaign-chevron {
-  color: white;
-  font-size: 0.75rem;
-  pointer-events: none;
-  margin-left: -1.25rem;
-  transition: color 0.2s ease;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  transition: var(--transition);
 }
 
-.nav-campaign-selector:hover .nav-campaign-chevron {
+/* Campaign Dropdown Menu */
+.campaign-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  min-width: 250px;
+  max-width: 400px;
+  padding: 0.5rem 0;
+  display: none;
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.campaign-dropdown-menu.show {
+  display: block;
+}
+
+.campaign-dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  display: block;
+}
+
+.campaign-dropdown-item:hover {
+  background: var(--hover-bg);
+}
+
+.campaign-dropdown-item.active {
+  background: rgba(139, 41, 41, 0.1);
+  font-weight: 600;
   color: var(--primary-color);
+}
+
+.campaign-dropdown-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .nav-menu {
@@ -795,6 +840,12 @@ nav {
 
   .user-dropdown-menu {
     right: 1rem;
+  }
+
+  .campaign-dropdown-menu {
+    left: 0;
+    right: 0;
+    min-width: auto;
   }
 
   .page-header {

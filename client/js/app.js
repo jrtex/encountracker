@@ -142,13 +142,7 @@ const App = {
 
     // Populate and setup dropdown
     this.renderCampaignDropdown();
-
-    const campaignSelect = document.getElementById('nav-campaign-select');
-    if (campaignSelect) {
-      campaignSelect.addEventListener('change', async (e) => {
-        await this.handleCampaignChange(e.target.value);
-      });
-    }
+    this.setupCampaignDropdown();
 
     // Update user info in avatar dropdown
     const user = Auth.getUser();
@@ -177,15 +171,56 @@ const App = {
   },
 
   renderCampaignDropdown() {
-    const select = document.getElementById('nav-campaign-select');
-    if (!select) return;
+    const label = document.getElementById('nav-campaign-label');
+    const dropdown = document.getElementById('nav-campaign-dropdown');
+    if (!label || !dropdown) return;
 
     const campaigns = CampaignContext.getAllCampaigns();
     const currentId = CampaignContext.getActiveCampaignId();
+    const currentCampaign = CampaignContext.getActiveCampaign();
 
-    select.innerHTML = campaigns.map(c =>
-      `<option value="${c.id}" ${c.id == currentId ? 'selected' : ''}>${c.name}</option>`
-    ).join('');
+    // Update button label
+    label.textContent = currentCampaign ? currentCampaign.name : 'Select Campaign...';
+
+    // Populate dropdown
+    if (campaigns.length === 0) {
+      dropdown.innerHTML = '<div class="campaign-dropdown-empty">No campaigns available</div>';
+    } else {
+      dropdown.innerHTML = campaigns.map(c =>
+        `<button class="campaign-dropdown-item ${c.id == currentId ? 'active' : ''}" data-campaign-id="${c.id}">
+          ${c.name}
+        </button>`
+      ).join('');
+
+      // Add click handlers to campaign items
+      dropdown.querySelectorAll('.campaign-dropdown-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          const campaignId = e.target.getAttribute('data-campaign-id');
+          await this.handleCampaignChange(campaignId);
+          dropdown.classList.remove('show'); // Close dropdown after selection
+        });
+      });
+    }
+  },
+
+  setupCampaignDropdown() {
+    const campaignBtn = document.getElementById('nav-campaign-btn');
+    const campaignDropdown = document.getElementById('nav-campaign-dropdown');
+
+    if (campaignBtn && campaignDropdown) {
+      // Toggle dropdown on button click
+      campaignBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        campaignDropdown.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!campaignDropdown.contains(e.target) && e.target !== campaignBtn) {
+          campaignDropdown.classList.remove('show');
+        }
+      });
+    }
   },
 
   async handleCampaignChange(campaignId) {
@@ -200,6 +235,9 @@ const App = {
 
     await CampaignContext.setActiveCampaign(parseInt(campaignId));
 
+    // Update campaign dropdown to show new campaign name
+    this.renderCampaignDropdown();
+
     // Reload active page
     if (activePage) {
       const pageId = activePage.id;
@@ -211,17 +249,20 @@ const App = {
         await Initiative.init();
       }
     }
-
-    Components.showToast('Campaign switched', 'success');
   },
 
   handleNoCampaigns() {
     document.getElementById('main-nav').classList.remove('hidden');
 
-    const select = document.getElementById('nav-campaign-select');
-    if (select) {
-      select.innerHTML = '<option value="">No campaigns available</option>';
-      select.disabled = true;
+    const label = document.getElementById('nav-campaign-label');
+    const dropdown = document.getElementById('nav-campaign-dropdown');
+
+    if (label) {
+      label.textContent = 'No campaigns available';
+    }
+
+    if (dropdown) {
+      dropdown.innerHTML = '<div class="campaign-dropdown-empty">No campaigns available</div>';
     }
 
     // Update user info in avatar dropdown

@@ -341,7 +341,6 @@ const Players = {
         Components.showToast('Player updated successfully', 'success');
       } else {
         await API.players.create(data);
-        Components.showToast('Player created successfully', 'success');
       }
 
       document.querySelector('.modal-overlay').remove();
