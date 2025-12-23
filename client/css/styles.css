@@ -144,11 +144,107 @@ nav {
   display: flex;
   align-items: center;
   gap: 1rem;
+  position: relative;
 }
 
 #user-info {
   color: var(--light-color);
   font-size: 0.9rem;
+}
+
+/* User Avatar Button */
+.avatar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  padding: 0;
+}
+
+.avatar-btn:hover {
+  background: var(--primary-dark);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.avatar-btn:active {
+  transform: scale(0.95);
+}
+
+.avatar-icon {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+}
+
+/* User Dropdown Menu */
+.user-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  padding: 0.5rem 0;
+  display: none;
+  z-index: 1000;
+}
+
+.user-dropdown-menu.show {
+  display: block;
+}
+
+.user-dropdown-header {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-username {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.5rem 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown-item:hover {
+  background: var(--hover-bg);
+}
+
+.dropdown-item-icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
 }
 
 /* Container */
@@ -695,6 +791,10 @@ nav {
 
   .nav-user {
     flex-direction: column;
+  }
+
+  .user-dropdown-menu {
+    right: 1rem;
   }
 
   .page-header {

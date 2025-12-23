@@ -50,10 +50,29 @@ const App = {
       });
     }
 
-    // Logout button
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', async () => {
+    // User avatar dropdown toggle
+    const avatarBtn = document.getElementById('user-avatar-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    if (avatarBtn && userDropdown) {
+      // Toggle dropdown on avatar click
+      avatarBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!userDropdown.contains(e.target) && e.target !== avatarBtn) {
+          userDropdown.classList.remove('show');
+        }
+      });
+    }
+
+    // Logout button in dropdown
+    const dropdownLogoutBtn = document.getElementById('dropdown-logout-btn');
+    if (dropdownLogoutBtn) {
+      dropdownLogoutBtn.addEventListener('click', async () => {
         await this.handleLogout();
       });
     }
@@ -131,11 +150,17 @@ const App = {
       });
     }
 
-    // Update user info
+    // Update user info in avatar dropdown
     const user = Auth.getUser();
-    const userInfo = document.getElementById('user-info');
-    if (userInfo && user) {
-      userInfo.textContent = `${user.username} (${user.role})`;
+    const dropdownUsername = document.getElementById('dropdown-username');
+    const dropdownRoleBadge = document.getElementById('dropdown-role-badge');
+
+    if (dropdownUsername && dropdownRoleBadge && user) {
+      dropdownUsername.textContent = user.username;
+
+      // Set role badge
+      dropdownRoleBadge.textContent = user.role;
+      dropdownRoleBadge.className = 'badge badge-' + (user.role === 'admin' ? 'warning' : 'info');
     }
 
     // Show/hide admin-only elements
@@ -199,11 +224,17 @@ const App = {
       select.disabled = true;
     }
 
-    // Update user info
+    // Update user info in avatar dropdown
     const user = Auth.getUser();
-    const userInfo = document.getElementById('user-info');
-    if (userInfo && user) {
-      userInfo.textContent = `${user.username} (${user.role})`;
+    const dropdownUsername = document.getElementById('dropdown-username');
+    const dropdownRoleBadge = document.getElementById('dropdown-role-badge');
+
+    if (dropdownUsername && dropdownRoleBadge && user) {
+      dropdownUsername.textContent = user.username;
+
+      // Set role badge
+      dropdownRoleBadge.textContent = user.role;
+      dropdownRoleBadge.className = 'badge badge-' + (user.role === 'admin' ? 'warning' : 'info');
     }
 
     // Show/hide admin-only elements

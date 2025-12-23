@@ -921,6 +921,41 @@
                 <p>More visible text</p>
             </div>
         </section>
+
+        <!-- User Avatar Dropdown -->
+        <section class="showcase-section">
+            <h2>User Avatar Dropdown</h2>
+
+            <div class="showcase-item">
+                <p class="code-label">.avatar-btn + .user-dropdown-menu</p>
+                <div style="position: relative; display: inline-block;">
+                    <button class="avatar-btn" onclick="document.getElementById('demo-dropdown').classList.toggle('show')">
+                        <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </button>
+                    <div id="demo-dropdown" class="user-dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <div class="dropdown-username">John Doe</div>
+                            <span class="badge badge-warning">admin</span>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <button class="dropdown-item">
+                            <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                    Click the avatar button to toggle the dropdown menu. The dropdown displays the user's name, role badge, and logout option.
+                </p>
+            </div>
+        </section>
     </div>
 
     <!-- Toast Container -->
