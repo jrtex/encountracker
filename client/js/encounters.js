@@ -1,6 +1,7 @@
 // Encounter Management
 const Encounters = {
   currentEncounters: [],
+  showCompleted: false,
 
   async init() {
     await this.loadEncounters();
@@ -13,6 +14,15 @@ const Encounters = {
     if (newEncounterBtn) {
       newEncounterBtn.addEventListener('click', () => {
         this.showEncounterModal();
+      });
+    }
+
+    const showCompletedToggle = document.getElementById('show-completed-toggle');
+    if (showCompletedToggle) {
+      showCompletedToggle.checked = this.showCompleted;
+      showCompletedToggle.addEventListener('change', (e) => {
+        this.showCompleted = e.target.checked;
+        this.renderEncounters();
       });
     }
   },
@@ -54,11 +64,19 @@ const Encounters = {
 
     listContainer.innerHTML = '';
 
-    if (this.currentEncounters.length === 0) {
-      const alert = Components.createAlert(
-        'No encounters yet. Create your first encounter to get started!',
-        'info'
-      );
+    // Filter encounters based on showCompleted toggle
+    const filteredEncounters = this.currentEncounters.filter(encounter => {
+      if (this.showCompleted) {
+        return true; // Show all encounters
+      }
+      return encounter.status !== 'completed'; // Hide completed encounters
+    });
+
+    if (filteredEncounters.length === 0) {
+      const message = this.currentEncounters.length === 0
+        ? 'No encounters yet. Create your first encounter to get started!'
+        : 'No encounters to display. Enable "Show completed" to see completed encounters.';
+      const alert = Components.createAlert(message, 'info');
       listContainer.appendChild(alert);
       return;
     }
@@ -66,7 +84,7 @@ const Encounters = {
     const grid = document.createElement('div');
     grid.className = 'encounter-grid';
 
-    this.currentEncounters.forEach(encounter => {
+    filteredEncounters.forEach(encounter => {
       const card = this.createEncounterCard(encounter);
       grid.appendChild(card);
     });
@@ -129,6 +147,11 @@ const Encounters = {
     }
 
     const card = Components.createCard(encounter.name, content, footer);
+
+    // Add faded styling to completed encounters
+    if (encounter.status === 'completed') {
+      card.classList.add('encounter-card-completed');
+    }
 
     // Make the card header (title) clickable
     const cardHeader = card.querySelector('.card-header');

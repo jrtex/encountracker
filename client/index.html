@@ -135,7 +135,13 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Encounters</h2>
-                    <button id="new-encounter-btn" class="btn btn-primary admin-only">New Encounter</button>
+                    <div class="page-actions">
+                        <label class="toggle-control">
+                            <input type="checkbox" id="show-completed-toggle">
+                            <span>Show completed</span>
+                        </label>
+                        <button id="new-encounter-btn" class="btn btn-primary admin-only">New Encounter</button>
+                    </div>
                 </div>
                 <div id="encounters-list"></div>
             </div>

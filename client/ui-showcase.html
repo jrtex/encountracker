@@ -349,6 +349,30 @@
                     </div>
                 </form>
             </div>
+
+            <h3>Pill Toggle Switch</h3>
+            <div class="component-demo">
+                <div class="code-label">.toggle-control (pill-style)</div>
+                <label class="toggle-control">
+                    <input type="checkbox" id="demo-toggle-1">
+                    <span>Show completed</span>
+                </label>
+                <br><br>
+                <label class="toggle-control">
+                    <input type="checkbox" id="demo-toggle-2" checked>
+                    <span>Enable advanced features</span>
+                </label>
+                <br><br>
+                <label class="toggle-control">
+                    <span>Dark mode</span>
+                    <input type="checkbox" id="demo-toggle-3">
+                </label>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    <strong>Usage:</strong> Pill-style toggle switches provide a modern, intuitive on/off control.
+                    The switch animates smoothly when toggled, with the background changing to green when enabled.
+                    Used for filter controls, settings, and feature toggles throughout the application.
+                </p>
+            </div>
         </section>
 
         <!-- Tables Section -->
@@ -662,6 +686,47 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <h3>Encounter Card States</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">Active/Pending Encounter</div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Goblin Ambush</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="encounter-description">A group of goblins ambushes the party on the road.</p>
+                                <div class="encounter-badges">
+                                    <span class="badge badge-warning">active</span>
+                                    <span class="badge badge-info">medium</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="code-label">.encounter-card-completed</div>
+                        <div class="card encounter-card-completed">
+                            <div class="card-header">
+                                <h3>Dragon's Lair</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="encounter-description">The party defeated the ancient red dragon.</p>
+                                <div class="encounter-badges">
+                                    <span class="badge badge-success">completed</span>
+                                    <span class="badge badge-danger">deadly</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    <strong>Note:</strong> Completed encounters appear faded (60% opacity) with a grayscale filter (30%).
+                    On hover, opacity increases to 75% and grayscale reduces to 15%.
+                    Used to distinguish completed encounters from active/pending ones.
+                </p>
             </div>
         </section>
 

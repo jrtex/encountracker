@@ -368,7 +368,7 @@ describe('Encounter Status Management', () => {
   });
 
   describe('POST /api/combat/:encounter_id/end - End Combat', () => {
-    test('should set encounter status back to pending when ending combat', async () => {
+    test('should set encounter status back to pending when ending combat without mark_complete', async () => {
       // Create an encounter
       const createResponse = await request(app)
         .post('/api/encounters')
@@ -410,6 +410,86 @@ describe('Encounter Status Management', () => {
       // Verify status is back to pending
       encounter = await database.get('SELECT * FROM encounters WHERE id = ?', [encounterId]);
       expect(encounter.status).toBe('pending');
+    });
+
+    test('should set encounter status to pending when ending combat with mark_complete=false', async () => {
+      // Create an encounter
+      const createResponse = await request(app)
+        .post('/api/encounters')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          campaign_id: campaign1Id,
+          name: 'Test Encounter',
+          difficulty: 'medium'
+        });
+
+      const encounterId = createResponse.body.data.id;
+
+      // Add a monster
+      await database.run(
+        'INSERT INTO monsters (encounter_id, name, max_hp, current_hp, armor_class) VALUES (?, ?, ?, ?, ?)',
+        [encounterId, 'Goblin', 7, 7, 15]
+      );
+
+      // Start combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ initiative_mode: 'auto' });
+
+      // End combat without marking as complete
+      const endResponse = await request(app)
+        .post(`/api/combat/${encounterId}/end`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ mark_complete: false });
+
+      expect(endResponse.status).toBe(200);
+      expect(endResponse.body.success).toBe(true);
+      expect(endResponse.body.data.status).toBe('pending');
+
+      // Verify status is back to pending
+      const encounter = await database.get('SELECT * FROM encounters WHERE id = ?', [encounterId]);
+      expect(encounter.status).toBe('pending');
+    });
+
+    test('should set encounter status to completed when ending combat with mark_complete=true', async () => {
+      // Create an encounter
+      const createResponse = await request(app)
+        .post('/api/encounters')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          campaign_id: campaign1Id,
+          name: 'Test Encounter',
+          difficulty: 'medium'
+        });
+
+      const encounterId = createResponse.body.data.id;
+
+      // Add a monster
+      await database.run(
+        'INSERT INTO monsters (encounter_id, name, max_hp, current_hp, armor_class) VALUES (?, ?, ?, ?, ?)',
+        [encounterId, 'Goblin', 7, 7, 15]
+      );
+
+      // Start combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ initiative_mode: 'auto' });
+
+      // End combat and mark as complete
+      const endResponse = await request(app)
+        .post(`/api/combat/${encounterId}/end`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ mark_complete: true });
+
+      expect(endResponse.status).toBe(200);
+      expect(endResponse.body.success).toBe(true);
+      expect(endResponse.body.data.status).toBe('completed');
+
+      // Verify status is completed
+      const encounter = await database.get('SELECT * FROM encounters WHERE id = ?', [encounterId]);
+      expect(encounter.status).toBe('completed');
     });
 
     test('should allow encounters to be restarted after ending combat', async () => {

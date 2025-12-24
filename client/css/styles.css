@@ -404,6 +404,69 @@ nav {
   min-width: 200px;
 }
 
+/* Pill Toggle Switch */
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.95rem;
+}
+
+.toggle-control input[type="checkbox"] {
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 48px;
+  height: 24px;
+  background-color: #ccc;
+  border-radius: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.toggle-control input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-control input[type="checkbox"]:checked {
+  background-color: var(--success-color);
+}
+
+.toggle-control input[type="checkbox"]:checked::before {
+  transform: translateX(24px);
+}
+
+.toggle-control input[type="checkbox"]:hover:not(:disabled) {
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+.toggle-control input[type="checkbox"]:focus {
+  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+}
+
+.toggle-control input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-control:has(input[type="checkbox"]:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Campaign Grid */
 .campaign-grid {
   display: grid;
@@ -456,6 +519,18 @@ nav {
 .encounter-meta {
   color: #666;
   margin: 0;
+}
+
+/* Completed Encounter Styling */
+.encounter-card-completed {
+  opacity: 0.6;
+  filter: grayscale(30%);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.encounter-card-completed:hover {
+  opacity: 0.75;
+  filter: grayscale(15%);
 }
 
 /* Player Styling */
@@ -884,10 +959,15 @@ nav {
 
   .page-actions {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .page-actions select {
     width: 100%;
+  }
+
+  .toggle-control {
+    justify-content: center;
   }
 
   .campaign-grid,

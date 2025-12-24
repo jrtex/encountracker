@@ -817,16 +817,53 @@ const Initiative = {
   },
 
   async endCombat() {
-    const confirmed = await Components.confirm(
-      'Are you sure you want to end combat? This will clear the initiative tracker.'
-    );
+    // Determine if all monsters are defeated (health = 0)
+    const allMonstersDefeated = this.initiativeData.participants
+      .filter(p => p.participant_type === 'monster')
+      .every(p => p.current_hp === 0);
 
-    if (!confirmed) return;
+    // Create modal content with checkbox
+    const content = `
+      <p>Are you sure you want to end combat? This will clear the initiative tracker.</p>
+      <div class="form-group" style="margin-top: 1rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+          <input type="checkbox" id="mark-complete-checkbox" ${allMonstersDefeated ? 'checked' : ''}>
+          <span>Encounter is completed</span>
+        </label>
+      </div>
+    `;
+
+    const result = await new Promise((resolve) => {
+      Components.showModal(
+        'End Combat',
+        content,
+        [
+          {
+            id: 'cancel',
+            label: 'Cancel',
+            class: 'btn-secondary',
+            handler: () => resolve(null)
+          },
+          {
+            id: 'confirm',
+            label: 'End Combat',
+            class: 'btn-danger',
+            handler: () => {
+              const checkbox = document.getElementById('mark-complete-checkbox');
+              resolve(checkbox ? checkbox.checked : false);
+            }
+          }
+        ]
+      );
+    });
+
+    // User cancelled
+    if (result === null) return;
 
     try {
       Components.showSpinner(this.container);
 
-      await API.combat.endCombat(this.currentEncounter.id);
+      await API.combat.endCombat(this.currentEncounter.id, result);
 
       // Reload encounter status
       await this.loadActiveEncounter();

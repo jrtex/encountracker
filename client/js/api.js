@@ -271,9 +271,10 @@ const API = {
       });
     },
 
-    endCombat(encounterId) {
+    endCombat(encounterId, markComplete = false) {
       return API.request(`/combat/${encounterId}/end`, {
-        method: 'POST'
+        method: 'POST',
+        body: { mark_complete: markComplete }
       });
     }
   },
