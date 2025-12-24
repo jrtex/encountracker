@@ -315,6 +315,21 @@ const App = {
     if (page) {
       page.classList.add('active');
     }
+
+    // Update active state on navigation links
+    // Extract the base page name (remove '-page' suffix)
+    const pageName = pageId.replace('-page', '');
+
+    // Remove active class from all nav links
+    document.querySelectorAll('.nav-menu a').forEach(link => {
+      link.classList.remove('active');
+    });
+
+    // Add active class to the corresponding nav link
+    const activeLink = document.querySelector(`.nav-menu a[data-page="${pageName}"]`);
+    if (activeLink) {
+      activeLink.classList.add('active');
+    }
   }
 };
 
