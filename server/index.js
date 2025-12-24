@@ -121,8 +121,12 @@ async function startServer() {
     // Connect to database
     await database.connect();
 
-    // Initialize database (create tables if needed)
+    // Initialize database (create base tables if needed)
     await initializeDatabase();
+
+    // Run database migrations (add new columns/tables)
+    const { runMigrations } = require('./utils/migrationRunner');
+    await runMigrations();
 
     // Start listening
     app.listen(PORT, () => {
