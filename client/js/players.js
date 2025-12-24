@@ -1,6 +1,7 @@
 // Player Management
 const Players = {
   currentPlayers: [],
+  showInactive: false,
 
   async init() {
     await this.loadPlayers();
@@ -13,6 +14,15 @@ const Players = {
     if (newPlayerBtn) {
       newPlayerBtn.addEventListener('click', () => {
         this.showPlayerModal();
+      });
+    }
+
+    const showInactiveToggle = document.getElementById('show-inactive-toggle');
+    if (showInactiveToggle) {
+      showInactiveToggle.checked = this.showInactive;
+      showInactiveToggle.addEventListener('change', (e) => {
+        this.showInactive = e.target.checked;
+        this.renderPlayers();
       });
     }
   },
@@ -54,11 +64,19 @@ const Players = {
 
     listContainer.innerHTML = '';
 
-    if (this.currentPlayers.length === 0) {
-      const alert = Components.createAlert(
-        'No players yet. Create your first character to get started!',
-        'info'
-      );
+    // Filter players based on showInactive toggle
+    const filteredPlayers = this.currentPlayers.filter(player => {
+      if (this.showInactive) {
+        return true; // Show all players
+      }
+      return player.is_active; // Hide inactive players
+    });
+
+    if (filteredPlayers.length === 0) {
+      const message = this.currentPlayers.length === 0
+        ? 'No players yet. Create your first character to get started!'
+        : 'No active players to display. Enable "Show inactive" to see inactive players.';
+      const alert = Components.createAlert(message, 'info');
       listContainer.appendChild(alert);
       return;
     }
@@ -66,7 +84,7 @@ const Players = {
     const grid = document.createElement('div');
     grid.className = 'player-grid';
 
-    this.currentPlayers.forEach(player => {
+    filteredPlayers.forEach(player => {
       const card = this.createPlayerCard(player);
       grid.appendChild(card);
     });

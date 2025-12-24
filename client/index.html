@@ -183,7 +183,13 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Players</h2>
-                    <button id="new-player-btn" class="btn btn-primary admin-only">New Character</button>
+                    <div class="page-actions">
+                        <label class="toggle-control">
+                            <input type="checkbox" id="show-inactive-toggle">
+                            <span>Show inactive</span>
+                        </label>
+                        <button id="new-player-btn" class="btn btn-primary admin-only">New Character</button>
+                    </div>
                 </div>
                 <div id="players-list"></div>
             </div>
