@@ -5,6 +5,8 @@ yarn.lock
 
 # Environment variables
 .env
+!.env.test
+!.env.example
 
 # Database and data files
 data/

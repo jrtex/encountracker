@@ -11,6 +11,7 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:csv": "jest --reporters=default --reporters=./tests/reporters/csv-reporter.js",
+    "test:verify-isolation": "node scripts/verify-test-isolation.js",
     "init-db": "node server/utils/initDatabase.js",
     "migrate": "node server/utils/migrate-add-speed.js",
     "reset-password": "node server/utils/resetPassword.js"
@@ -38,6 +39,7 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "setupFiles": ["<rootDir>/tests/setup.js"],
     "coverageDirectory": "coverage",
     "collectCoverageFrom": [
       "server/**/*.js",
