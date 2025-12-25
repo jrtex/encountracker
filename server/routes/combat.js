@@ -133,7 +133,7 @@ router.post('/:encounter_id/start',
 
       // Get active players from campaign
       const players = await database.all(
-        'SELECT * FROM players WHERE campaign_id = ? AND is_active = 1',
+        'SELECT * FROM players WHERE campaign_id = ? AND is_active = true',
         [encounter.campaign_id]
       );
 
@@ -233,7 +233,7 @@ router.post('/:encounter_id/start',
       // Assign turn_order
       participants.forEach((p, index) => {
         p.turn_order = index + 1;
-        p.is_current_turn = index === 0 ? 1 : 0;
+        p.is_current_turn = index === 0;
         p.conditions = JSON.stringify([]);
         delete p.id; // Remove temporary id field
       });
@@ -371,15 +371,15 @@ router.post('/:encounter_id/next-turn',
         );
       }
 
-      // Update all is_current_turn to 0
+      // Update all is_current_turn to false
       await database.run(
-        'UPDATE initiative_tracker SET is_current_turn = 0 WHERE encounter_id = ?',
+        'UPDATE initiative_tracker SET is_current_turn = false WHERE encounter_id = ?',
         [encounter_id]
       );
 
       // Set next participant as current
       await database.run(
-        'UPDATE initiative_tracker SET is_current_turn = 1 WHERE id = ?',
+        'UPDATE initiative_tracker SET is_current_turn = true WHERE id = ?',
         [nextParticipant.id]
       );
 
