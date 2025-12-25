@@ -27,23 +27,31 @@ async function up() {
 
   const existingMigrations = [];
 
-  // Check if players table exists (may not exist on first run)
+  // Check if players table exists
   const playersTables = await database.all(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='players'"
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['players']
   );
 
   if (playersTables.length > 0) {
     // Players table exists, check for manually-applied migrations
 
+    // Get all columns from players table
+    const playersInfo = await database.all(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = ?`,
+      ['players']
+    );
+
     // Check for is_active column (001_add_is_active)
-    const playersInfo = await database.all('PRAGMA table_info(players)');
-    if (playersInfo.some(col => col.name === 'is_active')) {
+    if (playersInfo.some(col => col.column_name === 'is_active')) {
       existingMigrations.push('001_add_is_active');
       logger.debug('  Found existing column: players.is_active');
     }
 
     // Check for speed column (002_add_speed)
-    if (playersInfo.some(col => col.name === 'speed')) {
+    if (playersInfo.some(col => col.column_name === 'speed')) {
       existingMigrations.push('002_add_speed');
       logger.debug('  Found existing column: players.speed');
     }
@@ -51,13 +59,21 @@ async function up() {
 
   // Check if encounters table exists
   const encountersTables = await database.all(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='encounters'"
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['encounters']
   );
 
   if (encountersTables.length > 0) {
+    // Get all columns from encounters table
+    const encountersInfo = await database.all(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = ?`,
+      ['encounters']
+    );
+
     // Check for current_round column (003_add_round)
-    const encountersInfo = await database.all('PRAGMA table_info(encounters)');
-    if (encountersInfo.some(col => col.name === 'current_round')) {
+    if (encountersInfo.some(col => col.column_name === 'current_round')) {
       existingMigrations.push('003_add_round');
       logger.debug('  Found existing column: encounters.current_round');
     }
@@ -65,8 +81,11 @@ async function up() {
 
   // Check for monster_actions table (004_add_monster_actions)
   const monsterActionsTables = await database.all(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='monster_actions'"
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['monster_actions']
   );
+
   if (monsterActionsTables.length > 0) {
     existingMigrations.push('004_add_monster_actions');
     logger.debug('  Found existing table: monster_actions');
@@ -78,9 +97,10 @@ async function up() {
 
     for (const migrationName of existingMigrations) {
       await database.run(
-        `INSERT OR IGNORE INTO schema_migrations (migration_name, execution_time_ms, success)
-         VALUES (?, 0, 1)`,
-        [migrationName]
+        `INSERT INTO schema_migrations (migration_name, execution_time_ms, success)
+         VALUES (?, ?, ?)
+         ON CONFLICT (migration_name) DO NOTHING`,
+        [migrationName, 0, true]
       );
       logger.debug(`  Marked as applied: ${migrationName}`);
     }

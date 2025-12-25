@@ -20,7 +20,9 @@ async function up() {
 
   // Check if table already exists (idempotency)
   const tables = await database.all(
-    "SELECT name FROM sqlite_master WHERE type='table' AND name='monster_actions'"
+    `SELECT table_name FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['monster_actions']
   );
 
   if (tables.length > 0) {
@@ -31,12 +33,12 @@ async function up() {
   // Create monster_actions table with indexes
   await database.exec(`
     CREATE TABLE IF NOT EXISTS monster_actions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       monster_id INTEGER NOT NULL,
-      action_category TEXT NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),
-      name TEXT NOT NULL,
+      action_category VARCHAR(50) NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),
+      name VARCHAR(255) NOT NULL,
       description TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (monster_id) REFERENCES monsters(id) ON DELETE CASCADE
     );
 

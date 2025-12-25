@@ -18,8 +18,12 @@ async function up() {
   logger.info('Adding current_round column to encounters table');
 
   // Check if column already exists (idempotency)
-  const tableInfo = await database.all('PRAGMA table_info(encounters)');
-  const columnExists = tableInfo.some(col => col.name === 'current_round');
+  const tableInfo = await database.all(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['encounters']
+  );
+  const columnExists = tableInfo.some(col => col.column_name === 'current_round');
 
   if (columnExists) {
     logger.debug('current_round column already exists, skipping');
@@ -34,11 +38,12 @@ async function up() {
 
 /**
  * Rollback the migration
- * Note: SQLite does not support DROP COLUMN, so this is a no-op
  * @returns {Promise<void>}
  */
 async function down() {
-  logger.warn('SQLite does not support DROP COLUMN - manual intervention required to rollback');
+  logger.info('Removing current_round column from encounters table');
+  await database.run('ALTER TABLE encounters DROP COLUMN IF EXISTS current_round');
+  logger.info('Successfully removed current_round column');
 }
 
 module.exports = { up, down };

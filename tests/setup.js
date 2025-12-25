@@ -8,7 +8,7 @@ if (!fs.existsSync(envTestPath)) {
   throw new Error(
     `.env.test file not found at ${envTestPath}. ` +
     'This file is required for test database isolation. ' +
-    'Please create it with DB_PATH=:memory:'
+    'Please create it with PostgreSQL test database credentials.'
   );
 }
 
@@ -18,11 +18,11 @@ if (result.error) {
 }
 
 // Verify critical test environment variables are set
-if (process.env.DB_PATH !== ':memory:') {
+if (!process.env.POSTGRES_DB || !process.env.POSTGRES_DB.includes('test')) {
   throw new Error(
-    `CRITICAL: DB_PATH must be ":memory:" in test environment. ` +
-    `Current value: "${process.env.DB_PATH}". ` +
-    `This prevents tests from polluting the production database.`
+    `CRITICAL: POSTGRES_DB must include "test" in the name. ` +
+    `Current value: "${process.env.POSTGRES_DB}". ` +
+    `This prevents tests from polluting production/dev databases.`
   );
 }
 
@@ -35,7 +35,6 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Explicitly set critical test environment variables (defense-in-depth)
 process.env.NODE_ENV = 'test';
-process.env.DB_PATH = ':memory:';
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
 process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 

@@ -9,11 +9,11 @@ const logger = require('./logger');
 async function createMigrationsTable() {
   const sql = `
     CREATE TABLE IF NOT EXISTS schema_migrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      migration_name TEXT UNIQUE NOT NULL,
-      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      id SERIAL PRIMARY KEY,
+      migration_name VARCHAR(255) UNIQUE NOT NULL,
+      applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       execution_time_ms INTEGER,
-      success BOOLEAN DEFAULT 1,
+      success BOOLEAN DEFAULT true,
       error_message TEXT
     );
 
@@ -31,7 +31,7 @@ async function createMigrationsTable() {
  */
 async function getAppliedMigrations() {
   const rows = await database.all(
-    'SELECT migration_name FROM schema_migrations WHERE success = 1 ORDER BY id'
+    'SELECT migration_name FROM schema_migrations WHERE success = true ORDER BY id'
   );
   return rows.map(row => row.migration_name);
 }
@@ -85,7 +85,7 @@ async function executeMigration(migrationName) {
     await database.run(
       `INSERT INTO schema_migrations (migration_name, execution_time_ms, success)
        VALUES (?, ?, ?)`,
-      [migrationName, executionTime, 1]
+      [migrationName, executionTime, true]
     );
 
     logger.info(`✓ Migration completed in ${executionTime}ms: ${migrationName}`);
@@ -97,7 +97,7 @@ async function executeMigration(migrationName) {
     await database.run(
       `INSERT INTO schema_migrations (migration_name, execution_time_ms, success, error_message)
        VALUES (?, ?, ?, ?)`,
-      [migrationName, executionTime, 0, error.message]
+      [migrationName, executionTime, false, error.message]
     );
 
     // Check if migration is marked as critical (default: true)

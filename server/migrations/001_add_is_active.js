@@ -3,7 +3,7 @@
  * Created: 2025-12-24
  *
  * Description:
- * Adds an is_active boolean column to the players table with a default value of 1 (active).
+ * Adds an is_active boolean column to the players table with a default value of true (active).
  * This allows campaigns to mark players as inactive without deleting them, preserving
  * historical data while hiding them from active encounter management.
  */
@@ -19,19 +19,23 @@ async function up() {
   logger.info('Adding is_active column to players table');
 
   // Check if column already exists (idempotency)
-  const tableInfo = await database.all('PRAGMA table_info(players)');
-  const columnExists = tableInfo.some(col => col.name === 'is_active');
+  const tableInfo = await database.all(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['players']
+  );
+  const columnExists = tableInfo.some(col => col.column_name === 'is_active');
 
   if (columnExists) {
     logger.debug('is_active column already exists, skipping');
     return;
   }
 
-  // Add is_active column with default value of 1 (active)
-  await database.run('ALTER TABLE players ADD COLUMN is_active BOOLEAN DEFAULT 1');
+  // Add is_active column with default value of true (active)
+  await database.run('ALTER TABLE players ADD COLUMN is_active BOOLEAN DEFAULT true');
 
   // Update existing rows to be active by default
-  const result = await database.run('UPDATE players SET is_active = 1 WHERE is_active IS NULL');
+  const result = await database.run('UPDATE players SET is_active = true WHERE is_active IS NULL');
   logger.info(`Updated ${result.changes} existing player(s) to active status`);
 
   logger.info('Successfully added is_active column to players table');
@@ -39,11 +43,13 @@ async function up() {
 
 /**
  * Rollback the migration
- * Note: SQLite does not support DROP COLUMN, so this is a no-op
+ * Note: PostgreSQL supports DROP COLUMN (unlike SQLite)
  * @returns {Promise<void>}
  */
 async function down() {
-  logger.warn('SQLite does not support DROP COLUMN - manual intervention required to rollback');
+  logger.info('Removing is_active column from players table');
+  await database.run('ALTER TABLE players DROP COLUMN IF EXISTS is_active');
+  logger.info('Successfully removed is_active column');
 }
 
 module.exports = { up, down };

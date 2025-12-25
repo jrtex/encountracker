@@ -18,8 +18,12 @@ async function up() {
   logger.info('Adding speed column to players table');
 
   // Check if column already exists (idempotency)
-  const tableInfo = await database.all('PRAGMA table_info(players)');
-  const columnExists = tableInfo.some(col => col.name === 'speed');
+  const tableInfo = await database.all(
+    `SELECT column_name FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = ?`,
+    ['players']
+  );
+  const columnExists = tableInfo.some(col => col.column_name === 'speed');
 
   if (columnExists) {
     logger.debug('speed column already exists, skipping');
@@ -34,11 +38,12 @@ async function up() {
 
 /**
  * Rollback the migration
- * Note: SQLite does not support DROP COLUMN, so this is a no-op
  * @returns {Promise<void>}
  */
 async function down() {
-  logger.warn('SQLite does not support DROP COLUMN - manual intervention required to rollback');
+  logger.info('Removing speed column from players table');
+  await database.run('ALTER TABLE players DROP COLUMN IF EXISTS speed');
+  logger.info('Successfully removed speed column');
 }
 
 module.exports = { up, down };
