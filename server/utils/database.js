@@ -7,6 +7,11 @@ class Database {
   }
 
   async connect() {
+    // Only create pool if it doesn't exist (singleton pattern)
+    if (this.pool) {
+      return;
+    }
+
     const config = {
       host: process.env.POSTGRES_HOST || 'localhost',
       port: parseInt(process.env.POSTGRES_PORT || '5432'),

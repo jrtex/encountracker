@@ -88,9 +88,12 @@ describe('Encounter Status Management', () => {
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
-        max_hp INTEGER DEFAULT 10,
-        current_hp INTEGER DEFAULT 10,
-        armor_class INTEGER DEFAULT 10,
+        dnd_api_id VARCHAR(255),
+        max_hp INTEGER NOT NULL,
+        current_hp INTEGER NOT NULL,
+        armor_class INTEGER NOT NULL,
+        initiative_bonus INTEGER DEFAULT 0,
+        notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
@@ -103,7 +106,9 @@ describe('Encounter Status Management', () => {
         initiative INTEGER NOT NULL,
         turn_order INTEGER NOT NULL,
         is_current_turn BOOLEAN DEFAULT false,
-        conditions TEXT DEFAULT '[]',
+        conditions TEXT,
+        temp_hp INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
     `);

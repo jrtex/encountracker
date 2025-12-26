@@ -30,7 +30,7 @@ describe('Migration System', () => {
       await createMigrationsTable();
 
       const tables = await database.all(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'"
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'schema_migrations'"
       );
 
       expect(tables.length).toBe(1);
@@ -40,7 +40,7 @@ describe('Migration System', () => {
       await createMigrationsTable();
 
       const indexes = await database.all(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_migrations_name'"
+        "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'idx_migrations_name'"
       );
 
       expect(indexes.length).toBe(1);
@@ -49,8 +49,10 @@ describe('Migration System', () => {
     test('should have correct columns', async () => {
       await createMigrationsTable();
 
-      const columns = await database.all('PRAGMA table_info(schema_migrations)');
-      const columnNames = columns.map(col => col.name);
+      const columns = await database.all(
+        "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'schema_migrations'"
+      );
+      const columnNames = columns.map(col => col.column_name);
 
       expect(columnNames).toContain('id');
       expect(columnNames).toContain('migration_name');
@@ -232,16 +234,16 @@ describe('Migration System', () => {
     test('should detect and mark existing schema changes', async () => {
       // Create base tables first
       await database.exec(`
-        CREATE TABLE users (id INTEGER PRIMARY KEY);
-        CREATE TABLE campaigns (id INTEGER PRIMARY KEY);
-        CREATE TABLE encounters (id INTEGER PRIMARY KEY);
+        CREATE TABLE users (id SERIAL PRIMARY KEY);
+        CREATE TABLE campaigns (id SERIAL PRIMARY KEY);
+        CREATE TABLE encounters (id SERIAL PRIMARY KEY);
         CREATE TABLE players (
-          id INTEGER PRIMARY KEY,
+          id SERIAL PRIMARY KEY,
           character_name TEXT,
-          is_active BOOLEAN DEFAULT 1,
+          is_active BOOLEAN DEFAULT true,
           speed INTEGER DEFAULT 30
         );
-        CREATE TABLE monster_actions (id INTEGER PRIMARY KEY);
+        CREATE TABLE monster_actions (id SERIAL PRIMARY KEY);
       `);
 
       await createMigrationsTable();
@@ -265,10 +267,10 @@ describe('Migration System', () => {
     test('migrations should be safe to run multiple times', async () => {
       // Create base tables
       await database.exec(`
-        CREATE TABLE users (id INTEGER PRIMARY KEY);
-        CREATE TABLE campaigns (id INTEGER PRIMARY KEY);
-        CREATE TABLE encounters (id INTEGER PRIMARY KEY);
-        CREATE TABLE players (id INTEGER PRIMARY KEY, character_name TEXT);
+        CREATE TABLE users (id SERIAL PRIMARY KEY);
+        CREATE TABLE campaigns (id SERIAL PRIMARY KEY);
+        CREATE TABLE encounters (id SERIAL PRIMARY KEY);
+        CREATE TABLE players (id SERIAL PRIMARY KEY, character_name TEXT);
       `);
 
       const migration = require('../server/migrations/001_add_is_active');
@@ -278,8 +280,10 @@ describe('Migration System', () => {
       await migration.up();
 
       // Should only have one is_active column
-      const columns = await database.all('PRAGMA table_info(players)');
-      const isActiveColumns = columns.filter(col => col.name === 'is_active');
+      const columns = await database.all(
+        "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'players'"
+      );
+      const isActiveColumns = columns.filter(col => col.column_name === 'is_active');
 
       expect(isActiveColumns).toHaveLength(1);
     });

@@ -86,18 +86,17 @@ describe('Combat Routes - Status Effects', () => {
         dnd_api_id VARCHAR(255),
         max_hp INTEGER NOT NULL,
         current_hp INTEGER NOT NULL,
-        armor_class INTEGER DEFAULT 10,
+        armor_class INTEGER NOT NULL,
         initiative_bonus INTEGER DEFAULT 0,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS initiative_tracker (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
-        participant_type VARCHAR(50) CHECK(participant_type IN ('player', 'monster')),
+        participant_type VARCHAR(50) NOT NULL CHECK(participant_type IN ('player', 'monster')),
         participant_id INTEGER NOT NULL,
         initiative INTEGER NOT NULL,
         turn_order INTEGER NOT NULL,

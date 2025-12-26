@@ -24,17 +24,18 @@ describe('Database Utility', () => {
 
   describe('connect', () => {
     test('should have database connected', async () => {
-      expect(database.db).toBeDefined();
+      expect(database.pool).toBeDefined();
     });
 
-    test('should enable foreign keys on connection', async () => {
-      // Verify foreign keys are enabled
-      const result = await database.get('PRAGMA foreign_keys');
-      expect(result.foreign_keys).toBe(1);
+    test('should have connection pool configured', async () => {
+      // Verify connection pool is active
+      expect(database.pool.totalCount).toBeGreaterThanOrEqual(0);
     });
 
-    test('should be SQLite type', () => {
-      expect(database.dbType).toBe('sqlite');
+    test('should be PostgreSQL database', async () => {
+      // Verify we're connected to PostgreSQL
+      const result = await database.get('SELECT version()');
+      expect(result.version).toContain('PostgreSQL');
     });
   });
 
@@ -301,8 +302,9 @@ describe('Database Utility', () => {
       expect(result).toHaveLength(3);
 
       const categoryA = result.find(r => r.category === 'A');
-      expect(categoryA.count).toBe(2);
-      expect(categoryA.total).toBe(40);
+      // PostgreSQL returns count as string, convert to number
+      expect(parseInt(categoryA.count)).toBe(2);
+      expect(parseInt(categoryA.total)).toBe(40);
     });
 
     test('should work without params', async () => {
