@@ -42,8 +42,8 @@ describe('Database Utility', () => {
     test('should execute SQL statements successfully', async () => {
       const sql = `
         CREATE TABLE test_table (
-          id INTEGER PRIMARY KEY,
-          name TEXT
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255)
         );
         INSERT INTO test_table (name) VALUES ('test1');
         INSERT INTO test_table (name) VALUES ('test2');
@@ -67,9 +67,9 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT NOT NULL,
-          email TEXT NOT NULL
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL
         )
       `);
     });
@@ -171,8 +171,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_products (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
           price REAL
         )
       `);
@@ -241,8 +241,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          category TEXT,
+          id SERIAL PRIMARY KEY,
+          category VARCHAR(50),
           value INTEGER
         )
       `);
@@ -316,13 +316,13 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE parent (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255)
         );
         CREATE TABLE child (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           parent_id INTEGER,
-          name TEXT,
+          name VARCHAR(255),
           FOREIGN KEY (parent_id) REFERENCES parent(id) ON DELETE CASCADE
         );
       `);
@@ -378,8 +378,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE accounts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT,
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255),
           balance REAL
         )
       `);

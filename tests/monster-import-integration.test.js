@@ -24,55 +24,55 @@ describe('Monster Import Integration Test', () => {
   beforeAll(async () => {
     await database.connect();
 
-    // Initialize test database schema
+    // Initialize test database schema (PostgreSQL syntax)
     await database.exec(`
       CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        email TEXT UNIQUE NOT NULL,
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'player',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        role VARCHAR(50) NOT NULL DEFAULT 'player',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS campaigns (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         dm_user_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (dm_user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS encounters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        status TEXT DEFAULT 'pending',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        name VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS monsters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        dnd_api_id TEXT,
+        name VARCHAR(255) NOT NULL,
+        dnd_api_id VARCHAR(255),
         max_hp INTEGER NOT NULL,
         current_hp INTEGER NOT NULL,
         armor_class INTEGER DEFAULT 10,
         initiative_bonus INTEGER DEFAULT 0,
         notes TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS monster_actions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         monster_id INTEGER NOT NULL,
-        action_category TEXT NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),
-        name TEXT NOT NULL,
+        action_category VARCHAR(50) NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),
+        name VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (monster_id) REFERENCES monsters(id) ON DELETE CASCADE
       );
     `);
