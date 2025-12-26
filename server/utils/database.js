@@ -109,8 +109,9 @@ class Database {
    * @returns {Promise<void>}
    */
   async close() {
-    if (this.pool) {
+    if (this.pool && !this.pool.ended) {
       await this.pool.end();
+      this.pool = null;
       logger.info('PostgreSQL connection pool closed');
     }
   }

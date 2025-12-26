@@ -12,9 +12,16 @@ if (!fs.existsSync(envTestPath)) {
   );
 }
 
+// Load .env.test first, then .env.test.local to allow local overrides
 const result = require('dotenv').config({ path: '.env.test' });
 if (result.error) {
   throw new Error(`Failed to load .env.test: ${result.error.message}`);
+}
+
+// Load .env.test.local to override with local secrets (e.g., POSTGRES_ADMIN_PASSWORD)
+const envTestLocalPath = path.resolve(__dirname, '..', '.env.test.local');
+if (fs.existsSync(envTestLocalPath)) {
+  require('dotenv').config({ path: envTestLocalPath, override: true });
 }
 
 // Verify critical test environment variables are set
