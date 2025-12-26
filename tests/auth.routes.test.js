@@ -21,9 +21,14 @@ describe('Auth Routes', () => {
   beforeAll(async () => {
     await database.connect();
 
+    // Drop existing tables to ensure clean schema
+    await database.exec(`
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Initialize test database schema
     await database.exec(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,

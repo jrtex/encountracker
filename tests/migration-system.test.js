@@ -9,19 +9,31 @@ const {
 describe('Migration System', () => {
   beforeAll(async () => {
     await database.connect();
+
+    // Drop all tables once to ensure clean isolation from other test files
+    await database.exec(`
+      DROP TABLE IF EXISTS initiative_tracker CASCADE;
+      DROP TABLE IF EXISTS monster_actions CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS players CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+      DROP TABLE IF EXISTS schema_migrations CASCADE;
+    `);
   });
 
   beforeEach(async () => {
     // Clean slate for each test - drop all tables in reverse dependency order
     await database.exec(`
-      DROP TABLE IF EXISTS initiative_tracker;
-      DROP TABLE IF EXISTS monster_actions;
-      DROP TABLE IF EXISTS monsters;
-      DROP TABLE IF EXISTS players;
-      DROP TABLE IF EXISTS encounters;
-      DROP TABLE IF EXISTS campaigns;
-      DROP TABLE IF EXISTS users;
-      DROP TABLE IF EXISTS schema_migrations;
+      DROP TABLE IF EXISTS initiative_tracker CASCADE;
+      DROP TABLE IF EXISTS monster_actions CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS players CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+      DROP TABLE IF EXISTS schema_migrations CASCADE;
     `);
   });
 
@@ -109,12 +121,12 @@ describe('Migration System', () => {
       await database.run(
         `INSERT INTO schema_migrations (migration_name, execution_time_ms, success)
          VALUES (?, ?, ?)`,
-        ['001_add_is_active', 50, 1]
+        ['001_add_is_active', 50, true]
       );
       await database.run(
         `INSERT INTO schema_migrations (migration_name, execution_time_ms, success)
          VALUES (?, ?, ?)`,
-        ['002_add_speed', 30, 1]
+        ['002_add_speed', 30, true]
       );
 
       const applied = await getAppliedMigrations();
@@ -131,12 +143,12 @@ describe('Migration System', () => {
       await database.run(
         `INSERT INTO schema_migrations (migration_name, execution_time_ms, success)
          VALUES (?, ?, ?)`,
-        ['001_add_is_active', 50, 1]
+        ['001_add_is_active', 50, true]
       );
       await database.run(
         `INSERT INTO schema_migrations (migration_name, execution_time_ms, success, error_message)
          VALUES (?, ?, ?, ?)`,
-        ['002_add_speed', 30, 0, 'Test error']
+        ['002_add_speed', 30, false, 'Test error']
       );
 
       const applied = await getAppliedMigrations();
@@ -173,7 +185,7 @@ describe('Migration System', () => {
 
       // Each migration should only have one success record
       const records = await database.all(
-        'SELECT migration_name, COUNT(*) as count FROM schema_migrations WHERE success = 1 GROUP BY migration_name'
+        'SELECT migration_name, COUNT(*) as count FROM schema_migrations WHERE success = true GROUP BY migration_name'
       );
 
       records.forEach(record => {
@@ -185,7 +197,7 @@ describe('Migration System', () => {
       await runMigrations();
 
       const applied = await database.all(
-        'SELECT migration_name FROM schema_migrations WHERE success = 1 ORDER BY migration_name'
+        'SELECT migration_name FROM schema_migrations WHERE success = true ORDER BY migration_name'
       );
 
       // All migrations should be present
@@ -206,7 +218,7 @@ describe('Migration System', () => {
       await runMigrations();
 
       const records = await database.all(
-        'SELECT migration_name, execution_time_ms FROM schema_migrations WHERE success = 1'
+        'SELECT migration_name, execution_time_ms FROM schema_migrations WHERE success = true'
       );
 
       records.forEach(record => {

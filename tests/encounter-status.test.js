@@ -29,9 +29,19 @@ describe('Encounter Status Management', () => {
   beforeAll(async () => {
     await database.connect();
 
+    // Drop existing tables to ensure clean schema
+    await database.exec(`
+      DROP TABLE IF EXISTS initiative_tracker CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS players CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Initialize test database schema
     await database.exec(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
@@ -41,7 +51,7 @@ describe('Encounter Status Management', () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS campaigns (
+      CREATE TABLE campaigns (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         description TEXT,
@@ -51,7 +61,7 @@ describe('Encounter Status Management', () => {
         FOREIGN KEY (dm_user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS encounters (
+      CREATE TABLE encounters (
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -64,7 +74,7 @@ describe('Encounter Status Management', () => {
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS players (
+      CREATE TABLE players (
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         user_id INTEGER,
@@ -84,7 +94,7 @@ describe('Encounter Status Management', () => {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
 
-      CREATE TABLE IF NOT EXISTS monsters (
+      CREATE TABLE monsters (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -98,7 +108,7 @@ describe('Encounter Status Management', () => {
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS initiative_tracker (
+      CREATE TABLE initiative_tracker (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         participant_type VARCHAR(50) NOT NULL CHECK(participant_type IN ('player', 'monster')),
