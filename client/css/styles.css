@@ -696,6 +696,13 @@ nav {
   gap: 0.5rem;
 }
 
+.tabs-header {
+  display: flex;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
 .tab-btn {
   background: none;
   border: none;
@@ -723,6 +730,37 @@ nav {
 
 .tab-content.active {
   display: block;
+}
+
+/* Custom Conditions List */
+.existing-custom-conditions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.existing-custom-condition {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: var(--border-radius);
+}
+
+.custom-condition-info {
+  flex: 1;
+}
+
+.existing-custom-condition strong {
+  color: var(--text-color);
+  font-size: 1rem;
+}
+
+.existing-custom-condition .btn {
+  white-space: nowrap;
 }
 
 /* API Search Styling */

@@ -389,7 +389,7 @@ const Initiative = {
           <div class="actions-menu admin-only">
             <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions">⋮</button>
             <div class="dropdown-menu">
-              <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Add Status Effect</button>
+              <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Manage Status Effects</button>
               <button class="dropdown-item add-temp-hp-btn" data-init-id="${participant.id}">Add Temporary HP</button>
             </div>
           </div>
@@ -966,52 +966,89 @@ const Initiative = {
       .sort()
       .map(key => {
         const alreadyHas = this.hasCondition(participant.conditions, key);
-        const disabledAttr = alreadyHas ? 'disabled' : '';
         const checkedAttr = alreadyHas ? 'checked' : '';
         return `
-          <label class="condition-option ${alreadyHas ? 'disabled' : ''}">
+          <label class="condition-option">
             <input type="checkbox"
                    name="standard-condition"
                    value="${key}"
-                   ${disabledAttr}
                    ${checkedAttr}>
             <span class="condition-name">${DND_CONDITIONS[key].name}</span>
           </label>
         `;
       }).join('');
 
-    const content = `
-      <form id="add-status-form">
-        <div class="form-group">
-          <h4>Standard D&D 5e Conditions</h4>
-          <div class="conditions-list">
-            ${standardConditionsList}
+    // Build existing custom conditions list
+    const existingCustomConditions = participant.conditions
+      .filter(c => this.isCustomCondition(c))
+      .map(c => {
+        const conditionJson = JSON.stringify(c).replace(/"/g, '&quot;');
+        return `
+          <div class="existing-custom-condition">
+            <div class="custom-condition-info">
+              <strong>${this.getConditionName(c)}</strong>
+              <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: #666;">${c.description}</p>
+            </div>
+            <button type="button"
+                    class="btn btn-sm btn-danger remove-custom-condition-btn"
+                    data-condition="${conditionJson}">
+              Remove
+            </button>
           </div>
+        `;
+      }).join('');
+
+    const existingCustomSection = existingCustomConditions ? `
+      <div class="form-group">
+        <label>Existing Custom Status Effects</label>
+        <div class="existing-custom-conditions-list">
+          ${existingCustomConditions}
+        </div>
+      </div>
+    ` : '';
+
+    const content = `
+      <div class="tabs-container">
+        <div class="tabs-header">
+          <button type="button" class="tab-btn active" data-tab="standard">Standard Conditions</button>
+          <button type="button" class="tab-btn" data-tab="custom">Custom Status Effects</button>
         </div>
 
-        <div class="form-group">
-          <h4>Custom Status Effect</h4>
-          <label>
-            <input type="checkbox" id="custom-condition-toggle"> Add custom status
-          </label>
-          <div id="custom-condition-fields" style="display: none; margin-top: 1rem;">
+        <form id="manage-status-form">
+          <div class="tab-content active" data-tab-content="standard">
             <div class="form-group">
-              <label>Name</label>
-              <input type="text"
-                     class="form-control"
-                     id="custom-condition-name"
-                     placeholder="e.g., Hex, Hunter's Mark">
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <textarea class="form-control"
-                        id="custom-condition-description"
-                        rows="3"
-                        placeholder="Describe the effect..."></textarea>
+              <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem;">
+                Check or uncheck conditions to add or remove them.
+              </p>
+              <div class="conditions-list">
+                ${standardConditionsList}
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+
+          <div class="tab-content" data-tab-content="custom">
+            ${existingCustomSection}
+
+            <div class="form-group">
+              <label>Add New Custom Status Effect</label>
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text"
+                       class="form-control"
+                       id="custom-condition-name"
+                       placeholder="e.g., Hex, Hunter's Mark">
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea class="form-control"
+                          id="custom-condition-description"
+                          rows="3"
+                          placeholder="Describe the effect..."></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
     `;
 
     const actions = [
@@ -1022,43 +1059,73 @@ const Initiative = {
         handler: () => {}
       },
       {
-        id: 'add',
-        label: 'Add Status',
+        id: 'save',
+        label: 'Save',
         class: 'btn-primary',
-        handler: () => this.handleAddStatus(initiativeId),
+        handler: () => this.handleManageStatus(initiativeId),
         closeOnClick: false
       }
     ];
 
-    Components.showModal('Add Status Effect', content, actions);
+    Components.showModal('Manage Status Effects', content, actions);
 
-    // Setup custom condition toggle
-    document.getElementById('custom-condition-toggle').addEventListener('change', (e) => {
-      document.getElementById('custom-condition-fields').style.display =
-        e.target.checked ? 'block' : 'none';
+    // Setup tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetTab = e.target.getAttribute('data-tab');
+
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelector(`[data-tab-content="${targetTab}"]`).classList.add('active');
+      });
+    });
+
+    // Setup remove buttons for existing custom conditions
+    document.querySelectorAll('.remove-custom-condition-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.target.closest('.existing-custom-condition').remove();
+      });
     });
   },
 
   async handleAddStatus(initiativeId) {
+    // Redirect to new handler
+    return this.handleManageStatus(initiativeId);
+  },
+
+  async handleManageStatus(initiativeId) {
     const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
     if (!participant) return;
 
-    const form = document.getElementById('add-status-form');
-    const newConditions = [...participant.conditions];
+    const form = document.getElementById('manage-status-form');
+    const newConditions = [];
 
-    // Collect selected standard conditions
+    // Process standard conditions (add checked ones, remove unchecked ones)
     const selectedStandard = Array.from(form.querySelectorAll('input[name="standard-condition"]:checked'))
-      .map(input => input.value)
-      .filter(val => !this.hasCondition(newConditions, val)); // Don't add duplicates
+      .map(input => input.value);
 
+    // Add all checked standard conditions
     newConditions.push(...selectedStandard);
 
-    // Check for custom condition
-    const customToggle = document.getElementById('custom-condition-toggle');
-    if (customToggle.checked) {
-      const customName = document.getElementById('custom-condition-name').value.trim();
-      const customDesc = document.getElementById('custom-condition-description').value.trim();
+    // Process existing custom conditions (keep ones that weren't removed)
+    const existingCustomConditions = participant.conditions.filter(c => this.isCustomCondition(c));
+    const remainingCustomConditions = existingCustomConditions.filter(existing => {
+      // Check if this condition still exists in the DOM (wasn't removed)
+      const conditionJson = JSON.stringify(existing).replace(/"/g, '&quot;');
+      return document.querySelector(`.remove-custom-condition-btn[data-condition="${conditionJson}"]`) !== null;
+    });
 
+    newConditions.push(...remainingCustomConditions);
+
+    // Check for new custom condition
+    const customName = document.getElementById('custom-condition-name').value.trim();
+    const customDesc = document.getElementById('custom-condition-description').value.trim();
+
+    if (customName || customDesc) {
       if (!customName) {
         Components.showToast('Please enter a name for the custom status', 'error');
         return;
@@ -1082,12 +1149,6 @@ const Initiative = {
       });
     }
 
-    // Validate at least one condition was added
-    if (newConditions.length === participant.conditions.length) {
-      Components.showToast('Please select at least one status effect', 'error');
-      return;
-    }
-
     try {
       // Close modal
       const modal = document.querySelector('.modal-overlay');
@@ -1103,11 +1164,10 @@ const Initiative = {
       await this.loadInitiative();
       this.render();
 
-      const addedCount = newConditions.length - participant.conditions.length;
-      Components.showToast(`Added ${addedCount} status effect(s)`, 'success');
+      Components.showToast('Status effects updated', 'success');
     } catch (error) {
       Components.hideSpinner(this.container);
-      Components.showToast('Error adding status: ' + error.message, 'error');
+      Components.showToast('Error updating status: ' + error.message, 'error');
     }
   },
 
