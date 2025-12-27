@@ -104,7 +104,7 @@ router.post(
         armor_class,
         speed || 30,
         initiative_bonus || 0,
-        is_active !== undefined ? is_active : 1,
+        is_active !== undefined ? is_active : true,
         notes || ''
       ]
     );

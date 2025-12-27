@@ -1,11 +1,49 @@
-// Jest setup file
-require('dotenv').config({ path: '.env.test' });
+// Jest setup file - Runs BEFORE all tests and module imports
+const path = require('path');
+const fs = require('fs');
 
-// Set test environment variables
+// Load .env.test file (must exist for tests)
+const envTestPath = path.resolve(__dirname, '..', '.env.test');
+if (!fs.existsSync(envTestPath)) {
+  throw new Error(
+    `.env.test file not found at ${envTestPath}. ` +
+    'This file is required for test database isolation. ' +
+    'Please create it with PostgreSQL test database credentials.'
+  );
+}
+
+// Load .env.test first, then .env.test.local to allow local overrides
+const result = require('dotenv').config({ path: '.env.test' });
+if (result.error) {
+  throw new Error(`Failed to load .env.test: ${result.error.message}`);
+}
+
+// Load .env.test.local to override with local secrets (e.g., POSTGRES_ADMIN_PASSWORD)
+const envTestLocalPath = path.resolve(__dirname, '..', '.env.test.local');
+if (fs.existsSync(envTestLocalPath)) {
+  require('dotenv').config({ path: envTestLocalPath, override: true });
+}
+
+// Verify critical test environment variables are set
+if (!process.env.POSTGRES_DB || !process.env.POSTGRES_DB.includes('test')) {
+  throw new Error(
+    `CRITICAL: POSTGRES_DB must include "test" in the name. ` +
+    `Current value: "${process.env.POSTGRES_DB}". ` +
+    `This prevents tests from polluting production/dev databases.`
+  );
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  console.warn(
+    `WARNING: NODE_ENV is "${process.env.NODE_ENV}", expected "test". ` +
+    `This may cause unexpected behavior.`
+  );
+}
+
+// Explicitly set critical test environment variables (defense-in-depth)
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test-secret-key';
-process.env.JWT_EXPIRES_IN = '1h';
-process.env.DB_PATH = ':memory:'; // Use in-memory SQLite for tests
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 
 // Mock logger to suppress logs during tests
 jest.mock('../server/utils/logger', () => ({

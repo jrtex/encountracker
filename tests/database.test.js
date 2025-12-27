@@ -24,17 +24,18 @@ describe('Database Utility', () => {
 
   describe('connect', () => {
     test('should have database connected', async () => {
-      expect(database.db).toBeDefined();
+      expect(database.pool).toBeDefined();
     });
 
-    test('should enable foreign keys on connection', async () => {
-      // Verify foreign keys are enabled
-      const result = await database.get('PRAGMA foreign_keys');
-      expect(result.foreign_keys).toBe(1);
+    test('should have connection pool configured', async () => {
+      // Verify connection pool is active
+      expect(database.pool.totalCount).toBeGreaterThanOrEqual(0);
     });
 
-    test('should be SQLite type', () => {
-      expect(database.dbType).toBe('sqlite');
+    test('should be PostgreSQL database', async () => {
+      // Verify we're connected to PostgreSQL
+      const result = await database.get('SELECT version()');
+      expect(result.version).toContain('PostgreSQL');
     });
   });
 
@@ -42,8 +43,8 @@ describe('Database Utility', () => {
     test('should execute SQL statements successfully', async () => {
       const sql = `
         CREATE TABLE test_table (
-          id INTEGER PRIMARY KEY,
-          name TEXT
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255)
         );
         INSERT INTO test_table (name) VALUES ('test1');
         INSERT INTO test_table (name) VALUES ('test2');
@@ -67,9 +68,9 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          username TEXT NOT NULL,
-          email TEXT NOT NULL
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL
         )
       `);
     });
@@ -171,8 +172,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_products (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
           price REAL
         )
       `);
@@ -241,8 +242,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE test_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          category TEXT,
+          id SERIAL PRIMARY KEY,
+          category VARCHAR(50),
           value INTEGER
         )
       `);
@@ -301,8 +302,9 @@ describe('Database Utility', () => {
       expect(result).toHaveLength(3);
 
       const categoryA = result.find(r => r.category === 'A');
-      expect(categoryA.count).toBe(2);
-      expect(categoryA.total).toBe(40);
+      // PostgreSQL returns count as string, convert to number
+      expect(parseInt(categoryA.count)).toBe(2);
+      expect(parseInt(categoryA.total)).toBe(40);
     });
 
     test('should work without params', async () => {
@@ -316,13 +318,13 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE parent (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255)
         );
         CREATE TABLE child (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id SERIAL PRIMARY KEY,
           parent_id INTEGER,
-          name TEXT,
+          name VARCHAR(255),
           FOREIGN KEY (parent_id) REFERENCES parent(id) ON DELETE CASCADE
         );
       `);
@@ -378,8 +380,8 @@ describe('Database Utility', () => {
     beforeEach(async () => {
       await database.exec(`
         CREATE TABLE accounts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT,
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255),
           balance REAL
         )
       `);

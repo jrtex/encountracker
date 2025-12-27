@@ -29,80 +29,91 @@ describe('Start Combat with Full Health Feature', () => {
   beforeAll(async () => {
     await database.connect();
 
+    // Drop existing tables to ensure clean schema
+    await database.exec(`
+      DROP TABLE IF EXISTS initiative_tracker CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS players CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Initialize test database schema
     await database.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
-        email TEXT NOT NULL UNIQUE,
+      CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255) NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'player',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        role VARCHAR(50) NOT NULL DEFAULT 'player',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS campaigns (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+      CREATE TABLE campaigns (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
         description TEXT,
         dm_user_id INTEGER NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (dm_user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS encounters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE encounters (
+        id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
+        name VARCHAR(255) NOT NULL,
         description TEXT,
-        status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'completed')),
+        status VARCHAR(50) DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'completed')),
         current_round INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS players (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE players (
+        id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
-        character_name TEXT NOT NULL,
+        character_name VARCHAR(255) NOT NULL,
         max_hp INTEGER NOT NULL,
         current_hp INTEGER NOT NULL,
         armor_class INTEGER NOT NULL DEFAULT 10,
         initiative_bonus INTEGER DEFAULT 0,
-        is_active INTEGER DEFAULT 1,
+        is_active BOOLEAN DEFAULT true,
         user_id INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
 
-      CREATE TABLE IF NOT EXISTS monsters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE monsters (
+        id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        dnd_api_id VARCHAR(255),
         max_hp INTEGER NOT NULL,
         current_hp INTEGER NOT NULL,
-        armor_class INTEGER NOT NULL DEFAULT 10,
+        armor_class INTEGER NOT NULL,
         initiative_bonus INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS initiative_tracker (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE initiative_tracker (
+        id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
-        participant_type TEXT NOT NULL CHECK(participant_type IN ('player', 'monster')),
+        participant_type VARCHAR(50) NOT NULL CHECK(participant_type IN ('player', 'monster')),
         participant_id INTEGER NOT NULL,
         initiative INTEGER NOT NULL,
         turn_order INTEGER NOT NULL,
-        is_current_turn INTEGER DEFAULT 0,
-        conditions TEXT DEFAULT '[]',
+        is_current_turn BOOLEAN DEFAULT false,
+        conditions TEXT,
         temp_hp INTEGER DEFAULT 0,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
     `);
