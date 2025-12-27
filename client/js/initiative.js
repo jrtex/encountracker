@@ -577,8 +577,8 @@ const Initiative = {
     // Condition badge click handlers
     this.container.querySelectorAll('.condition-badge').forEach(badge => {
       badge.addEventListener('click', (e) => {
+        e.stopPropagation();
         const conditionData = e.target.getAttribute('data-condition');
-        const initId = e.target.getAttribute('data-init-id');
 
         let condition;
         try {
@@ -587,7 +587,7 @@ const Initiative = {
           condition = conditionData; // Simple string
         }
 
-        this.showConditionDetailModal(condition, initId);
+        this.showConditionBubble(condition, e.target);
       });
     });
 
@@ -1171,44 +1171,86 @@ const Initiative = {
     }
   },
 
-  async showConditionDetailModal(condition, initiativeId) {
-    const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
-    if (!participant) return;
+  showConditionBubble(condition, badgeElement) {
+    // Close any existing bubbles
+    const existingBubble = document.querySelector('.condition-bubble');
+    if (existingBubble) {
+      existingBubble.remove();
+    }
 
     const conditionName = this.getConditionName(condition);
     const conditionDesc = this.getConditionDescription(condition);
     const isCustom = this.isCustomCondition(condition);
 
-    // Special handling for unconscious
-    const isUnconscious = conditionName === 'unconscious';
-    const warningText = isUnconscious ?
-      '<p class="alert alert-warning" style="margin-top: 1rem;"><strong>Note:</strong> The unconscious condition is automatically managed based on HP. Removing it manually will be overridden if HP is still 0 or below.</p>' : '';
-
-    const content = `
-      <div class="condition-detail">
-        <h4>${conditionName} ${isCustom ? '<span class="badge badge-info">Custom</span>' : ''}</h4>
-        <p style="white-space: pre-wrap; margin-top: 1rem;">${conditionDesc}</p>
-        ${warningText}
+    // Create bubble element
+    const bubble = document.createElement('div');
+    bubble.className = 'condition-bubble';
+    bubble.innerHTML = `
+      <div class="condition-bubble-header">
+        ${conditionName}
+        ${isCustom ? '<span class="badge badge-info">Custom</span>' : ''}
       </div>
+      <div class="condition-bubble-description">${conditionDesc}</div>
     `;
 
-    const actions = [
-      {
-        id: 'close',
-        label: 'Close',
-        class: 'btn-secondary',
-        handler: () => {}
-      },
-      {
-        id: 'remove',
-        label: 'Remove Status',
-        class: 'btn-danger',
-        handler: () => this.handleRemoveCondition(initiativeId, conditionName),
-        closeOnClick: false
-      }
-    ];
+    // Add to body
+    document.body.appendChild(bubble);
 
-    Components.showModal('Status Effect Details', content, actions);
+    // Position the bubble near the badge
+    const badgeRect = badgeElement.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+
+    // Calculate position (below the badge, centered)
+    let top = badgeRect.bottom + window.scrollY + 8;
+    let left = badgeRect.left + window.scrollX + (badgeRect.width / 2) - (bubbleRect.width / 2);
+
+    // Adjust if bubble goes off-screen to the right
+    if (left + bubbleRect.width > window.innerWidth) {
+      left = window.innerWidth - bubbleRect.width - 10;
+    }
+
+    // Adjust if bubble goes off-screen to the left
+    if (left < 10) {
+      left = 10;
+    }
+
+    // Adjust if bubble goes off-screen at the bottom
+    if (top + bubbleRect.height > window.innerHeight + window.scrollY) {
+      // Show above the badge instead
+      top = badgeRect.top + window.scrollY - bubbleRect.height - 8;
+    }
+
+    bubble.style.top = `${top}px`;
+    bubble.style.left = `${left}px`;
+
+    // Show the bubble
+    setTimeout(() => bubble.classList.add('show'), 10);
+
+    // Close on click outside
+    const closeHandler = (e) => {
+      if (!bubble.contains(e.target) && e.target !== badgeElement) {
+        bubble.classList.remove('show');
+        setTimeout(() => {
+          bubble.remove();
+        }, 200);
+        document.removeEventListener('click', closeHandler);
+      }
+    };
+
+    // Also close on scroll
+    const scrollHandler = () => {
+      bubble.classList.remove('show');
+      setTimeout(() => {
+        bubble.remove();
+      }, 200);
+      document.removeEventListener('click', closeHandler);
+      window.removeEventListener('scroll', scrollHandler, true);
+    };
+
+    setTimeout(() => {
+      document.addEventListener('click', closeHandler);
+      window.addEventListener('scroll', scrollHandler, true);
+    }, 100);
   },
 
   async handleRemoveCondition(initiativeId, conditionName) {
