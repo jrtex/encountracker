@@ -189,7 +189,7 @@ describe('Migration System', () => {
       );
 
       records.forEach(record => {
-        expect(record.count).toBe(1);
+        expect(parseInt(record.count)).toBe(1);
       });
     });
 
