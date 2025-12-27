@@ -355,7 +355,7 @@ const Initiative = {
         const isCustom = this.isCustomCondition(c);
         const badgeClass = isCustom ? 'badge-info' : 'badge-warning';
         const conditionJson = JSON.stringify(c).replace(/"/g, '&quot;');
-        return `<span class="badge ${badgeClass} condition-badge" data-condition='${conditionJson}' data-init-id="${participant.id}">${name}</span>`;
+        return `<span class="badge ${badgeClass} condition-badge" data-condition="${conditionJson}" data-init-id="${participant.id}">${name}</span>`;
       })
       .join('');
 
