@@ -310,6 +310,16 @@ textarea.form-control {
   color: white;
 }
 
+.badge-stabilized {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.badge-dead {
+  background-color: #000000;
+  color: white;
+}
+
 .temp-hp-badge {
   background-color: #5DADE2;
   color: white;

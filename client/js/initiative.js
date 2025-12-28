@@ -351,12 +351,12 @@ const Initiative = {
     const removedBadge = participant.is_removed_from_combat ?
       '<span class="badge badge-secondary removed-badge" data-init-id="' + participant.id + '">Removed</span>' : '';
 
-    // Death saves badge (only for players at 0 HP)
+    // Death saves badge (only for players at 0 HP, not dead or stabilized)
     let deathSavesBadge = '';
     if (participant.participant_type === 'player' &&
         participant.current_hp === 0 &&
         !participant.is_stabilized &&
-        !this.hasCondition(participant.conditions, 'dead')) {
+        !this.hasCondition(participant.conditions, 'Dead')) {
       const failures = participant.death_save_failures || 0;
       deathSavesBadge = '<span class="badge badge-death-saves clickable" data-init-id="' + participant.id + '" title="Click to manage death saves">Death Saves ' + failures + '/3</span>';
     }
@@ -366,7 +366,15 @@ const Initiative = {
       .map(c => {
         const name = this.getConditionName(c);
         const isCustom = this.isCustomCondition(c);
-        const badgeClass = isCustom ? 'badge-info' : 'badge-warning';
+        // Special badge colors for death save conditions
+        let badgeClass;
+        if (name === 'Stabilized') {
+          badgeClass = 'badge-stabilized';
+        } else if (name === 'Dead') {
+          badgeClass = 'badge-dead';
+        } else {
+          badgeClass = isCustom ? 'badge-info' : 'badge-warning';
+        }
         const conditionJson = JSON.stringify(c).replace(/"/g, '&quot;');
         return `<span class="badge ${badgeClass} condition-badge" data-condition="${conditionJson}" data-init-id="${participant.id}">${name}</span>`;
       })

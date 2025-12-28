@@ -1059,6 +1059,43 @@ describe('Combat Routes - Status Effects', () => {
       );
       expect(player.current_hp).toBe(15);
     });
+
+    test('should remove Dead condition when re-adding to combat', async () => {
+      // Add Dead condition to player
+      await database.run(
+        'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+        [JSON.stringify([{
+          type: 'custom',
+          name: 'Dead',
+          description: 'Creature is dead.'
+        }]), initiativeId]
+      );
+
+      // Remove from combat
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // Re-add to combat
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: false });
+
+      expect(response.status).toBe(200);
+
+      // Verify Dead condition was removed
+      const entry = await database.get(
+        'SELECT conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      const conditions = JSON.parse(entry.conditions);
+      const hasDead = conditions.some(c =>
+        (typeof c === 'object' && c.name === 'Dead') || c === 'Dead'
+      );
+      expect(hasDead).toBe(false);
+    });
   });
 
   describe('PUT /api/combat/initiative/:id/death-saves - Death Saves', () => {
@@ -1198,7 +1235,11 @@ describe('Combat Routes - Status Effects', () => {
       expect(entry.is_stabilized).toBe(true);
 
       const conditions = JSON.parse(entry.conditions);
-      expect(conditions).toContainEqual('stabilized');
+      // Check for Stabilized custom condition object
+      const hasStabilized = conditions.some(c =>
+        typeof c === 'object' && c.name === 'Stabilized' && c.type === 'custom'
+      );
+      expect(hasStabilized).toBe(true);
       expect(conditions).not.toContainEqual('unconscious');
 
       // Verify HP was set to 1
@@ -1226,8 +1267,44 @@ describe('Combat Routes - Status Effects', () => {
       expect(entry.is_removed_from_combat).toBe(true);
 
       const conditions = JSON.parse(entry.conditions);
-      expect(conditions).toContainEqual('dead');
-      expect(conditions).not.toContainEqual('unconscious');
+      // Should have exactly one condition: Dead
+      expect(conditions.length).toBe(1);
+      // Check for Dead custom condition object
+      const deadCondition = conditions[0];
+      expect(deadCondition).toEqual({
+        type: 'custom',
+        name: 'Dead',
+        description: 'Creature is dead.'
+      });
+    });
+
+    test('should clear all conditions when player dies', async () => {
+      // Add some conditions to the player first
+      await database.run(
+        'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+        [JSON.stringify(['poisoned', 'blinded', { type: 'custom', name: 'Cursed', description: 'Under a curse' }]), initiativeId]
+      );
+
+      // Kill the player with 3 failures
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 0,
+          death_save_failures: 3
+        });
+
+      expect(response.status).toBe(200);
+
+      // Verify all previous conditions were cleared, only Dead remains
+      const entry = await database.get(
+        'SELECT conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+
+      const conditions = JSON.parse(entry.conditions);
+      expect(conditions.length).toBe(1);
+      expect(conditions[0].name).toBe('Dead');
     });
 
     test('should reject death saves when HP is not 0', async () => {

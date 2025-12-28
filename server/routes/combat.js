@@ -627,15 +627,16 @@ router.put('/initiative/:id',
 
         // If re-adding to combat with 0 HP, bump to 1
         if (is_removed_from_combat === false) {
-          // Get current HP based on participant type
-          const participantHp = await database.get(
+          // Get current HP and conditions based on participant type
+          const participantData = await database.get(
             `SELECT
               CASE
                 WHEN it.participant_type = 'player' THEN p.current_hp
                 WHEN it.participant_type = 'monster' THEN m.current_hp
               END as current_hp,
               it.participant_type,
-              it.participant_id
+              it.participant_id,
+              it.conditions
              FROM initiative_tracker it
              LEFT JOIN players p ON it.participant_type = 'player' AND it.participant_id = p.id
              LEFT JOIN monsters m ON it.participant_type = 'monster' AND it.participant_id = m.id
@@ -643,19 +644,33 @@ router.put('/initiative/:id',
             [id]
           );
 
-          if (participantHp && participantHp.current_hp === 0) {
+          if (participantData && participantData.current_hp === 0) {
             // Update HP to 1 based on participant type
-            if (participantHp.participant_type === 'player') {
+            if (participantData.participant_type === 'player') {
               await database.run(
                 'UPDATE players SET current_hp = 1 WHERE id = ?',
-                [participantHp.participant_id]
+                [participantData.participant_id]
               );
-            } else if (participantHp.participant_type === 'monster') {
+            } else if (participantData.participant_type === 'monster') {
               await database.run(
                 'UPDATE monsters SET current_hp = 1 WHERE id = ?',
-                [participantHp.participant_id]
+                [participantData.participant_id]
               );
             }
+          }
+
+          // Remove "Dead" condition if present
+          if (participantData && participantData.conditions) {
+            const conditions = JSON.parse(participantData.conditions);
+            const filteredConditions = conditions.filter(c => {
+              const name = typeof c === 'string' ? c : c.name;
+              return name !== 'Dead';
+            });
+
+            await database.run(
+              'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+              [JSON.stringify(filteredConditions), id]
+            );
           }
         }
 
@@ -943,7 +958,11 @@ router.put('/initiative/:id/death-saves',
           (typeof c === 'string' && c !== 'unconscious') ||
           (typeof c === 'object' && c.name !== 'unconscious')
         );
-        newConditions.push('stabilized');
+        newConditions.push({
+          type: 'custom',
+          name: 'Stabilized',
+          description: 'Creature remains unconscious and wakes up in 1d4 hours. Any hits taken during this time restart the death save processes. If they go unharmed for the duration, they wake up with 1 HP.'
+        });
 
         await database.run(
           'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
@@ -953,18 +972,18 @@ router.put('/initiative/:id/death-saves',
 
       // Check for death (3 failures)
       if (failures >= 3) {
-        // Dead: remove from combat, add dead condition
+        // Dead: remove from combat, clear all conditions, add only Dead condition
         await database.run(
           'UPDATE initiative_tracker SET is_removed_from_combat = true WHERE id = ?',
           [id]
         );
 
-        const conditions = current.conditions ? JSON.parse(current.conditions) : [];
-        const newConditions = conditions.filter(c =>
-          (typeof c === 'string' && c !== 'unconscious') ||
-          (typeof c === 'object' && c.name !== 'unconscious')
-        );
-        newConditions.push('dead');
+        // Clear all existing conditions and add only Dead
+        const newConditions = [{
+          type: 'custom',
+          name: 'Dead',
+          description: 'Creature is dead.'
+        }];
 
         await database.run(
           'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
