@@ -48,6 +48,9 @@ router.get('/:encounter_id/initiative',
           it.conditions,
           it.temp_hp,
           it.is_removed_from_combat,
+          it.death_save_successes,
+          it.death_save_failures,
+          it.is_stabilized,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -273,6 +276,9 @@ router.post('/:encounter_id/start',
           it.conditions,
           it.temp_hp,
           it.is_removed_from_combat,
+          it.death_save_successes,
+          it.death_save_failures,
+          it.is_stabilized,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -557,6 +563,22 @@ router.put('/initiative/:id',
           'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
           [JSON.stringify(updatedConditions), id]
         );
+
+        // Initialize death saves when HP reaches 0 (players only)
+        if (entry.participant_type === 'player' && newActualHp === 0) {
+          await database.run(
+            'UPDATE initiative_tracker SET death_save_successes = 0, death_save_failures = 0, is_stabilized = false WHERE id = ?',
+            [id]
+          );
+        }
+
+        // Reset death saves when HP rises above 0 (players only)
+        if (entry.participant_type === 'player' && newActualHp > 0) {
+          await database.run(
+            'UPDATE initiative_tracker SET death_save_successes = 0, death_save_failures = 0, is_stabilized = false WHERE id = ?',
+            [id]
+          );
+        }
       }
 
       // Update conditions if provided (and not already updated by HP logic)
@@ -693,6 +715,9 @@ router.put('/initiative/:id',
           it.conditions,
           it.temp_hp,
           it.is_removed_from_combat,
+          it.death_save_successes,
+          it.death_save_failures,
+          it.is_stabilized,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -784,6 +809,9 @@ router.put('/initiative/:id/temp-hp',
           it.conditions,
           it.temp_hp,
           it.is_removed_from_combat,
+          it.death_save_successes,
+          it.death_save_failures,
+          it.is_stabilized,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -813,6 +841,148 @@ router.put('/initiative/:id/temp-hp',
         data: {
           ...updatedEntry,
           is_current_turn: Boolean(updatedEntry.is_current_turn),
+          conditions: updatedEntry.conditions ? JSON.parse(updatedEntry.conditions) : []
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PUT /api/combat/initiative/:id/death-saves - Update death saving throws (admin only)
+router.put('/initiative/:id/death-saves',
+  authorize('admin'),
+  param('id').isInt(),
+  body('death_save_successes').optional().isInt({ min: 0, max: 3 }),
+  body('death_save_failures').optional().isInt({ min: 0, max: 3 }),
+  validate,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { death_save_successes, death_save_failures } = req.body;
+
+      // Get initiative tracker entry and verify ownership
+      const entry = await database.get(
+        `SELECT it.*, e.campaign_id
+         FROM initiative_tracker it
+         JOIN encounters e ON it.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE it.id = ? AND c.dm_user_id = ?`,
+        [id, req.user.id]
+      );
+
+      if (!entry) {
+        return res.status(404).json({
+          success: false,
+          message: 'Initiative entry not found or access denied'
+        });
+      }
+
+      // Only players can have death saves
+      if (entry.participant_type !== 'player') {
+        return res.status(400).json({
+          success: false,
+          message: 'Death saves only apply to players'
+        });
+      }
+
+      // Get current HP to ensure character is at 0
+      const participantHp = await database.get(
+        'SELECT current_hp FROM players WHERE id = ?',
+        [entry.participant_id]
+      );
+
+      if (!participantHp || participantHp.current_hp > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Death saves only apply when HP is 0'
+        });
+      }
+
+      // Update death saves
+      if (death_save_successes !== undefined) {
+        await database.run(
+          'UPDATE initiative_tracker SET death_save_successes = ? WHERE id = ?',
+          [death_save_successes, id]
+        );
+      }
+
+      if (death_save_failures !== undefined) {
+        await database.run(
+          'UPDATE initiative_tracker SET death_save_failures = ? WHERE id = ?',
+          [death_save_failures, id]
+        );
+      }
+
+      // Get current values for stabilization/death checks
+      const current = await database.get(
+        'SELECT death_save_successes, death_save_failures, conditions FROM initiative_tracker WHERE id = ?',
+        [id]
+      );
+
+      const successes = current.death_save_successes;
+      const failures = current.death_save_failures;
+
+      // Check for stabilization (3 successes)
+      if (successes >= 3) {
+        // Stabilized: set HP to 1, add stabilized condition
+        await database.run(
+          'UPDATE players SET current_hp = 1 WHERE id = ?',
+          [entry.participant_id]
+        );
+
+        await database.run(
+          'UPDATE initiative_tracker SET is_stabilized = true WHERE id = ?',
+          [id]
+        );
+
+        // Remove unconscious, add stabilized condition
+        const conditions = current.conditions ? JSON.parse(current.conditions) : [];
+        const newConditions = conditions.filter(c =>
+          (typeof c === 'string' && c !== 'unconscious') ||
+          (typeof c === 'object' && c.name !== 'unconscious')
+        );
+        newConditions.push('stabilized');
+
+        await database.run(
+          'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+          [JSON.stringify(newConditions), id]
+        );
+      }
+
+      // Check for death (3 failures)
+      if (failures >= 3) {
+        // Dead: remove from combat, add dead condition
+        await database.run(
+          'UPDATE initiative_tracker SET is_removed_from_combat = true WHERE id = ?',
+          [id]
+        );
+
+        const conditions = current.conditions ? JSON.parse(current.conditions) : [];
+        const newConditions = conditions.filter(c =>
+          (typeof c === 'string' && c !== 'unconscious') ||
+          (typeof c === 'object' && c.name !== 'unconscious')
+        );
+        newConditions.push('dead');
+
+        await database.run(
+          'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+          [JSON.stringify(newConditions), id]
+        );
+      }
+
+      // Get updated entry
+      const updatedEntry = await database.get(
+        `SELECT * FROM initiative_tracker WHERE id = ?`,
+        [id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Death saves updated',
+        data: {
+          ...updatedEntry,
           conditions: updatedEntry.conditions ? JSON.parse(updatedEntry.conditions) : []
         }
       });

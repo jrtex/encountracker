@@ -315,6 +315,104 @@ textarea.form-control {
   color: white;
 }
 
+/* Death Saves Badge */
+.badge-death-saves {
+  background-color: #000000;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.badge-death-saves:hover {
+  background-color: #333333;
+  transform: scale(1.05);
+}
+
+/* Death Saves Modal */
+.death-saves-tracker {
+  display: flex;
+  justify-content: space-around;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+}
+
+.death-saves-section {
+  text-align: center;
+  flex: 1;
+}
+
+.death-saves-section h4 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.death-save-pips {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.death-save-pip {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ddd;
+  border-radius: 50%;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.death-save-pip.filled.success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.death-save-pip.filled.failure {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.death-save-count {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.death-save-roll-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+}
+
+.roll-display {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.roll-display input {
+  flex: 1;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.death-save-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.death-save-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 /* Loading Spinner */
 .spinner {
   border: 3px solid var(--light-color);

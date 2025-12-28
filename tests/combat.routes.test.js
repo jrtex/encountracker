@@ -19,7 +19,7 @@ app.use((err, req, res, next) => {
 });
 
 describe('Combat Routes - Status Effects', () => {
-  let adminToken, adminUserId;
+  let adminToken, userToken, adminUserId, regularUserId;
   let campaignId, encounterId, playerId, monsterId, initiativeId;
 
   beforeAll(async () => {
@@ -114,6 +114,9 @@ describe('Combat Routes - Status Effects', () => {
         conditions TEXT,
         temp_hp INTEGER DEFAULT 0,
         is_removed_from_combat BOOLEAN DEFAULT false,
+        death_save_successes INTEGER DEFAULT 0,
+        death_save_failures INTEGER DEFAULT 0,
+        is_stabilized BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
@@ -141,6 +144,19 @@ describe('Combat Routes - Status Effects', () => {
       username: 'admin',
       email: 'admin@test.com',
       role: 'admin'
+    });
+
+    // Create regular user
+    const regularUser = await database.run(
+      'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      ['user', 'user@test.com', passwordHash, 'player']
+    );
+    regularUserId = regularUser.lastID;
+    userToken = generateToken({
+      id: regularUserId,
+      username: 'user',
+      email: 'user@test.com',
+      role: 'player'
     });
 
     // Create campaign
@@ -1042,6 +1058,258 @@ describe('Combat Routes - Status Effects', () => {
         [playerId]
       );
       expect(player.current_hp).toBe(15);
+    });
+  });
+
+  describe('PUT /api/combat/initiative/:id/death-saves - Death Saves', () => {
+    let initiativeId;
+
+    beforeEach(async () => {
+      // Set player HP to 0 to enable death saves
+      await database.run(
+        'UPDATE players SET current_hp = 0 WHERE id = ?',
+        [playerId]
+      );
+
+      // Get initiative ID
+      const initiative = await database.get(
+        'SELECT id FROM initiative_tracker WHERE encounter_id = ? AND participant_type = ? AND participant_id = ?',
+        [encounterId, 'player', playerId]
+      );
+      initiativeId = initiative.id;
+
+      // Initialize death saves
+      await database.run(
+        'UPDATE initiative_tracker SET death_save_successes = 0, death_save_failures = 0, is_stabilized = false WHERE id = ?',
+        [initiativeId]
+      );
+    });
+
+    test('should initialize death saves when HP reaches 0', async () => {
+      // Set HP to 5 first
+      await database.run('UPDATE players SET current_hp = 5 WHERE id = ?', [playerId]);
+
+      // Set some death saves (should be reset)
+      await database.run(
+        'UPDATE initiative_tracker SET death_save_successes = 2, death_save_failures = 1 WHERE id = ?',
+        [initiativeId]
+      );
+
+      // Update HP to 0
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: 0 });
+
+      expect(response.status).toBe(200);
+
+      // Verify death saves were reset
+      const entry = await database.get(
+        'SELECT death_save_successes, death_save_failures, is_stabilized FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.death_save_successes).toBe(0);
+      expect(entry.death_save_failures).toBe(0);
+      expect(entry.is_stabilized).toBe(false);
+    });
+
+    test('should reset death saves when HP rises above 0', async () => {
+      // Set some death saves
+      await database.run(
+        'UPDATE initiative_tracker SET death_save_successes = 2, death_save_failures = 1 WHERE id = ?',
+        [initiativeId]
+      );
+
+      // Heal player
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ current_hp: 5 });
+
+      expect(response.status).toBe(200);
+
+      // Verify death saves were reset
+      const entry = await database.get(
+        'SELECT death_save_successes, death_save_failures, is_stabilized FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.death_save_successes).toBe(0);
+      expect(entry.death_save_failures).toBe(0);
+      expect(entry.is_stabilized).toBe(false);
+    });
+
+    test('should increment death save successes', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 1,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      const entry = await database.get(
+        'SELECT death_save_successes, death_save_failures FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.death_save_successes).toBe(1);
+      expect(entry.death_save_failures).toBe(0);
+    });
+
+    test('should increment death save failures', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 0,
+          death_save_failures: 1
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      const entry = await database.get(
+        'SELECT death_save_successes, death_save_failures FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.death_save_successes).toBe(0);
+      expect(entry.death_save_failures).toBe(1);
+    });
+
+    test('should stabilize player with 3 successes', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 3,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      // Verify stabilization
+      const entry = await database.get(
+        'SELECT is_stabilized, conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.is_stabilized).toBe(true);
+
+      const conditions = JSON.parse(entry.conditions);
+      expect(conditions).toContainEqual('stabilized');
+      expect(conditions).not.toContainEqual('unconscious');
+
+      // Verify HP was set to 1
+      const player = await database.get('SELECT current_hp FROM players WHERE id = ?', [playerId]);
+      expect(player.current_hp).toBe(1);
+    });
+
+    test('should kill player with 3 failures', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 0,
+          death_save_failures: 3
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      // Verify death
+      const entry = await database.get(
+        'SELECT is_removed_from_combat, conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(entry.is_removed_from_combat).toBe(true);
+
+      const conditions = JSON.parse(entry.conditions);
+      expect(conditions).toContainEqual('dead');
+      expect(conditions).not.toContainEqual('unconscious');
+    });
+
+    test('should reject death saves when HP is not 0', async () => {
+      // Set HP to 5
+      await database.run('UPDATE players SET current_hp = 5 WHERE id = ?', [playerId]);
+
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 1,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Death saves only apply when HP is 0');
+    });
+
+    test('should reject death saves for non-players', async () => {
+      // Create a monster and add to initiative
+      const monsterResult = await database.run(
+        `INSERT INTO monsters (encounter_id, name, armor_class, max_hp, current_hp)
+         VALUES (?, ?, ?, ?, ?)`,
+        [encounterId, 'Goblin', 15, 7, 0]
+      );
+      const monsterId = monsterResult.lastID;
+
+      const initResult = await database.run(
+        `INSERT INTO initiative_tracker (encounter_id, participant_type, participant_id, initiative, turn_order)
+         VALUES (?, ?, ?, ?, ?)`,
+        [encounterId, 'monster', monsterId, 10, 2]
+      );
+      const monsterInitId = initResult.lastID;
+
+      const response = await request(app)
+        .put(`/api/combat/initiative/${monsterInitId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 1,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('Death saves only apply to players');
+    });
+
+    test('should reject invalid death save values', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          death_save_successes: 5, // Invalid: > 3
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    });
+
+    test('should require authentication', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .send({
+          death_save_successes: 1,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(401);
+    });
+
+    test('should require admin role', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}/death-saves`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          death_save_successes: 1,
+          death_save_failures: 0
+        });
+
+      expect(response.status).toBe(403);
     });
   });
 });
