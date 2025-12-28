@@ -113,6 +113,7 @@ describe('Combat Routes - Status Effects', () => {
         is_current_turn BOOLEAN DEFAULT false,
         conditions TEXT,
         temp_hp INTEGER DEFAULT 0,
+        is_removed_from_combat BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
@@ -729,6 +730,318 @@ describe('Combat Routes - Status Effects', () => {
       expect(response.body.data.temp_hp).toBe(0);
       expect(response.body.data.current_hp).toBe(0);
       expect(response.body.data.conditions).toContain('unconscious');
+    });
+  });
+
+  describe('Remove from Combat', () => {
+    test('should mark player as removed from combat', async () => {
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.is_removed_from_combat).toBe(true);
+    });
+
+    test('should re-add removed player to combat', async () => {
+      // First remove
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // Then re-add
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: false });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.is_removed_from_combat).toBe(false);
+    });
+
+    test('should skip removed players on next turn', async () => {
+      // End existing combat first to clear old initiative entries
+      await database.run('DELETE FROM initiative_tracker WHERE encounter_id = ?', [encounterId]);
+      await database.run('UPDATE encounters SET status = ? WHERE id = ?', ['pending', encounterId]);
+
+      // Start combat to set up initiative tracker
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          mode: 'manual',
+          initiatives: [
+            { participant_type: 'player', participant_id: playerId, initiative: 20 },
+            { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
+          ]
+        });
+
+      // Get initiative entries
+      const initiatives = await database.all(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ? ORDER BY turn_order ASC',
+        [encounterId]
+      );
+
+      expect(initiatives.length).toBe(2);
+      const playerInitId = initiatives.find(i => i.participant_type === 'player').id;
+      const monsterInitId = initiatives.find(i => i.participant_type === 'monster').id;
+
+      // Remove the second participant (monster)
+      await request(app)
+        .put(`/api/combat/initiative/${monsterInitId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // Advance turn (should skip removed monster and wrap around to player)
+      const response = await request(app)
+        .post(`/api/combat/${encounterId}/next-turn`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      // Verify player is current turn (skipped the removed monster)
+      const currentInit = await database.get(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ? AND is_current_turn = true',
+        [encounterId]
+      );
+      expect(currentInit.id).toBe(playerInitId);
+    });
+
+    test('should advance turn if removing current active participant', async () => {
+      // Clear existing initiative entries
+      await database.run('DELETE FROM initiative_tracker WHERE encounter_id = ?', [encounterId]);
+      await database.run('UPDATE encounters SET status = ? WHERE id = ?', ['pending', encounterId]);
+
+      // Start combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          mode: 'manual',
+          initiatives: [
+            { participant_type: 'player', participant_id: playerId, initiative: 20 },
+            { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
+          ]
+        });
+
+      // Get current turn participant
+      const currentInit = await database.get(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ? AND is_current_turn = true',
+        [encounterId]
+      );
+
+      expect(currentInit).toBeDefined();
+
+      // Remove current active participant
+      const response = await request(app)
+        .put(`/api/combat/initiative/${currentInit.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      expect(response.status).toBe(200);
+
+      // Verify turn advanced to next participant
+      const newCurrentInit = await database.get(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ? AND is_current_turn = true',
+        [encounterId]
+      );
+      expect(newCurrentInit).toBeDefined();
+      expect(newCurrentInit.id).not.toBe(currentInit.id);
+    });
+
+    test('should clear removal status when combat starts', async () => {
+      // Clear existing initiative entries
+      await database.run('DELETE FROM initiative_tracker WHERE encounter_id = ?', [encounterId]);
+      await database.run('UPDATE encounters SET status = ? WHERE id = ?', ['pending', encounterId]);
+
+      // Start combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          mode: 'manual',
+          initiatives: [
+            { participant_type: 'player', participant_id: playerId, initiative: 20 }
+          ]
+        });
+
+      // Get initiative entry
+      const init = await database.get(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ?',
+        [encounterId]
+      );
+
+      expect(init).toBeDefined();
+
+      // Remove player
+      await request(app)
+        .put(`/api/combat/initiative/${init.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // End combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/end`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ mark_complete: false });
+
+      // Start new combat
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          mode: 'manual',
+          initiatives: [
+            { participant_type: 'player', participant_id: playerId, initiative: 20 }
+          ]
+        });
+
+      // Verify removal status is cleared
+      const newInit = await database.get(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ?',
+        [encounterId]
+      );
+      expect(newInit).toBeDefined();
+      expect(newInit.is_removed_from_combat).toBe(false);
+    });
+
+    test('should handle all participants removed gracefully', async () => {
+      // Clear existing initiative entries
+      await database.run('DELETE FROM initiative_tracker WHERE encounter_id = ?', [encounterId]);
+      await database.run('UPDATE encounters SET status = ? WHERE id = ?', ['pending', encounterId]);
+
+      // Start combat with 2 participants
+      await request(app)
+        .post(`/api/combat/${encounterId}/start`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          mode: 'manual',
+          initiatives: [
+            { participant_type: 'player', participant_id: playerId, initiative: 20 },
+            { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
+          ]
+        });
+
+      // Get all initiative entries
+      const initiatives = await database.all(
+        'SELECT * FROM initiative_tracker WHERE encounter_id = ? ORDER BY turn_order ASC',
+        [encounterId]
+      );
+
+      expect(initiatives.length).toBe(2);
+
+      // Remove all participants except current
+      for (const init of initiatives) {
+        if (!init.is_current_turn) {
+          await request(app)
+            .put(`/api/combat/initiative/${init.id}`)
+            .set('Authorization', `Bearer ${adminToken}`)
+            .send({ is_removed_from_combat: true });
+        }
+      }
+
+      // Next turn should still work (wraps to first participant even if removed)
+      const response = await request(app)
+        .post(`/api/combat/${encounterId}/next-turn`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    test('should clear all conditions when removing from combat', async () => {
+      // First add some conditions
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ conditions: ['poisoned', 'blinded'] });
+
+      // Verify conditions were added
+      let initiative = await database.get(
+        'SELECT conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      let conditions = JSON.parse(initiative.conditions);
+      expect(conditions).toEqual(['poisoned', 'blinded']);
+
+      // Remove from combat
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      expect(response.status).toBe(200);
+
+      // Verify conditions were cleared
+      initiative = await database.get(
+        'SELECT conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      conditions = JSON.parse(initiative.conditions);
+      expect(conditions).toEqual([]);
+    });
+
+    test('should set HP to 1 when re-adding player with 0 HP', async () => {
+      // Set player HP to 0
+      await database.run(
+        'UPDATE players SET current_hp = 0 WHERE id = ?',
+        [playerId]
+      );
+
+      // Remove from combat
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // Re-add to combat
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: false });
+
+      expect(response.status).toBe(200);
+
+      // Verify HP was bumped to 1
+      const player = await database.get(
+        'SELECT current_hp FROM players WHERE id = ?',
+        [playerId]
+      );
+      expect(player.current_hp).toBe(1);
+    });
+
+    test('should not modify HP when re-adding player with HP > 0', async () => {
+      // Ensure player has HP > 0
+      await database.run(
+        'UPDATE players SET current_hp = 15 WHERE id = ?',
+        [playerId]
+      );
+
+      // Remove from combat
+      await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: true });
+
+      // Re-add to combat
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ is_removed_from_combat: false });
+
+      expect(response.status).toBe(200);
+
+      // Verify HP was not modified
+      const player = await database.get(
+        'SELECT current_hp FROM players WHERE id = ?',
+        [playerId]
+      );
+      expect(player.current_hp).toBe(15);
     });
   });
 });

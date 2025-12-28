@@ -271,6 +271,13 @@ const API = {
       });
     },
 
+    toggleRemoveFromCombat(initiativeId, isRemoved) {
+      return API.request(`/combat/initiative/${initiativeId}`, {
+        method: 'PUT',
+        body: { is_removed_from_combat: isRemoved }
+      });
+    },
+
     endCombat(encounterId, markComplete = false) {
       return API.request(`/combat/${encounterId}/end`, {
         method: 'POST',

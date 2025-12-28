@@ -47,6 +47,7 @@ router.get('/:encounter_id/initiative',
           it.is_current_turn,
           it.conditions,
           it.temp_hp,
+          it.is_removed_from_combat,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -242,9 +243,9 @@ router.post('/:encounter_id/start',
       for (const p of participants) {
         await database.run(
           `INSERT INTO initiative_tracker
-           (encounter_id, participant_type, participant_id, initiative, turn_order, is_current_turn, conditions)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [encounter_id, p.participant_type, p.participant_id, p.initiative, p.turn_order, p.is_current_turn, p.conditions]
+           (encounter_id, participant_type, participant_id, initiative, turn_order, is_current_turn, conditions, is_removed_from_combat)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [encounter_id, p.participant_type, p.participant_id, p.initiative, p.turn_order, p.is_current_turn, p.conditions, false]
         );
       }
 
@@ -271,6 +272,7 @@ router.post('/:encounter_id/start',
           it.is_current_turn,
           it.conditions,
           it.temp_hp,
+          it.is_removed_from_combat,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -358,8 +360,21 @@ router.post('/:encounter_id/next-turn',
       const currentIndex = participants.findIndex(p => p.is_current_turn);
       const currentParticipantIndex = currentIndex >= 0 ? currentIndex : 0;
 
-      // Calculate next participant index (wrap around)
-      const nextIndex = (currentParticipantIndex + 1) % participants.length;
+      // Find next non-removed participant
+      let nextIndex = (currentParticipantIndex + 1) % participants.length;
+      let attempts = 0;
+
+      // Skip removed participants (with safety limit to prevent infinite loop)
+      while (participants[nextIndex].is_removed_from_combat && attempts < participants.length) {
+        nextIndex = (nextIndex + 1) % participants.length;
+        attempts++;
+      }
+
+      // If all participants are removed, just use next in sequence
+      if (attempts >= participants.length) {
+        nextIndex = (currentParticipantIndex + 1) % participants.length;
+      }
+
       const nextParticipant = participants[nextIndex];
 
       // If we wrapped around to the first participant, increment the round
@@ -437,11 +452,12 @@ router.put('/initiative/:id',
     return true;
   }),
   body('initiative').optional().isInt(),
+  body('is_removed_from_combat').optional().isBoolean(),
   validate,
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { current_hp, conditions, initiative } = req.body;
+      const { current_hp, conditions, initiative, is_removed_from_combat } = req.body;
 
       // Get initiative tracker entry and verify ownership
       const entry = await database.get(
@@ -572,6 +588,99 @@ router.put('/initiative/:id',
         }
       }
 
+      // Update is_removed_from_combat if provided
+      if (is_removed_from_combat !== undefined) {
+        await database.run(
+          'UPDATE initiative_tracker SET is_removed_from_combat = ? WHERE id = ?',
+          [is_removed_from_combat, id]
+        );
+
+        // If removing from combat, clear all conditions
+        if (is_removed_from_combat === true) {
+          await database.run(
+            'UPDATE initiative_tracker SET conditions = ? WHERE id = ?',
+            [JSON.stringify([]), id]
+          );
+        }
+
+        // If re-adding to combat with 0 HP, bump to 1
+        if (is_removed_from_combat === false) {
+          // Get current HP based on participant type
+          const participantHp = await database.get(
+            `SELECT
+              CASE
+                WHEN it.participant_type = 'player' THEN p.current_hp
+                WHEN it.participant_type = 'monster' THEN m.current_hp
+              END as current_hp,
+              it.participant_type,
+              it.participant_id
+             FROM initiative_tracker it
+             LEFT JOIN players p ON it.participant_type = 'player' AND it.participant_id = p.id
+             LEFT JOIN monsters m ON it.participant_type = 'monster' AND it.participant_id = m.id
+             WHERE it.id = ?`,
+            [id]
+          );
+
+          if (participantHp && participantHp.current_hp === 0) {
+            // Update HP to 1 based on participant type
+            if (participantHp.participant_type === 'player') {
+              await database.run(
+                'UPDATE players SET current_hp = 1 WHERE id = ?',
+                [participantHp.participant_id]
+              );
+            } else if (participantHp.participant_type === 'monster') {
+              await database.run(
+                'UPDATE monsters SET current_hp = 1 WHERE id = ?',
+                [participantHp.participant_id]
+              );
+            }
+          }
+        }
+
+        // If removing the current active participant, advance to next turn
+        if (is_removed_from_combat === true && entry.is_current_turn) {
+          // Get all participants ordered by turn_order
+          const participants = await database.all(
+            'SELECT * FROM initiative_tracker WHERE encounter_id = ? ORDER BY turn_order ASC',
+            [entry.encounter_id]
+          );
+
+          if (participants.length > 1) {
+            // Find current participant index
+            const currentIndex = participants.findIndex(p => p.id === parseInt(id));
+            const currentParticipantIndex = currentIndex >= 0 ? currentIndex : 0;
+
+            // Find next non-removed participant
+            let nextIndex = (currentParticipantIndex + 1) % participants.length;
+            let attempts = 0;
+
+            while (participants[nextIndex].is_removed_from_combat && attempts < participants.length) {
+              nextIndex = (nextIndex + 1) % participants.length;
+              attempts++;
+            }
+
+            // If all participants are removed, just use next in sequence
+            if (attempts >= participants.length) {
+              nextIndex = (currentParticipantIndex + 1) % participants.length;
+            }
+
+            const nextParticipant = participants[nextIndex];
+
+            // Update all participants to clear current turn
+            await database.run(
+              'UPDATE initiative_tracker SET is_current_turn = false WHERE encounter_id = ?',
+              [entry.encounter_id]
+            );
+
+            // Set next participant as current turn
+            await database.run(
+              'UPDATE initiative_tracker SET is_current_turn = true WHERE id = ?',
+              [nextParticipant.id]
+            );
+          }
+        }
+      }
+
       // Get updated entry with participant details
       const updatedEntry = await database.get(
         `SELECT
@@ -583,6 +692,7 @@ router.put('/initiative/:id',
           it.is_current_turn,
           it.conditions,
           it.temp_hp,
+          it.is_removed_from_combat,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name
@@ -673,6 +783,7 @@ router.put('/initiative/:id/temp-hp',
           it.is_current_turn,
           it.conditions,
           it.temp_hp,
+          it.is_removed_from_combat,
           CASE
             WHEN it.participant_type = 'player' THEN p.character_name
             WHEN it.participant_type = 'monster' THEN m.name

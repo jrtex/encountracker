@@ -348,6 +348,9 @@ const Initiative = {
     const tempHpBadge = (participant.temp_hp && participant.temp_hp > 0) ?
       '<span class="badge temp-hp-badge" data-init-id="' + participant.id + '" title="Temporary HP">+' + participant.temp_hp + ' Temp HP</span>' : '';
 
+    const removedBadge = participant.is_removed_from_combat ?
+      '<span class="badge badge-secondary removed-badge" data-init-id="' + participant.id + '">Removed</span>' : '';
+
     const conditionBadges = participant.conditions
       .filter(c => this.getConditionName(c) !== 'unconscious')
       .map(c => {
@@ -359,7 +362,8 @@ const Initiative = {
       })
       .join('');
 
-    const rowClass = `initiative-row ${isCurrent ? 'current-turn' : ''} ${isUnconscious ? 'unconscious' : ''}`;
+    const isRemoved = participant.is_removed_from_combat || false;
+    const rowClass = `initiative-row ${isCurrent ? 'current-turn' : ''} ${isUnconscious ? 'unconscious' : ''} ${isRemoved ? 'removed-from-combat' : ''}`;
 
     return `
       <div class="${rowClass}" data-initiative-id="${participant.id}">
@@ -378,6 +382,7 @@ const Initiative = {
 
         <!-- Column 3: Temporary Badges -->
         <div class="temporary-badges">
+          ${removedBadge}
           ${tempHpBadge}
           ${unconsciousBadge}
           ${conditionBadges}
@@ -389,6 +394,9 @@ const Initiative = {
           <div class="actions-menu admin-only">
             <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions">⋮</button>
             <div class="dropdown-menu">
+              <button class="dropdown-item toggle-remove-btn" data-init-id="${participant.id}" data-is-removed="${participant.is_removed_from_combat || false}">
+                ${participant.is_removed_from_combat ? 'Re-add to Combat' : 'Remove from Combat'}
+              </button>
               <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Manage Status Effects</button>
               <button class="dropdown-item add-temp-hp-btn" data-init-id="${participant.id}">Add Temporary HP</button>
             </div>
@@ -544,6 +552,21 @@ const Initiative = {
           menu.classList.remove('show');
         });
         this.showAddTempHpModal(initId);
+      });
+    });
+
+    // Toggle remove from combat buttons
+    this.container.querySelectorAll('.toggle-remove-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const initId = e.target.getAttribute('data-init-id');
+        const isCurrentlyRemoved = e.target.getAttribute('data-is-removed') === 'true';
+
+        // Close any open dropdowns
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+
+        this.toggleRemoveFromCombat(initId, !isCurrentlyRemoved);
       });
     });
 
@@ -1281,6 +1304,29 @@ const Initiative = {
     } catch (error) {
       Components.hideSpinner(this.container);
       Components.showToast('Error removing status: ' + error.message, 'error');
+    }
+  },
+
+  async toggleRemoveFromCombat(initiativeId, shouldRemove) {
+    const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+    if (!participant) return;
+
+    const action = shouldRemove ? 'removed from' : 're-added to';
+
+    try {
+      Components.showSpinner(this.container);
+
+      // Update via API
+      await API.combat.toggleRemoveFromCombat(initiativeId, shouldRemove);
+
+      // Reload initiative (will automatically advance turn if needed)
+      await this.loadInitiative();
+      this.render();
+
+      Components.showToast(`${participant.name} ${action} combat`, 'success');
+    } catch (error) {
+      Components.hideSpinner(this.container);
+      Components.showToast(`Error: ${error.message}`, 'error');
     }
   }
 };

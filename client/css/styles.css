@@ -1172,6 +1172,17 @@ nav {
   border-left-color: var(--danger-color);
 }
 
+.initiative-row.removed-from-combat {
+  opacity: 0.6;
+  background: #e9ecef;
+  border-left-color: #6c757d;
+}
+
+.removed-badge {
+  background-color: #6c757d;
+  color: white;
+}
+
 .turn-indicator {
   font-weight: bold;
   font-size: 1.5rem;
