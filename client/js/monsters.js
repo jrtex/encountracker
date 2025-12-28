@@ -501,7 +501,7 @@ const Monsters = {
       modalSaveBtn.disabled = true;
     }
 
-    resultsContainer.innerHTML = '<div class="spinner">Searching...</div>';
+    resultsContainer.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div></div>';
 
     try {
       const response = await API.monsters.search(query);
@@ -545,7 +545,7 @@ const Monsters = {
     const resultsContainer = modal.querySelector('#monster-search-results');
     if (!resultsContainer) return;
 
-    resultsContainer.innerHTML = '<div class="spinner">Loading monster details...</div>';
+    resultsContainer.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div></div>';
 
     try {
       // Use server-side proxy to fetch monster details (avoids CSP issues)
@@ -917,7 +917,7 @@ const Monsters = {
     detailPage.dataset.monsterId = monsterId;
 
     // Show loading state
-    contentEl.innerHTML = '<div class="spinner" style="text-align: center; padding: 2rem;">Loading monster details...</div>';
+    contentEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div></div>';
     App.showPage('monster-detail-page');
 
     try {
