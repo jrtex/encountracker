@@ -484,9 +484,9 @@ router.put('/initiative/:id',
 
       // Update current_hp if provided
       if (current_hp !== undefined) {
-        // Get current temp_hp to apply damage correctly
+        // Get current temp_hp and stabilization status
         const currentEntry = await database.get(
-          'SELECT temp_hp FROM initiative_tracker WHERE id = ?',
+          'SELECT temp_hp, is_stabilized, conditions FROM initiative_tracker WHERE id = ?',
           [id]
         );
 
@@ -499,6 +499,17 @@ router.put('/initiative/:id',
         );
 
         const hpDiff = current_hp - currentHp.current_hp;
+
+        // Check if stabilized player is taking damage - track this for later condition management
+        let wasStabilizedAndTookDamage = false;
+        if (entry.participant_type === 'player' && currentEntry.is_stabilized && hpDiff < 0) {
+          wasStabilizedAndTookDamage = true;
+          // Stabilized player took damage - reset death saves
+          await database.run(
+            'UPDATE initiative_tracker SET death_save_successes = 0, death_save_failures = 0, is_stabilized = false WHERE id = ?',
+            [id]
+          );
+        }
 
         let newTempHp = currentTempHp;
         let newActualHp = currentHp.current_hp; // Start with current HP from database
@@ -549,6 +560,14 @@ router.put('/initiative/:id',
             (typeof c === 'object' && c.name === name)
           );
         };
+
+        // Remove Stabilized condition if player was stabilized and took damage
+        if (wasStabilizedAndTookDamage) {
+          updatedConditions = updatedConditions.filter(c =>
+            (typeof c === 'string' && c !== 'Stabilized') ||
+            (typeof c === 'object' && c.name !== 'Stabilized')
+          );
+        }
 
         if (newActualHp <= 0 && !hasCondition(updatedConditions, 'unconscious')) {
           updatedConditions.push('unconscious');

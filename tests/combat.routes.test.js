@@ -1389,4 +1389,124 @@ describe('Combat Routes - Status Effects', () => {
       expect(response.status).toBe(403);
     });
   });
+
+  describe('PUT /api/combat/initiative/:id - Stabilized Player Taking Damage', () => {
+    test('should reset death saves when stabilized player takes damage', async () => {
+      // First, set player to 0 HP to trigger death saves
+      await database.run(
+        'UPDATE players SET current_hp = 0 WHERE id = ?',
+        [playerId]
+      );
+
+      // Update initiative tracker to show player is stabilized
+      await database.run(
+        `UPDATE initiative_tracker
+         SET death_save_successes = 3,
+             death_save_failures = 0,
+             is_stabilized = true,
+             conditions = ?
+         WHERE id = ?`,
+        [JSON.stringify([{ type: 'custom', name: 'Stabilized', description: 'Creature remains unconscious and wakes up in 1d4 hours. Any hits taken during this time restart the death save processes. If they go unharmed for the duration, they wake up with 1 HP.' }]), initiativeId]
+      );
+
+      // Set HP back to 1 (as per stabilization rules)
+      await database.run(
+        'UPDATE players SET current_hp = 1 WHERE id = ?',
+        [playerId]
+      );
+
+      // Verify player is stabilized
+      const beforeDamage = await database.get(
+        'SELECT death_save_successes, death_save_failures, is_stabilized, conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+      expect(beforeDamage.is_stabilized).toBe(true);
+      expect(beforeDamage.death_save_successes).toBe(3);
+      expect(beforeDamage.death_save_failures).toBe(0);
+
+      const beforeConditions = JSON.parse(beforeDamage.conditions);
+      expect(beforeConditions.some(c => c.name === 'Stabilized')).toBe(true);
+
+      // Apply damage (1 damage should drop player back to 0 HP and reset death saves)
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          current_hp: 0 // 1 HP - 1 damage = 0 HP
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      // Verify death saves were reset
+      const afterDamage = await database.get(
+        'SELECT death_save_successes, death_save_failures, is_stabilized, conditions FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+
+      expect(afterDamage.is_stabilized).toBe(false);
+      expect(afterDamage.death_save_successes).toBe(0);
+      expect(afterDamage.death_save_failures).toBe(0);
+
+      // Verify Stabilized condition was removed
+      const afterConditions = JSON.parse(afterDamage.conditions);
+      expect(afterConditions.some(c =>
+        (typeof c === 'string' && c === 'Stabilized') ||
+        (typeof c === 'object' && c.name === 'Stabilized')
+      )).toBe(false);
+
+      // Verify unconscious condition was added
+      expect(afterConditions.some(c =>
+        (typeof c === 'string' && c === 'unconscious') ||
+        (typeof c === 'object' && c.name === 'unconscious')
+      )).toBe(true);
+
+      // Verify player HP is 0
+      const playerData = await database.get(
+        'SELECT current_hp FROM players WHERE id = ?',
+        [playerId]
+      );
+      expect(playerData.current_hp).toBe(0);
+    });
+
+    test('should not reset death saves when stabilized player is healed', async () => {
+      // Set player to stabilized state
+      await database.run(
+        'UPDATE players SET current_hp = 1 WHERE id = ?',
+        [playerId]
+      );
+
+      await database.run(
+        `UPDATE initiative_tracker
+         SET death_save_successes = 3,
+             death_save_failures = 0,
+             is_stabilized = true,
+             conditions = ?
+         WHERE id = ?`,
+        [JSON.stringify([{ type: 'custom', name: 'Stabilized', description: 'Test' }]), initiativeId]
+      );
+
+      // Apply healing (should NOT reset death saves)
+      const response = await request(app)
+        .put(`/api/combat/initiative/${initiativeId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          current_hp: 5 // Healing from 1 to 5
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+
+      // Verify death saves were properly reset (healing above 0 HP resets death saves)
+      const afterHealing = await database.get(
+        'SELECT death_save_successes, death_save_failures, is_stabilized FROM initiative_tracker WHERE id = ?',
+        [initiativeId]
+      );
+
+      // When healed above 0 HP, death saves should be reset
+      expect(afterHealing.is_stabilized).toBe(false);
+      expect(afterHealing.death_save_successes).toBe(0);
+      expect(afterHealing.death_save_failures).toBe(0);
+    });
+  });
 });
