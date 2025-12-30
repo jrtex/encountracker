@@ -1016,39 +1016,44 @@ const Initiative = {
     const failures = participant.death_save_failures || 0;
 
     const content = `
-      <div class="death-saves-tracker">
-        <div class="death-saves-section">
-          <h4>Successes</h4>
-          <div class="death-save-pips">
-            <span class="death-save-pip ${successes >= 1 ? 'filled success' : ''}"></span>
-            <span class="death-save-pip ${successes >= 2 ? 'filled success' : ''}"></span>
-            <span class="death-save-pip ${successes >= 3 ? 'filled success' : ''}"></span>
-          </div>
-          <div class="death-save-count">${successes} / 3</div>
-        </div>
-
-        <div class="death-saves-section">
-          <h4>Failures</h4>
-          <div class="death-save-pips">
-            <span class="death-save-pip ${failures >= 1 ? 'filled failure' : ''}"></span>
-            <span class="death-save-pip ${failures >= 2 ? 'filled failure' : ''}"></span>
-            <span class="death-save-pip ${failures >= 3 ? 'filled failure' : ''}"></span>
-          </div>
-          <div class="death-save-count">${failures} / 3</div>
-        </div>
-      </div>
-
       <div class="death-save-roll-section">
-        <label>Roll Simulation (Visual Only)</label>
         <div class="roll-display">
-          <input type="number" id="roll-result" class="form-control" readonly placeholder="Click Roll">
           <button type="button" class="btn btn-secondary" id="roll-d20-btn">Roll d20</button>
+          <input type="number" id="roll-result" class="form-control" readonly placeholder="Click Roll">
         </div>
       </div>
 
-      <div class="death-save-actions">
-        <button type="button" class="btn btn-success" id="pass-btn">Pass</button>
-        <button type="button" class="btn btn-danger" id="fail-btn">Fail</button>
+      <div class="death-saves-tracker">
+        <div class="death-saves-column">
+          <div class="death-saves-section">
+            <h4>Failures</h4>
+            <div class="death-save-pips">
+              <span class="death-save-pip ${failures >= 1 ? 'filled failure' : ''}"></span>
+              <span class="death-save-pip ${failures >= 2 ? 'filled failure' : ''}"></span>
+              <span class="death-save-pip ${failures >= 3 ? 'filled failure' : ''}"></span>
+            </div>
+            <div class="death-save-count">${failures} / 3</div>
+          </div>
+          <button type="button" class="btn btn-danger btn-block" id="fail-btn">Fail</button>
+        </div>
+
+        <div class="death-saves-column">
+          <div class="death-saves-section">
+            <h4>Successes</h4>
+            <div class="death-save-pips">
+              <span class="death-save-pip ${successes >= 1 ? 'filled success' : ''}"></span>
+              <span class="death-save-pip ${successes >= 2 ? 'filled success' : ''}"></span>
+              <span class="death-save-pip ${successes >= 3 ? 'filled success' : ''}"></span>
+            </div>
+            <div class="death-save-count">${successes} / 3</div>
+          </div>
+          <button type="button" class="btn btn-success btn-block" id="pass-btn">Pass</button>
+        </div>
+      </div>
+
+      <div class="death-save-instant-actions">
+        <button type="button" class="btn btn-instant-death" id="instant-death-btn">Instant Death</button>
+        <button type="button" class="btn btn-instant-revival" id="instant-revival-btn">Instant Revival</button>
       </div>
     `;
 
@@ -1071,6 +1076,16 @@ const Initiative = {
     document.getElementById('fail-btn').addEventListener('click', async () => {
       await this.handleDeathSaveUpdate(initiativeId, successes, Math.min(failures + 1, 3));
     });
+
+    // Setup instant death button
+    document.getElementById('instant-death-btn').addEventListener('click', async () => {
+      await this.handleDeathSaveUpdate(initiativeId, successes, 3);
+    });
+
+    // Setup instant revival button
+    document.getElementById('instant-revival-btn').addEventListener('click', async () => {
+      await this.handleInstantRevival(initiativeId);
+    });
   },
 
   async handleDeathSaveUpdate(initiativeId, successes, failures) {
@@ -1089,6 +1104,26 @@ const Initiative = {
       } else {
         Components.showToast('Death save updated', 'success');
       }
+    } catch (error) {
+      Components.hideSpinner(this.container);
+      Components.showToast('Error: ' + error.message, 'error');
+    }
+  },
+
+  async handleInstantRevival(initiativeId) {
+    try {
+      document.querySelector('.modal-overlay')?.remove();
+      Components.showSpinner(this.container);
+
+      const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+      if (!participant) {
+        throw new Error('Participant not found');
+      }
+
+      // Heal by 1 HP (backend will handle clearing death saves)
+      await this.updateHealth(initiativeId, 1);
+
+      Components.showToast('Player revived and ready to return to combat!', 'success');
     } catch (error) {
       Components.hideSpinner(this.container);
       Components.showToast('Error: ' + error.message, 'error');
