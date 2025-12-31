@@ -12,7 +12,7 @@ async function resetAdminPassword() {
 
     // Check if admin user exists
     const admin = await database.get(
-      'SELECT id, username FROM users WHERE role = ?',
+      'SELECT id, username FROM users WHERE role = $1',
       ['admin']
     );
 
@@ -27,7 +27,7 @@ async function resetAdminPassword() {
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     await database.run(
-      'UPDATE users SET password_hash = ? WHERE id = ?',
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
       [hashedPassword, admin.id]
     );
 

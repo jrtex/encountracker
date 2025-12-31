@@ -16,7 +16,8 @@
     "test:verify-isolation": "node scripts/verify-test-isolation.js",
     "init-db": "node server/utils/initDatabase.js",
     "migrate": "node server/utils/migrate-add-speed.js",
-    "reset-password": "node server/utils/resetPassword.js"
+    "reset-password": "node server/utils/resetPassword.js",
+    "update-admin-password": "node scripts/update-admin-password.js"
   },
   "keywords": ["dnd", "encounter", "manager", "5e"],
   "author": "",

@@ -93,7 +93,17 @@ Docker is the easiest way to get Encountracker up and running. This method handl
    - Login with default credentials:
      - Username: `admin`
      - Password: `admin123`
-   - **IMPORTANT**: Change the admin password immediately after first login!
+
+6. **Change the admin password** (IMPORTANT - do this immediately):
+   ```bash
+   # If using Docker:
+   docker compose exec app npm run update-admin-password
+
+   # If using local development:
+   npm run update-admin-password
+   ```
+
+   Follow the prompts to set a secure password. Strong passwords are recommended (8+ characters with uppercase, lowercase, and numbers).
 
 #### Docker Management Commands
 
@@ -231,6 +241,12 @@ npm start
 # Initialize/reinitialize database
 npm run init-db
 
+# Update admin password (recommended after first login)
+npm run update-admin-password
+
+# Reset admin password to default (emergency use only)
+npm run reset-password
+
 # Run all tests
 npm test
 
@@ -324,7 +340,9 @@ encountracker/
 
 **Before using in production**:
 
-1. **Change default admin password**: Login and change from `admin123` immediately
+1. **Change default admin password**: Run `npm run update-admin-password` immediately after installation
+   - Docker: `docker compose exec app npm run update-admin-password`
+   - Local: `npm run update-admin-password`
 2. **Set strong JWT secret**: Use a random, long string for `JWT_SECRET` in `.env`
 3. **Use secure database password**: Set a strong `POSTGRES_PASSWORD` in `.env`
 4. **Configure CORS**: Set `CORS_ORIGIN` to your domain (not `*`)
