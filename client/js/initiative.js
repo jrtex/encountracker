@@ -351,9 +351,11 @@ const Initiative = {
     const removedBadge = participant.is_removed_from_combat ?
       '<span class="badge badge-secondary removed-badge" data-init-id="' + participant.id + '">Removed</span>' : '';
 
-    // Death saves badge (only for players at 0 HP, not dead or stabilized)
+    // Death saves badge (for players and monsters with allow_death_saves at 0 HP, not dead or stabilized)
     let deathSavesBadge = '';
-    if (participant.participant_type === 'player' &&
+    const canHaveDeathSaves = participant.participant_type === 'player' ||
+                               (participant.participant_type === 'monster' && participant.allow_death_saves);
+    if (canHaveDeathSaves &&
         participant.current_hp === 0 &&
         !participant.is_stabilized &&
         !this.hasCondition(participant.conditions, 'Dead')) {
@@ -1093,14 +1095,17 @@ const Initiative = {
       document.querySelector('.modal-overlay')?.remove();
       Components.showSpinner(this.container);
 
+      const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+      const participantName = participant ? participant.name : 'Combatant';
+
       await API.combat.updateDeathSaves(initiativeId, successes, failures);
       await this.loadInitiative();
       this.render();
 
       if (successes >= 3) {
-        Components.showToast('Player stabilized! Gained 1 HP.', 'success');
+        Components.showToast(`${participantName} stabilized! Gained 1 HP.`, 'success');
       } else if (failures >= 3) {
-        Components.showToast('Player has died and been removed from combat.', 'info');
+        Components.showToast(`${participantName} has died and been removed from combat.`, 'info');
       } else {
         Components.showToast('Death save updated', 'success');
       }
@@ -1123,7 +1128,7 @@ const Initiative = {
       // Heal by 1 HP (backend will handle clearing death saves)
       await this.updateHealth(initiativeId, 1);
 
-      Components.showToast('Player revived and ready to return to combat!', 'success');
+      Components.showToast(`${participant.name} revived and ready to return to combat!`, 'success');
     } catch (error) {
       Components.hideSpinner(this.container);
       Components.showToast('Error: ' + error.message, 'error');

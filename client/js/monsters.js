@@ -309,6 +309,19 @@ const Monsters = {
               placeholder="Special abilities, tactics, etc."
             >${monster ? (monster.notes || '') : ''}</textarea>
           </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+              <input
+                type="checkbox"
+                id="monster-allow-death-saves"
+                ${monster && monster.allow_death_saves ? 'checked' : ''}
+              >
+              <span>Allow death saves</span>
+            </label>
+            <small style="color: var(--text-muted, #6c757d); display: block; margin-top: 0.25rem;">
+              Enable death saving throws for this monster during encounters
+            </small>
+          </div>
           <input type="hidden" id="monster-dnd-api-id" value="${monster ? (monster.dnd_api_id || '') : ''}">
         </form>
       </div>
@@ -459,6 +472,19 @@ const Monsters = {
             placeholder="Special abilities, tactics, etc."
           >${monster.notes || ''}</textarea>
         </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input
+              type="checkbox"
+              id="edit-allow-death-saves"
+              ${monster.allow_death_saves ? 'checked' : ''}
+            >
+            <span>Allow death saves</span>
+          </label>
+          <small style="color: var(--text-muted, #6c757d); display: block; margin-top: 0.25rem;">
+            Enable death saving throws for this monster (unchecked by default)
+          </small>
+        </div>
       </form>
     `;
 
@@ -563,17 +589,28 @@ const Monsters = {
         <div class="monster-detail-modal-view">
           <button class="btn btn-sm btn-secondary mb-2" id="back-to-search">← Back to Search</button>
 
-          <div class="form-group" style="margin-top: 1rem;">
-            <label for="monster-quantity">Number to Add</label>
-            <input
-              type="number"
-              id="monster-quantity"
-              class="form-control"
-              value="1"
-              min="1"
-              max="20"
-              style="max-width: 150px;"
-            >
+          <div style="margin-top: 1rem; display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="monster-quantity">Number to Add</label>
+              <input
+                type="number"
+                id="monster-quantity"
+                class="form-control"
+                value="1"
+                min="1"
+                max="20"
+                style="max-width: 150px;"
+              >
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.75rem;">
+                <input
+                  type="checkbox"
+                  id="api-monster-allow-death-saves"
+                >
+                <span>Allow death saves</span>
+              </label>
+            </div>
           </div>
 
           <div class="monster-detail-full">
@@ -810,6 +847,10 @@ const Monsters = {
     }
 
     try {
+      // Get the allow_death_saves checkbox value
+      const allowDeathSavesCheckbox = modal.querySelector('#api-monster-allow-death-saves');
+      const allowDeathSaves = allowDeathSavesCheckbox ? allowDeathSavesCheckbox.checked : false;
+
       // Calculate initiative bonus from dexterity
       const dexMod = Math.floor((monster.dexterity - 10) / 2);
 
@@ -883,7 +924,8 @@ const Monsters = {
           initiative_bonus: dexMod,
           dnd_api_id: monster.index,
           notes: `${monster.size} ${monster.type} (CR ${monster.challenge_rating})`,
-          actions: actions
+          actions: actions,
+          allow_death_saves: allowDeathSaves
         };
         promises.push(API.monsters.create(data));
       }
@@ -1142,6 +1184,7 @@ const Monsters = {
     const initiativeInput = document.getElementById('monster-initiative');
     const notesInput = document.getElementById('monster-notes');
     const dndApiIdInput = document.getElementById('monster-dnd-api-id');
+    const allowDeathSavesInput = document.getElementById('monster-allow-death-saves');
 
     const name = nameInput.value.trim();
     const max_hp = parseInt(maxHpInput.value);
@@ -1149,6 +1192,7 @@ const Monsters = {
     const initiative_bonus = parseInt(initiativeInput.value) || 0;
     const notes = notesInput.value.trim();
     const dnd_api_id = dndApiIdInput.value.trim();
+    const allow_death_saves = allowDeathSavesInput ? allowDeathSavesInput.checked : false;
 
     // Validation
     if (!name) {
@@ -1173,7 +1217,8 @@ const Monsters = {
       armor_class,
       initiative_bonus,
       notes: notes || null,
-      dnd_api_id: dnd_api_id || null
+      dnd_api_id: dnd_api_id || null,
+      allow_death_saves
     };
 
     // For edits, include current_hp if provided
@@ -1206,6 +1251,7 @@ const Monsters = {
     const armorClass = parseInt(document.getElementById('edit-ac').value);
     const initiativeBonus = parseInt(document.getElementById('edit-initiative').value) || 0;
     const notes = document.getElementById('edit-notes').value.trim();
+    const allowDeathSaves = document.getElementById('edit-allow-death-saves')?.checked || false;
 
     // Validation
     if (isNaN(maxHp) || maxHp < 1) {
@@ -1231,7 +1277,8 @@ const Monsters = {
       armor_class: armorClass,
       initiative_bonus: initiativeBonus,
       notes: notes || null,
-      dnd_api_id: monster.dnd_api_id || null
+      dnd_api_id: monster.dnd_api_id || null,
+      allow_death_saves: allowDeathSaves
     };
 
     try {
@@ -1327,7 +1374,8 @@ document.addEventListener('DOMContentLoaded', () => {
             armor_class: monsterData.armor_class,
             initiative_bonus: dexMod,
             dnd_api_id: monsterData.index,
-            notes: `${monsterData.size} ${monsterData.type} (CR ${monsterData.challenge_rating})`
+            notes: `${monsterData.size} ${monsterData.type} (CR ${monsterData.challenge_rating})`,
+            allow_death_saves: false
           };
 
           await API.monsters.create(data);
