@@ -128,11 +128,12 @@ router.post('/',
     body('actions.*.category').optional().isIn(['action', 'legendary', 'special', 'reaction']).withMessage('Invalid action category'),
     body('actions.*.name').optional().trim().notEmpty().withMessage('Action name is required'),
     body('actions.*.description').optional().trim().notEmpty().withMessage('Action description is required'),
+    body('allow_death_saves').optional().isBoolean().withMessage('Allow death saves must be a boolean'),
     validate
   ],
   async (req, res, next) => {
     try {
-      const { encounter_id, name, max_hp, armor_class, initiative_bonus, dnd_api_id, notes, actions } = req.body;
+      const { encounter_id, name, max_hp, armor_class, initiative_bonus, dnd_api_id, notes, actions, allow_death_saves } = req.body;
       const userId = req.user.id;
 
       // Verify encounter exists and user owns it through campaign
@@ -156,9 +157,9 @@ router.post('/',
 
       // Insert monster
       const result = await database.run(
-        `INSERT INTO monsters (encounter_id, name, dnd_api_id, max_hp, current_hp, armor_class, initiative_bonus, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [encounter_id, name, dnd_api_id || null, max_hp, current_hp, armor_class, initiative_bonus || 0, notes || null]
+        `INSERT INTO monsters (encounter_id, name, dnd_api_id, max_hp, current_hp, armor_class, initiative_bonus, notes, allow_death_saves)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [encounter_id, name, dnd_api_id || null, max_hp, current_hp, armor_class, initiative_bonus || 0, notes || null, allow_death_saves || false]
       );
 
       const monsterId = result.lastID;
@@ -209,13 +210,14 @@ router.put('/:id',
     body('initiative_bonus').optional().isInt().withMessage('Initiative bonus must be an integer'),
     body('dnd_api_id').optional().trim(),
     body('notes').optional().trim(),
+    body('allow_death_saves').optional().isBoolean().withMessage('Allow death saves must be a boolean'),
     validate
   ],
   async (req, res, next) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
-      const { name, max_hp, current_hp, armor_class, initiative_bonus, dnd_api_id, notes } = req.body;
+      const { name, max_hp, current_hp, armor_class, initiative_bonus, dnd_api_id, notes, allow_death_saves } = req.body;
 
       // Verify monster exists and user owns it through encounter → campaign
       const monster = await database.get(
@@ -265,6 +267,10 @@ router.put('/:id',
       if (notes !== undefined) {
         updates.push('notes = ?');
         params.push(notes);
+      }
+      if (allow_death_saves !== undefined) {
+        updates.push('allow_death_saves = ?');
+        params.push(allow_death_saves);
       }
 
       if (updates.length === 0) {

@@ -310,9 +310,155 @@ textarea.form-control {
   color: white;
 }
 
+.badge-stabilized {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.badge-dead {
+  background-color: #000000;
+  color: white;
+}
+
 .temp-hp-badge {
   background-color: #5DADE2;
   color: white;
+}
+
+/* Death Saves Badge */
+.badge-death-saves {
+  background-color: #000000;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.badge-death-saves:hover {
+  background-color: #333333;
+  transform: scale(1.05);
+}
+
+/* Death Saves Modal */
+.death-save-roll-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius);
+}
+
+.roll-display {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.roll-display button {
+  flex: 2;
+}
+
+.roll-display input {
+  flex: 1;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.death-saves-tracker {
+  display: flex;
+  justify-content: space-around;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+}
+
+.death-saves-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.death-saves-section {
+  text-align: center;
+}
+
+.death-saves-section h4 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.death-save-pips {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.death-save-pip {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ddd;
+  border-radius: 50%;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.death-save-pip.filled.success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.death-save-pip.filled.failure {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.death-save-count {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.death-saves-column button {
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.death-save-instant-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+.death-save-instant-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-instant-death {
+  background-color: #000000;
+  color: white;
+  border: none;
+}
+
+.btn-instant-death:hover {
+  background-color: #333333;
+}
+
+.btn-instant-revival {
+  background-color: #87ceeb;
+  color: #333;
+  border: none;
+}
+
+.btn-instant-revival:hover {
+  background-color: #6fb8d9;
 }
 
 /* Loading Spinner */

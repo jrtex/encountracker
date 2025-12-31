@@ -278,6 +278,16 @@ const API = {
       });
     },
 
+    updateDeathSaves(initiativeId, successes, failures) {
+      return API.request(`/combat/initiative/${initiativeId}/death-saves`, {
+        method: 'PUT',
+        body: {
+          death_save_successes: successes,
+          death_save_failures: failures
+        }
+      });
+    },
+
     endCombat(encounterId, markComplete = false) {
       return API.request(`/combat/${encounterId}/end`, {
         method: 'POST',

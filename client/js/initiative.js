@@ -351,12 +351,32 @@ const Initiative = {
     const removedBadge = participant.is_removed_from_combat ?
       '<span class="badge badge-secondary removed-badge" data-init-id="' + participant.id + '">Removed</span>' : '';
 
+    // Death saves badge (for players and monsters with allow_death_saves at 0 HP, not dead or stabilized)
+    let deathSavesBadge = '';
+    const canHaveDeathSaves = participant.participant_type === 'player' ||
+                               (participant.participant_type === 'monster' && participant.allow_death_saves);
+    if (canHaveDeathSaves &&
+        participant.current_hp === 0 &&
+        !participant.is_stabilized &&
+        !this.hasCondition(participant.conditions, 'Dead')) {
+      const failures = participant.death_save_failures || 0;
+      deathSavesBadge = '<span class="badge badge-death-saves clickable" data-init-id="' + participant.id + '" title="Click to manage death saves">Death Saves ' + failures + '/3</span>';
+    }
+
     const conditionBadges = participant.conditions
       .filter(c => this.getConditionName(c) !== 'unconscious')
       .map(c => {
         const name = this.getConditionName(c);
         const isCustom = this.isCustomCondition(c);
-        const badgeClass = isCustom ? 'badge-info' : 'badge-warning';
+        // Special badge colors for death save conditions
+        let badgeClass;
+        if (name === 'Stabilized') {
+          badgeClass = 'badge-stabilized';
+        } else if (name === 'Dead') {
+          badgeClass = 'badge-dead';
+        } else {
+          badgeClass = isCustom ? 'badge-info' : 'badge-warning';
+        }
         const conditionJson = JSON.stringify(c).replace(/"/g, '&quot;');
         return `<span class="badge ${badgeClass} condition-badge" data-condition="${conditionJson}" data-init-id="${participant.id}">${name}</span>`;
       })
@@ -383,6 +403,7 @@ const Initiative = {
         <!-- Column 3: Temporary Badges -->
         <div class="temporary-badges">
           ${removedBadge}
+          ${deathSavesBadge}
           ${tempHpBadge}
           ${unconsciousBadge}
           ${conditionBadges}
@@ -611,6 +632,15 @@ const Initiative = {
         }
 
         this.showConditionBubble(condition, e.target);
+      });
+    });
+
+    // Death saves badge click handlers
+    this.container.querySelectorAll('.badge-death-saves').forEach(badge => {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const initId = e.target.getAttribute('data-init-id');
+        this.showDeathSavesModal(initId);
       });
     });
 
@@ -977,6 +1007,131 @@ const Initiative = {
     } catch (error) {
       Components.hideSpinner(this.container);
       Components.showToast('Error adding temporary HP: ' + error.message, 'error');
+    }
+  },
+
+  async showDeathSavesModal(initiativeId) {
+    const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+    if (!participant) return;
+
+    const successes = participant.death_save_successes || 0;
+    const failures = participant.death_save_failures || 0;
+
+    const content = `
+      <div class="death-save-roll-section">
+        <div class="roll-display">
+          <button type="button" class="btn btn-secondary" id="roll-d20-btn">Roll d20</button>
+          <input type="number" id="roll-result" class="form-control" readonly placeholder="Click Roll">
+        </div>
+      </div>
+
+      <div class="death-saves-tracker">
+        <div class="death-saves-column">
+          <div class="death-saves-section">
+            <h4>Failures</h4>
+            <div class="death-save-pips">
+              <span class="death-save-pip ${failures >= 1 ? 'filled failure' : ''}"></span>
+              <span class="death-save-pip ${failures >= 2 ? 'filled failure' : ''}"></span>
+              <span class="death-save-pip ${failures >= 3 ? 'filled failure' : ''}"></span>
+            </div>
+            <div class="death-save-count">${failures} / 3</div>
+          </div>
+          <button type="button" class="btn btn-danger btn-block" id="fail-btn">Fail</button>
+        </div>
+
+        <div class="death-saves-column">
+          <div class="death-saves-section">
+            <h4>Successes</h4>
+            <div class="death-save-pips">
+              <span class="death-save-pip ${successes >= 1 ? 'filled success' : ''}"></span>
+              <span class="death-save-pip ${successes >= 2 ? 'filled success' : ''}"></span>
+              <span class="death-save-pip ${successes >= 3 ? 'filled success' : ''}"></span>
+            </div>
+            <div class="death-save-count">${successes} / 3</div>
+          </div>
+          <button type="button" class="btn btn-success btn-block" id="pass-btn">Pass</button>
+        </div>
+      </div>
+
+      <div class="death-save-instant-actions">
+        <button type="button" class="btn btn-instant-death" id="instant-death-btn">Instant Death</button>
+        <button type="button" class="btn btn-instant-revival" id="instant-revival-btn">Instant Revival</button>
+      </div>
+    `;
+
+    Components.showModal('Death Saves - ' + participant.name, content, [
+      { id: 'close', label: 'Close', class: 'btn-secondary', handler: () => {} }
+    ]);
+
+    // Setup roll button (d20 simulation)
+    document.getElementById('roll-d20-btn').addEventListener('click', () => {
+      const roll = Math.floor(Math.random() * 20) + 1;
+      document.getElementById('roll-result').value = roll;
+    });
+
+    // Setup pass button
+    document.getElementById('pass-btn').addEventListener('click', async () => {
+      await this.handleDeathSaveUpdate(initiativeId, Math.min(successes + 1, 3), failures);
+    });
+
+    // Setup fail button
+    document.getElementById('fail-btn').addEventListener('click', async () => {
+      await this.handleDeathSaveUpdate(initiativeId, successes, Math.min(failures + 1, 3));
+    });
+
+    // Setup instant death button
+    document.getElementById('instant-death-btn').addEventListener('click', async () => {
+      await this.handleDeathSaveUpdate(initiativeId, successes, 3);
+    });
+
+    // Setup instant revival button
+    document.getElementById('instant-revival-btn').addEventListener('click', async () => {
+      await this.handleInstantRevival(initiativeId);
+    });
+  },
+
+  async handleDeathSaveUpdate(initiativeId, successes, failures) {
+    try {
+      document.querySelector('.modal-overlay')?.remove();
+      Components.showSpinner(this.container);
+
+      const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+      const participantName = participant ? participant.name : 'Combatant';
+
+      await API.combat.updateDeathSaves(initiativeId, successes, failures);
+      await this.loadInitiative();
+      this.render();
+
+      if (successes >= 3) {
+        Components.showToast(`${participantName} stabilized! Gained 1 HP.`, 'success');
+      } else if (failures >= 3) {
+        Components.showToast(`${participantName} has died and been removed from combat.`, 'info');
+      } else {
+        Components.showToast('Death save updated', 'success');
+      }
+    } catch (error) {
+      Components.hideSpinner(this.container);
+      Components.showToast('Error: ' + error.message, 'error');
+    }
+  },
+
+  async handleInstantRevival(initiativeId) {
+    try {
+      document.querySelector('.modal-overlay')?.remove();
+      Components.showSpinner(this.container);
+
+      const participant = this.initiativeData.participants.find(p => p.id == initiativeId);
+      if (!participant) {
+        throw new Error('Participant not found');
+      }
+
+      // Heal by 1 HP (backend will handle clearing death saves)
+      await this.updateHealth(initiativeId, 1);
+
+      Components.showToast(`${participant.name} revived and ready to return to combat!`, 'success');
+    } catch (error) {
+      Components.hideSpinner(this.container);
+      Components.showToast('Error: ' + error.message, 'error');
     }
   },
 
