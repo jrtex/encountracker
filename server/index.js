@@ -19,6 +19,7 @@ const playerRoutes = require('./routes/players');
 const monsterRoutes = require('./routes/monsters');
 const combatRoutes = require('./routes/combat');
 const importExportRoutes = require('./routes/importExport');
+const publicRoutes = require('./routes/public');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/', limiter);
 app.use(BASE_URL_PATH, express.static(path.join(__dirname, '../client')));
 
 // API Routes
+app.use(`${BASE_URL_PATH}api/public`, publicRoutes); // Public routes (no auth required)
 app.use(`${BASE_URL_PATH}api/auth`, authRoutes);
 app.use(`${BASE_URL_PATH}api/campaigns`, campaignRoutes);
 app.use(`${BASE_URL_PATH}api/encounters`, encounterRoutes);
@@ -63,6 +65,11 @@ app.get(`${BASE_URL_PATH}api/health`, (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
+});
+
+// Public encounter view (no authentication required)
+app.get(`${BASE_URL_PATH}public`, (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public.html'));
 });
 
 // Serve index.html for all other routes (SPA support)

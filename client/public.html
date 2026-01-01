@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encounter Tracker - Public View</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        /* Public page specific styles */
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .public-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .public-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .public-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .public-header .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1rem;
+        }
+
+        .no-encounter-message {
+            background: white;
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-encounter-message h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .no-encounter-message p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hide secret monster info */
+        .public-view .monster-ac,
+        .public-view .monster-hp-values {
+            display: none !important;
+        }
+
+        /* Adjust creature stats for public view */
+        .public-view .creature-stats-public {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Auto-refresh indicator */
+        .auto-refresh-indicator {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+
+        .refresh-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Clickable badges */
+        .clickable {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .clickable:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .clickable:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <!-- Auto-refresh indicator -->
+    <div class="auto-refresh-indicator">
+        <span class="refresh-dot"></span>
+        <span>Auto-refreshing every 5s</span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="public-container public-view">
+        <div class="public-header">
+            <h1>D&D Encounter Tracker</h1>
+            <p class="subtitle">Public View - Read Only</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading encounter data...</p>
+        </div>
+
+        <!-- No Encounter State -->
+        <div id="no-encounter-state" class="no-encounter-message" style="display: none;">
+            <h2>No Active Encounter</h2>
+            <p>There is currently no combat in progress.</p>
+            <p style="margin-top: 1rem; color: #999; font-size: 0.9rem;">This page will automatically refresh when combat starts.</p>
+        </div>
+
+        <!-- Initiative Tracker -->
+        <div id="initiative-tracker-container" style="display: none;"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/components.js"></script>
+    <script src="js/public.js"></script>
+</body>
+</html>
