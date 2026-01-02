@@ -8,58 +8,116 @@
     <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav id="main-nav" class="hidden">
-        <div class="nav-container">
-            <h1 class="nav-brand">D&D Encounter Manager</h1>
-
-            <!-- Campaign Selector -->
-            <div class="nav-campaign-selector">
-                <button id="nav-campaign-btn" class="nav-campaign-btn">
-                    <span id="nav-campaign-label">Select Campaign...</span>
-                    <svg class="nav-campaign-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="6 9 12 15 18 9"></polyline>
+    <div id="app-wrapper">
+        <!-- Top Bar -->
+        <div id="top-bar" class="hidden">
+            <div class="top-bar-left">
+                <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
                     </svg>
                 </button>
-                <div id="nav-campaign-dropdown" class="campaign-dropdown-menu">
-                    <!-- Campaigns will be populated here -->
-                </div>
+                <button id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Collapse sidebar">
+                    <svg class="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <h1 class="top-bar-brand">D&D Encounter Manager</h1>
             </div>
 
-            <ul class="nav-menu">
-                <li><a href="#" data-page="dashboard">Dashboard</a></li>
-                <li><a href="#" data-page="encounters">Encounters</a></li>
-                <li><a href="#" data-page="players">Players</a></li>
-                <li class="admin-only hidden"><a href="#" data-page="settings">Settings</a></li>
-            </ul>
-            <div class="nav-user">
-                <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
-                    <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
+            <div class="top-bar-actions">
+                <a href="#" data-page="settings" class="top-bar-settings admin-only">
+                    <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m8.66-13.66l-4.24 4.24m-4.24 4.24l-4.24 4.24M23 12h-6m-6 0H1m20.66 8.66l-4.24-4.24m-4.24-4.24l-4.24-4.24"></path>
                     </svg>
-                </button>
-                <div id="user-dropdown" class="user-dropdown-menu">
-                    <div class="user-dropdown-header">
-                        <div id="dropdown-username" class="dropdown-username"></div>
-                        <span id="dropdown-role-badge" class="badge"></span>
-                    </div>
-                    <div class="user-dropdown-divider"></div>
-                    <button id="dropdown-logout-btn" class="dropdown-item">
-                        <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                    Settings
+                </a>
+                <div class="nav-user">
+                    <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
+                        <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        Logout
                     </button>
+                    <div id="user-dropdown" class="user-dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <div id="dropdown-username" class="dropdown-username"></div>
+                            <span id="dropdown-role-badge" class="badge"></span>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <button id="dropdown-logout-btn" class="dropdown-item">
+                            <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content Area -->
-    <main id="app-container">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="hidden">
+            <nav class="sidebar-nav">
+                <a href="#" data-page="dashboard" class="sidebar-nav-item">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="7" height="9"></rect>
+                        <rect x="14" y="3" width="7" height="5"></rect>
+                        <rect x="14" y="12" width="7" height="9"></rect>
+                        <rect x="3" y="16" width="7" height="5"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+
+                <div class="sidebar-section">
+                    <button class="sidebar-section-header" data-collapsible="campaigns">
+                        <span>Campaigns</span>
+                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="sidebar-section-content" id="campaigns-section">
+                        <div id="sidebar-campaigns-list"></div>
+                        <button id="sidebar-new-campaign-btn" class="sidebar-action-btn admin-only">
+                            + New Campaign
+                        </button>
+                    </div>
+                </div>
+
+                <a href="#" data-page="players" class="sidebar-nav-item">
+                    <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Players
+                </a>
+
+                <div class="sidebar-section">
+                    <button class="sidebar-section-header" data-collapsible="encounters">
+                        <span>Encounters</span>
+                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="sidebar-section-content" id="encounters-section">
+                        <div id="sidebar-encounters-list"></div>
+                        <button id="sidebar-new-encounter-btn" class="sidebar-action-btn admin-only">
+                            + New Encounter
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="app-container">
         <!-- Login Page -->
         <div id="login-page" class="page active">
             <div class="auth-container">
@@ -218,7 +276,11 @@
                 </div>
             </div>
         </div>
-    </main>
+        </main>
+    </div>
+
+    <!-- Sidebar Backdrop (for mobile) -->
+    <div class="sidebar-backdrop"></div>
 
     <!-- Toast Notifications -->
     <div id="toast-container"></div>
