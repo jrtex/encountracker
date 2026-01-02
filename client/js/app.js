@@ -271,9 +271,10 @@ const Sidebar = {
         item.addEventListener('click', (e) => {
           e.preventDefault();
 
-          // Navigate to encounter detail page
-          if (typeof EncounterDetail !== 'undefined' && EncounterDetail.loadEncounter) {
-            EncounterDetail.loadEncounter(encounter.id);
+          // Set encounter ID and navigate to detail page
+          const detailPage = document.getElementById('encounter-detail-page');
+          if (detailPage) {
+            detailPage.dataset.encounterId = encounter.id;
             App.showPage('encounter-detail-page');
           }
 
