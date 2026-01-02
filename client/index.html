@@ -75,12 +75,14 @@
                 </a>
 
                 <div class="sidebar-section">
-                    <button class="sidebar-section-header" data-collapsible="campaigns">
-                        <span>Campaigns</span>
-                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
+                    <div class="sidebar-section-header">
+                        <a href="#" data-page="campaigns" class="sidebar-section-link">Campaigns</a>
+                        <button class="sidebar-section-toggle" data-collapsible="campaigns" aria-label="Toggle campaigns list">
+                            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="sidebar-section-content" id="campaigns-section">
                         <div id="sidebar-campaigns-list"></div>
                         <button id="sidebar-new-campaign-btn" class="sidebar-action-btn admin-only">
@@ -100,12 +102,14 @@
                 </a>
 
                 <div class="sidebar-section">
-                    <button class="sidebar-section-header" data-collapsible="encounters">
-                        <span>Encounters</span>
-                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
+                    <div class="sidebar-section-header">
+                        <a href="#" data-page="encounters" class="sidebar-section-link">Encounters</a>
+                        <button class="sidebar-section-toggle" data-collapsible="encounters" aria-label="Toggle encounters list">
+                            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="sidebar-section-content" id="encounters-section">
                         <div id="sidebar-encounters-list"></div>
                         <button id="sidebar-new-encounter-btn" class="sidebar-action-btn admin-only">
@@ -185,6 +189,19 @@
             <div class="container">
                 <h2>Dashboard</h2>
                 <div id="initiative-tracker-widget"></div>
+            </div>
+        </div>
+
+        <!-- Campaigns Page -->
+        <div id="campaigns-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h2>Campaigns</h2>
+                    <div class="page-actions">
+                        <button id="campaigns-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                    </div>
+                </div>
+                <div id="campaigns-grid" class="campaign-grid"></div>
             </div>
         </div>
 

@@ -132,34 +132,52 @@ body {
 }
 
 .sidebar-section-header {
-  width: 100%;
-  padding: 0.75rem 1.5rem;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.8);
-  text-align: left;
-  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: var(--transition);
-  font-size: 1rem;
-  font-weight: 500;
 }
 
-.sidebar-section-header:hover {
+.sidebar-section-link {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.sidebar-section-link:hover {
   background-color: rgba(255,255,255,0.1);
   color: white;
 }
 
-.sidebar-section-header .chevron {
+.sidebar-section-toggle {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.sidebar-section-toggle:hover {
+  background-color: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.sidebar-section-toggle .chevron {
   width: 16px;
   height: 16px;
   stroke-width: 2;
   transition: transform 0.3s ease;
 }
 
-.sidebar-section-header.expanded .chevron {
+.sidebar-section-toggle.expanded .chevron {
   transform: rotate(180deg);
 }
 

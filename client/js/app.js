@@ -55,12 +55,12 @@ const Sidebar = {
 
     // Apply saved state
     Object.keys(this.collapsibleState).forEach(key => {
-      const header = document.querySelector(`[data-collapsible="${key}"]`);
+      const toggle = document.querySelector(`[data-collapsible="${key}"]`);
       const content = document.getElementById(`${key}-section`);
 
-      if (header && content) {
+      if (toggle && content) {
         if (this.collapsibleState[key]) {
-          header.classList.add('expanded');
+          toggle.classList.add('expanded');
           content.classList.add('expanded');
         }
       }
@@ -72,10 +72,10 @@ const Sidebar = {
   },
 
   setupEventListeners() {
-    // Collapsible headers
-    document.querySelectorAll('[data-collapsible]').forEach(header => {
-      header.addEventListener('click', () => {
-        const key = header.getAttribute('data-collapsible');
+    // Collapsible toggle buttons (chevrons)
+    document.querySelectorAll('[data-collapsible]').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const key = toggle.getAttribute('data-collapsible');
         this.toggleSection(key);
       });
     });
@@ -128,8 +128,8 @@ const Sidebar = {
       });
     }
 
-    // Sidebar navigation items
-    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+    // Sidebar navigation items (including section links)
+    document.querySelectorAll('.sidebar-nav-item, .sidebar-section-link').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const page = item.getAttribute('data-page');
@@ -150,19 +150,19 @@ const Sidebar = {
   },
 
   toggleSection(key) {
-    const header = document.querySelector(`[data-collapsible="${key}"]`);
+    const toggle = document.querySelector(`[data-collapsible="${key}"]`);
     const content = document.getElementById(`${key}-section`);
 
-    if (!header || !content) return;
+    if (!toggle || !content) return;
 
     this.collapsibleState[key] = !this.collapsibleState[key];
     this.saveCollapsibleState();
 
     if (this.collapsibleState[key]) {
-      header.classList.add('expanded');
+      toggle.classList.add('expanded');
       content.classList.add('expanded');
     } else {
-      header.classList.remove('expanded');
+      toggle.classList.remove('expanded');
       content.classList.remove('expanded');
     }
   },
@@ -484,7 +484,9 @@ const App = {
     // Reload active page
     if (activePage) {
       const pageId = activePage.id;
-      if (pageId === 'encounters-page' && typeof Encounters !== 'undefined') {
+      if (pageId === 'campaigns-page' && typeof Campaigns !== 'undefined') {
+        await Campaigns.init();
+      } else if (pageId === 'encounters-page' && typeof Encounters !== 'undefined') {
         await Encounters.init();
       } else if (pageId === 'players-page' && typeof Players !== 'undefined') {
         await Players.init();
