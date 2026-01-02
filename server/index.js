@@ -25,8 +25,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BASE_URL_PATH = process.env.BASE_URL_PATH || '/';
 
+// Trust proxy when behind reverse proxy (nginx, load balancer, etc.)
+app.set('trust proxy', true);
+
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP to avoid blocking resources
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true
