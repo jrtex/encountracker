@@ -196,3 +196,83 @@ const CampaignManager = {
     );
   }
 };
+
+// Campaigns Page Manager
+const Campaigns = {
+  async init() {
+    await this.loadCampaigns();
+    this.setupEventListeners();
+
+    // Subscribe to campaign context changes
+    CampaignContext.subscribe(() => this.loadCampaigns());
+  },
+
+  setupEventListeners() {
+    const newCampaignBtn = document.getElementById('campaigns-new-campaign-btn');
+    if (newCampaignBtn) {
+      newCampaignBtn.addEventListener('click', () => {
+        CampaignManager.showCampaignModal();
+      });
+    }
+  },
+
+  async loadCampaigns() {
+    const container = document.getElementById('campaigns-grid');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const campaigns = CampaignContext.getAllCampaigns();
+    const activeCampaignId = CampaignContext.getActiveCampaignId();
+
+    if (campaigns.length === 0) {
+      container.innerHTML = '<p class="text-center">No campaigns found. Create your first campaign to get started!</p>';
+      return;
+    }
+
+    campaigns.forEach(campaign => {
+      const card = CampaignManager.createCampaignCard(campaign);
+
+      // Highlight active campaign
+      if (campaign.id === activeCampaignId) {
+        card.classList.add('active-campaign');
+      }
+
+      // Make card clickable to switch campaigns
+      const cardHeader = card.querySelector('.card-header');
+      if (cardHeader) {
+        cardHeader.classList.add('clickable');
+        cardHeader.style.cursor = 'pointer';
+        cardHeader.addEventListener('click', async () => {
+          if (campaign.id !== activeCampaignId) {
+            await App.handleCampaignChange(campaign.id);
+            await this.loadCampaigns(); // Refresh to update highlighting
+          }
+        });
+      }
+
+      container.appendChild(card);
+    });
+  },
+
+  showCampaignModal(campaign = null) {
+    CampaignManager.showCampaignModal(campaign);
+  }
+};
+
+// Initialize campaigns page when it becomes active
+document.addEventListener('DOMContentLoaded', () => {
+  const campaignsPage = document.getElementById('campaigns-page');
+  if (campaignsPage) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (campaignsPage.classList.contains('active')) {
+            Campaigns.init();
+          }
+        }
+      });
+    });
+    observer.observe(campaignsPage, { attributes: true });
+  }
+});

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UI Component Showcase - D&D Encounter Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
     <style>
@@ -992,6 +993,121 @@
             </div>
         </section>
 
+        <!-- Icons Section -->
+        <section class="showcase-section">
+            <h2>Font Awesome Icons</h2>
+            <p>The application uses Font Awesome 6.4.0 for icons throughout the interface.</p>
+
+            <h3>Navigation Icons</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">fa-bars</div>
+                        <i class="fas fa-bars" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Sidebar toggle</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-chevron-left</div>
+                        <i class="fas fa-chevron-left" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Collapse sidebar</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-chevron-down</div>
+                        <i class="fas fa-chevron-down" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Expand section</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-th-large</div>
+                        <i class="fas fa-th-large" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Dashboard</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-scroll</div>
+                        <i class="fas fa-scroll" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Campaigns</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-fist-raised</div>
+                        <i class="fas fa-fist-raised" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Encounters</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-users</div>
+                        <i class="fas fa-users" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Players</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-cog</div>
+                        <i class="fas fa-cog" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Settings</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>User & Authentication Icons</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">fa-user-circle</div>
+                        <i class="fas fa-user-circle" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">User avatar</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-sign-out-alt</div>
+                        <i class="fas fa-sign-out-alt" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Logout</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Action Icons</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">fa-arrow-left</div>
+                        <i class="fas fa-arrow-left" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Back navigation</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-chevron-right</div>
+                        <i class="fas fa-chevron-right" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Next turn</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-ellipsis-v</div>
+                        <i class="fas fa-ellipsis-v" style="font-size: 1.5rem;"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Actions menu</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Health & Combat Icons</h3>
+            <div class="component-demo">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div class="code-label">fa-heart-broken</div>
+                        <i class="fas fa-heart-broken" style="font-size: 1.5rem; color: var(--danger-color);"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Apply damage</p>
+                    </div>
+                    <div>
+                        <div class="code-label">fa-heart</div>
+                        <i class="fas fa-heart" style="font-size: 1.5rem; color: var(--success-color);"></i>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">Apply healing</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Icon Usage Example</h3>
+            <div class="component-demo">
+                <div class="code-label">HTML Example</div>
+                <pre style="background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>&lt;i class="fas fa-heart"&gt;&lt;/i&gt; Heal
+&lt;i class="fas fa-heart-broken"&gt;&lt;/i&gt; Damage
+&lt;button class="btn btn-primary"&gt;
+  &lt;i class="fas fa-arrow-left"&gt;&lt;/i&gt; Back
+&lt;/button&gt;</code></pre>
+            </div>
+        </section>
+
         <!-- User Avatar Dropdown -->
         <section class="showcase-section">
             <h2>User Avatar Dropdown</h2>
@@ -1000,10 +1116,7 @@
                 <p class="code-label">.avatar-btn + .user-dropdown-menu</p>
                 <div style="position: relative; display: inline-block;">
                     <button class="avatar-btn" onclick="document.getElementById('demo-dropdown').classList.toggle('show')">
-                        <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        <i class="fas fa-user-circle avatar-icon"></i>
                     </button>
                     <div id="demo-dropdown" class="user-dropdown-menu">
                         <div class="user-dropdown-header">
@@ -1012,11 +1125,7 @@
                         </div>
                         <div class="user-dropdown-divider"></div>
                         <button class="dropdown-item">
-                            <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                <polyline points="16 17 21 12 16 7"></polyline>
-                                <line x1="21" y1="12" x2="9" y2="12"></line>
-                            </svg>
+                            <i class="fas fa-sign-out-alt dropdown-item-icon"></i>
                             Logout
                         </button>
                     </div>

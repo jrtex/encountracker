@@ -4,62 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>D&D Encounter Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav id="main-nav" class="hidden">
-        <div class="nav-container">
-            <h1 class="nav-brand">D&D Encounter Manager</h1>
-
-            <!-- Campaign Selector -->
-            <div class="nav-campaign-selector">
-                <button id="nav-campaign-btn" class="nav-campaign-btn">
-                    <span id="nav-campaign-label">Select Campaign...</span>
-                    <svg class="nav-campaign-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
+    <div id="app-wrapper">
+        <!-- Top Bar -->
+        <div id="top-bar" class="hidden">
+            <div class="top-bar-left">
+                <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
                 </button>
-                <div id="nav-campaign-dropdown" class="campaign-dropdown-menu">
-                    <!-- Campaigns will be populated here -->
-                </div>
+                <button id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Collapse sidebar">
+                    <i class="fas fa-chevron-left collapse-icon"></i>
+                </button>
+                <h1 class="top-bar-brand">D&D Encounter Manager</h1>
             </div>
 
-            <ul class="nav-menu">
-                <li><a href="#" data-page="dashboard">Dashboard</a></li>
-                <li><a href="#" data-page="encounters">Encounters</a></li>
-                <li><a href="#" data-page="players">Players</a></li>
-                <li class="admin-only hidden"><a href="#" data-page="settings">Settings</a></li>
-            </ul>
-            <div class="nav-user">
-                <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
-                    <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                </button>
-                <div id="user-dropdown" class="user-dropdown-menu">
-                    <div class="user-dropdown-header">
-                        <div id="dropdown-username" class="dropdown-username"></div>
-                        <span id="dropdown-role-badge" class="badge"></span>
-                    </div>
-                    <div class="user-dropdown-divider"></div>
-                    <button id="dropdown-logout-btn" class="dropdown-item">
-                        <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        Logout
+            <div class="top-bar-actions">
+                <a href="#" data-page="settings" class="top-bar-settings admin-only">
+                    <i class="fas fa-cog settings-icon"></i>
+                    Settings
+                </a>
+                <div class="nav-user">
+                    <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
+                        <i class="fas fa-user-circle avatar-icon"></i>
                     </button>
+                    <div id="user-dropdown" class="user-dropdown-menu">
+                        <div class="user-dropdown-header">
+                            <div id="dropdown-username" class="dropdown-username"></div>
+                            <span id="dropdown-role-badge" class="badge"></span>
+                        </div>
+                        <div class="user-dropdown-divider"></div>
+                        <button id="dropdown-logout-btn" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt dropdown-item-icon"></i>
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content Area -->
-    <main id="app-container">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="hidden">
+            <nav class="sidebar-nav">
+                <a href="#" data-page="dashboard" class="sidebar-nav-item" data-tooltip="Dashboard">
+                    <i class="fas fa-th-large sidebar-nav-icon"></i>
+                    Dashboard
+                </a>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <a href="#" data-page="campaigns" class="sidebar-section-link" data-tooltip="Campaigns">
+                            <i class="fas fa-scroll sidebar-nav-icon"></i>
+                            Campaigns
+                        </a>
+                        <button class="sidebar-section-toggle" data-collapsible="campaigns" aria-label="Toggle campaigns list">
+                            <i class="fas fa-chevron-down chevron"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar-section-content" id="campaigns-section">
+                        <div id="sidebar-campaigns-list"></div>
+                        <button id="sidebar-new-campaign-btn" class="sidebar-action-btn admin-only">
+                            + New Campaign
+                        </button>
+                    </div>
+                </div>
+
+                <a href="#" data-page="players" class="sidebar-nav-item" data-tooltip="Players">
+                    <i class="fas fa-users sidebar-nav-icon"></i>
+                    Players
+                </a>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <a href="#" data-page="encounters" class="sidebar-section-link" data-tooltip="Encounters">
+                            <i class="fas fa-fist-raised sidebar-nav-icon"></i>
+                            Encounters
+                        </a>
+                        <button class="sidebar-section-toggle" data-collapsible="encounters" aria-label="Toggle encounters list">
+                            <i class="fas fa-chevron-down chevron"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar-section-content" id="encounters-section">
+                        <div id="sidebar-encounters-list"></div>
+                        <button id="sidebar-new-encounter-btn" class="sidebar-action-btn admin-only">
+                            + New Encounter
+                        </button>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="app-container">
         <!-- Login Page -->
         <div id="login-page" class="page active">
             <div class="auth-container">
@@ -130,6 +169,19 @@
             </div>
         </div>
 
+        <!-- Campaigns Page -->
+        <div id="campaigns-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <h2>Campaigns</h2>
+                    <div class="page-actions">
+                        <button id="campaigns-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                    </div>
+                </div>
+                <div id="campaigns-grid" class="campaign-grid"></div>
+            </div>
+        </div>
+
         <!-- Encounters Page -->
         <div id="encounters-page" class="page">
             <div class="container">
@@ -151,7 +203,7 @@
         <div id="encounter-detail-page" class="page">
             <div class="container">
                 <div class="page-header">
-                    <button id="back-to-encounters-btn" class="btn btn-secondary">← Back to Encounters</button>
+                    <button id="back-to-encounters-btn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Encounters</button>
                     <h2 id="encounter-detail-title">Encounter Details</h2>
                     <div>
                         <button id="start-encounter-combat-btn" class="btn btn-success admin-only" style="display: none;">Start Combat</button>
@@ -170,7 +222,7 @@
         <div id="monster-detail-page" class="page">
             <div class="container">
                 <div class="page-header">
-                    <button id="back-to-encounter-detail-btn" class="btn btn-secondary">← Back</button>
+                    <button id="back-to-encounter-detail-btn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</button>
                     <h2 id="monster-detail-title">Monster Details</h2>
                     <button id="add-monster-to-encounter-btn" class="btn btn-primary admin-only">Add to Encounter</button>
                 </div>
@@ -218,7 +270,11 @@
                 </div>
             </div>
         </div>
-    </main>
+        </main>
+    </div>
+
+    <!-- Sidebar Backdrop (for mobile) -->
+    <div class="sidebar-backdrop"></div>
 
     <!-- Toast Notifications -->
     <div id="toast-container"></div>

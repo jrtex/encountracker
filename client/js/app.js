@@ -1,3 +1,298 @@
+// Sidebar Module
+const Sidebar = {
+  isOpen: false,
+  isCollapsed: false,
+  collapsibleState: { campaigns: true, encounters: true },
+
+  init() {
+    this.loadCollapsedState();
+    this.loadCollapsibleState();
+    this.setupEventListeners();
+    this.renderCampaignsList();
+    this.renderEncountersList();
+
+    // Subscribe to campaign context changes
+    CampaignContext.subscribe(() => {
+      this.renderCampaignsList();
+      this.renderEncountersList();
+    });
+  },
+
+  loadCollapsedState() {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    this.isCollapsed = saved === 'true';
+
+    const appWrapper = document.getElementById('app-wrapper');
+    if (appWrapper && this.isCollapsed) {
+      appWrapper.classList.add('sidebar-collapsed');
+    }
+  },
+
+  saveCollapsedState() {
+    localStorage.setItem('sidebarCollapsed', this.isCollapsed.toString());
+  },
+
+  toggleCollapsed() {
+    this.isCollapsed = !this.isCollapsed;
+    this.saveCollapsedState();
+
+    const appWrapper = document.getElementById('app-wrapper');
+    if (appWrapper) {
+      if (this.isCollapsed) {
+        appWrapper.classList.add('sidebar-collapsed');
+      } else {
+        appWrapper.classList.remove('sidebar-collapsed');
+      }
+    }
+  },
+
+  loadCollapsibleState() {
+    const saved = localStorage.getItem('sidebarCollapsibleState');
+    this.collapsibleState = saved ? JSON.parse(saved) : {
+      campaigns: true,
+      encounters: true
+    };
+
+    // Apply saved state
+    Object.keys(this.collapsibleState).forEach(key => {
+      const toggle = document.querySelector(`[data-collapsible="${key}"]`);
+      const content = document.getElementById(`${key}-section`);
+
+      if (toggle && content) {
+        if (this.collapsibleState[key]) {
+          toggle.classList.add('expanded');
+          content.classList.add('expanded');
+        }
+      }
+    });
+  },
+
+  saveCollapsibleState() {
+    localStorage.setItem('sidebarCollapsibleState', JSON.stringify(this.collapsibleState));
+  },
+
+  setupEventListeners() {
+    // Collapsible toggle buttons (chevrons)
+    document.querySelectorAll('[data-collapsible]').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const key = toggle.getAttribute('data-collapsible');
+        this.toggleSection(key);
+      });
+    });
+
+    // Sidebar collapse button (desktop)
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    if (collapseBtn) {
+      collapseBtn.addEventListener('click', () => {
+        this.toggleCollapsed();
+      });
+    }
+
+    // Sidebar toggle (mobile)
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+
+    if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener('click', () => {
+        this.toggle();
+      });
+    }
+
+    // Backdrop click to close
+    const backdrop = document.querySelector('.sidebar-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', () => {
+        this.close();
+      });
+    }
+
+    // New campaign button
+    const newCampaignBtn = document.getElementById('sidebar-new-campaign-btn');
+    if (newCampaignBtn) {
+      newCampaignBtn.addEventListener('click', () => {
+        if (typeof Campaigns !== 'undefined' && Campaigns.showCampaignModal) {
+          Campaigns.showCampaignModal();
+        }
+        this.close();
+      });
+    }
+
+    // New encounter button
+    const newEncounterBtn = document.getElementById('sidebar-new-encounter-btn');
+    if (newEncounterBtn) {
+      newEncounterBtn.addEventListener('click', () => {
+        if (typeof Encounters !== 'undefined' && Encounters.showEncounterModal) {
+          Encounters.showEncounterModal();
+        }
+        this.close();
+      });
+    }
+
+    // Sidebar navigation items (including section links)
+    document.querySelectorAll('.sidebar-nav-item, .sidebar-section-link').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = item.getAttribute('data-page');
+        App.showPage(`${page}-page`);
+        this.close();
+      });
+    });
+
+    // Top bar settings link
+    const settingsLink = document.querySelector('.top-bar-settings');
+    if (settingsLink) {
+      settingsLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        App.showPage('settings-page');
+        this.close();
+      });
+    }
+  },
+
+  toggleSection(key) {
+    const toggle = document.querySelector(`[data-collapsible="${key}"]`);
+    const content = document.getElementById(`${key}-section`);
+
+    if (!toggle || !content) return;
+
+    this.collapsibleState[key] = !this.collapsibleState[key];
+    this.saveCollapsibleState();
+
+    if (this.collapsibleState[key]) {
+      toggle.classList.add('expanded');
+      content.classList.add('expanded');
+    } else {
+      toggle.classList.remove('expanded');
+      content.classList.remove('expanded');
+    }
+  },
+
+  toggle() {
+    if (this.isOpen) {
+      this.close();
+    } else {
+      this.open();
+    }
+  },
+
+  open() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.querySelector('.sidebar-backdrop');
+
+    if (sidebar) sidebar.classList.add('open');
+    if (backdrop) backdrop.classList.add('show');
+    this.isOpen = true;
+  },
+
+  close() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.querySelector('.sidebar-backdrop');
+
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('show');
+    this.isOpen = false;
+  },
+
+  async renderCampaignsList() {
+    const container = document.getElementById('sidebar-campaigns-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const campaigns = CampaignContext.getAllCampaigns();
+    const activeCampaignId = CampaignContext.getActiveCampaignId();
+
+    if (campaigns.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'sidebar-empty';
+      empty.textContent = 'No campaigns';
+      container.appendChild(empty);
+      return;
+    }
+
+    campaigns.forEach(campaign => {
+      const item = document.createElement('a');
+      item.className = 'sidebar-list-item';
+      if (campaign.id === activeCampaignId) {
+        item.classList.add('active');
+      }
+      item.textContent = campaign.name;
+      item.title = campaign.name;
+
+      item.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await App.handleCampaignChange(campaign.id);
+        this.close();
+      });
+
+      container.appendChild(item);
+    });
+  },
+
+  async renderEncountersList() {
+    const container = document.getElementById('sidebar-encounters-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const campaignId = CampaignContext.getActiveCampaignId();
+
+    if (!campaignId) {
+      const empty = document.createElement('div');
+      empty.className = 'sidebar-empty';
+      empty.textContent = 'No campaign selected';
+      container.appendChild(empty);
+      return;
+    }
+
+    try {
+      const response = await API.encounters.getAll(campaignId);
+      const encounters = response.data || [];
+
+      // Filter to only pending/active encounters
+      const activeEncounters = encounters.filter(e =>
+        e.status === 'pending' || e.status === 'active'
+      );
+
+      if (activeEncounters.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'sidebar-empty';
+        empty.textContent = 'No encounters';
+        container.appendChild(empty);
+        return;
+      }
+
+      activeEncounters.forEach(encounter => {
+        const item = document.createElement('a');
+        item.className = 'sidebar-list-item';
+        item.textContent = encounter.name;
+        item.title = encounter.name;
+
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          // Set encounter ID and navigate to detail page
+          const detailPage = document.getElementById('encounter-detail-page');
+          if (detailPage) {
+            detailPage.dataset.encounterId = encounter.id;
+            App.showPage('encounter-detail-page');
+          }
+
+          this.close();
+        });
+
+        container.appendChild(item);
+      });
+    } catch (error) {
+      console.error('Failed to load encounters:', error);
+      const empty = document.createElement('div');
+      empty.className = 'sidebar-empty';
+      empty.textContent = 'Failed to load';
+      container.appendChild(empty);
+    }
+  }
+};
+
 // Main Application
 const App = {
   async init() {
@@ -128,8 +423,9 @@ const App = {
     document.getElementById('login-page').classList.remove('active');
     document.getElementById('register-page').classList.remove('active');
 
-    // Show navigation
-    document.getElementById('main-nav').classList.remove('hidden');
+    // Show top bar and sidebar
+    document.getElementById('top-bar').classList.remove('hidden');
+    document.getElementById('sidebar').classList.remove('hidden');
 
     // Initialize campaign context
     await CampaignContext.init();
@@ -140,9 +436,8 @@ const App = {
       return;
     }
 
-    // Populate and setup dropdown
-    this.renderCampaignDropdown();
-    this.setupCampaignDropdown();
+    // Initialize sidebar
+    Sidebar.init();
 
     // Update user info in avatar dropdown
     const user = Auth.getUser();
@@ -170,59 +465,6 @@ const App = {
     this.showPage('dashboard-page');
   },
 
-  renderCampaignDropdown() {
-    const label = document.getElementById('nav-campaign-label');
-    const dropdown = document.getElementById('nav-campaign-dropdown');
-    if (!label || !dropdown) return;
-
-    const campaigns = CampaignContext.getAllCampaigns();
-    const currentId = CampaignContext.getActiveCampaignId();
-    const currentCampaign = CampaignContext.getActiveCampaign();
-
-    // Update button label
-    label.textContent = currentCampaign ? currentCampaign.name : 'Select Campaign...';
-
-    // Populate dropdown
-    if (campaigns.length === 0) {
-      dropdown.innerHTML = '<div class="campaign-dropdown-empty">No campaigns available</div>';
-    } else {
-      dropdown.innerHTML = campaigns.map(c =>
-        `<button class="campaign-dropdown-item ${c.id == currentId ? 'active' : ''}" data-campaign-id="${c.id}">
-          ${c.name}
-        </button>`
-      ).join('');
-
-      // Add click handlers to campaign items
-      dropdown.querySelectorAll('.campaign-dropdown-item').forEach(item => {
-        item.addEventListener('click', async (e) => {
-          const campaignId = e.target.getAttribute('data-campaign-id');
-          await this.handleCampaignChange(campaignId);
-          dropdown.classList.remove('show'); // Close dropdown after selection
-        });
-      });
-    }
-  },
-
-  setupCampaignDropdown() {
-    const campaignBtn = document.getElementById('nav-campaign-btn');
-    const campaignDropdown = document.getElementById('nav-campaign-dropdown');
-
-    if (campaignBtn && campaignDropdown) {
-      // Toggle dropdown on button click
-      campaignBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        campaignDropdown.classList.toggle('show');
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!campaignDropdown.contains(e.target) && e.target !== campaignBtn) {
-          campaignDropdown.classList.remove('show');
-        }
-      });
-    }
-  },
-
   async handleCampaignChange(campaignId) {
     if (!campaignId) return;
 
@@ -235,13 +477,16 @@ const App = {
 
     await CampaignContext.setActiveCampaign(parseInt(campaignId));
 
-    // Update campaign dropdown to show new campaign name
-    this.renderCampaignDropdown();
+    // Update sidebar to show new active campaign and encounters
+    Sidebar.renderCampaignsList();
+    Sidebar.renderEncountersList();
 
     // Reload active page
     if (activePage) {
       const pageId = activePage.id;
-      if (pageId === 'encounters-page' && typeof Encounters !== 'undefined') {
+      if (pageId === 'campaigns-page' && typeof Campaigns !== 'undefined') {
+        await Campaigns.init();
+      } else if (pageId === 'encounters-page' && typeof Encounters !== 'undefined') {
         await Encounters.init();
       } else if (pageId === 'players-page' && typeof Players !== 'undefined') {
         await Players.init();
@@ -252,18 +497,12 @@ const App = {
   },
 
   handleNoCampaigns() {
-    document.getElementById('main-nav').classList.remove('hidden');
+    // Show top bar and sidebar
+    document.getElementById('top-bar').classList.remove('hidden');
+    document.getElementById('sidebar').classList.remove('hidden');
 
-    const label = document.getElementById('nav-campaign-label');
-    const dropdown = document.getElementById('nav-campaign-dropdown');
-
-    if (label) {
-      label.textContent = 'No campaigns available';
-    }
-
-    if (dropdown) {
-      dropdown.innerHTML = '<div class="campaign-dropdown-empty">No campaigns available</div>';
-    }
+    // Initialize sidebar (will show "No campaigns")
+    Sidebar.init();
 
     // Update user info in avatar dropdown
     const user = Auth.getUser();
@@ -292,8 +531,12 @@ const App = {
   },
 
   showLogin() {
-    // Hide navigation
-    document.getElementById('main-nav').classList.add('hidden');
+    // Hide top bar and sidebar
+    const topBar = document.getElementById('top-bar');
+    const sidebar = document.getElementById('sidebar');
+
+    if (topBar) topBar.classList.add('hidden');
+    if (sidebar) sidebar.style.display = 'none';
 
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {
@@ -316,19 +559,30 @@ const App = {
       page.classList.add('active');
     }
 
-    // Update active state on navigation links
-    // Extract the base page name (remove '-page' suffix)
+    // Update active state on sidebar navigation
     const pageName = pageId.replace('-page', '');
 
-    // Remove active class from all nav links
-    document.querySelectorAll('.nav-menu a').forEach(link => {
-      link.classList.remove('active');
+    // Remove active class from all sidebar nav items
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+      item.classList.remove('active');
     });
 
-    // Add active class to the corresponding nav link
-    const activeLink = document.querySelector(`.nav-menu a[data-page="${pageName}"]`);
-    if (activeLink) {
-      activeLink.classList.add('active');
+    // Add active class to the corresponding sidebar nav item
+    const activeItem = document.querySelector(`.sidebar-nav-item[data-page="${pageName}"]`);
+    if (activeItem) {
+      activeItem.classList.add('active');
+    }
+
+    // Update settings link styling in top bar
+    const settingsLink = document.querySelector('.top-bar-settings');
+    if (settingsLink) {
+      if (pageName === 'settings') {
+        settingsLink.style.fontWeight = '600';
+        settingsLink.style.color = 'var(--primary-color)';
+      } else {
+        settingsLink.style.fontWeight = '500';
+        settingsLink.style.color = 'var(--text-color)';
+      }
     }
   }
 };

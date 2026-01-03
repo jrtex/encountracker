@@ -587,7 +587,7 @@ const Monsters = {
       // Render monster details with quantity selector
       resultsContainer.innerHTML = `
         <div class="monster-detail-modal-view">
-          <button class="btn btn-sm btn-secondary mb-2" id="back-to-search">← Back to Search</button>
+          <button class="btn btn-sm btn-secondary mb-2" id="back-to-search"><i class="fas fa-arrow-left"></i> Back to Search</button>
 
           <div style="margin-top: 1rem; display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
             <div class="form-group" style="margin-bottom: 0;">
@@ -825,7 +825,7 @@ const Monsters = {
             `Failed to load monster details: ${error.message}`,
             'error'
           ).outerHTML}
-          <button class="btn btn-sm btn-secondary mt-2" id="back-to-search-error">← Back to Search</button>
+          <button class="btn btn-sm btn-secondary mt-2" id="back-to-search-error"><i class="fas fa-arrow-left"></i> Back to Search</button>
         </div>
       `;
 
