@@ -234,16 +234,33 @@ const Campaigns = {
       const card = CampaignManager.createCampaignCard(campaign);
 
       // Highlight active campaign
-      if (campaign.id === activeCampaignId) {
+      const isActive = campaign.id === activeCampaignId;
+      if (isActive) {
         card.classList.add('active-campaign');
       }
 
-      // Make card clickable to switch campaigns
+      // Add active indicator icon to card header
       const cardHeader = card.querySelector('.card-header');
       if (cardHeader) {
-        cardHeader.classList.add('clickable');
-        cardHeader.style.cursor = 'pointer';
-        cardHeader.addEventListener('click', async () => {
+        // Make entire card clickable
+        card.style.cursor = 'pointer';
+        card.classList.add('campaign-card-clickable');
+
+        // Add active indicator to header
+        if (isActive) {
+          const activeIndicator = document.createElement('i');
+          activeIndicator.className = 'fas fa-check-circle active-campaign-indicator';
+          activeIndicator.title = 'Active Campaign';
+          cardHeader.appendChild(activeIndicator);
+        }
+
+        // Make card clickable to switch campaigns
+        card.addEventListener('click', async (e) => {
+          // Don't trigger if clicking on action buttons
+          if (e.target.closest('.card-footer') || e.target.closest('.btn')) {
+            return;
+          }
+
           if (campaign.id !== activeCampaignId) {
             await App.handleCampaignChange(campaign.id);
             await this.loadCampaigns(); // Refresh to update highlighting
