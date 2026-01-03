@@ -306,7 +306,7 @@ const Initiative = {
         </div>
 
         <div class="tracker-controls">
-          <button id="next-turn-btn" class="btn btn-primary admin-only">Next Turn ➜</button>
+          <button id="next-turn-btn" class="btn btn-primary admin-only">Next Turn <i class="fas fa-chevron-right"></i></button>
         </div>
 
         <div class="initiative-list">
@@ -413,7 +413,7 @@ const Initiative = {
         <div class="health-section">
           <!-- Actions Menu (3-Dot) -->
           <div class="actions-menu admin-only">
-            <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions">⋮</button>
+            <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions"><i class="fas fa-ellipsis-v"></i></button>
             <div class="dropdown-menu">
               <button class="dropdown-item toggle-remove-btn" data-init-id="${participant.id}" data-is-removed="${participant.is_removed_from_combat || false}">
                 ${participant.is_removed_from_combat ? 'Re-add to Combat' : 'Remove from Combat'}
@@ -434,8 +434,8 @@ const Initiative = {
           <!-- HP Controls -->
           <div class="hp-controls admin-only">
             <input type="number" class="hp-input" placeholder="Amount" data-init-id="${participant.id}">
-            <button class="btn btn-sm btn-danger hp-damage-btn" data-init-id="${participant.id}">−</button>
-            <button class="btn btn-sm btn-success hp-heal-btn" data-init-id="${participant.id}">+</button>
+            <button class="btn btn-sm btn-danger hp-damage-btn" data-init-id="${participant.id}"><i class="fas fa-heart-broken"></i></button>
+            <button class="btn btn-sm btn-success hp-heal-btn" data-init-id="${participant.id}"><i class="fas fa-heart"></i></button>
           </div>
         </div>
 
