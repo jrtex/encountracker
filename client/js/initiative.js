@@ -60,12 +60,19 @@ const Initiative = {
   currentEncounter: null,
   initiativeData: null,
   container: null,
+  listenersSetUp: false,
 
   async init() {
     this.container = document.getElementById('initiative-tracker-widget');
     if (!this.container) {
       console.error('Initiative tracker widget container not found');
       return;
+    }
+
+    // Set up delegated event listeners once
+    if (!this.listenersSetUp) {
+      this.setupDelegatedListeners();
+      this.listenersSetUp = true;
     }
 
     await this.loadActiveEncounter();
@@ -521,7 +528,122 @@ const Initiative = {
     `;
   },
 
+  setupDelegatedListeners() {
+    // Set up event delegation on container for all participant-specific buttons
+    // This is called once and handles all dynamically created elements
+
+    // HP damage and heal buttons
+    this.container.addEventListener('click', (e) => {
+      const damageBtn = e.target.closest('.hp-damage-btn');
+      if (damageBtn) {
+        const initId = damageBtn.getAttribute('data-init-id');
+        const input = this.container.querySelector(`.hp-input[data-init-id="${initId}"]`);
+        const amount = parseInt(input.value) || 0;
+        if (amount > 0) {
+          this.applyDamage(initId, amount);
+          input.value = '';
+        }
+        return;
+      }
+
+      const healBtn = e.target.closest('.hp-heal-btn');
+      if (healBtn) {
+        const initId = healBtn.getAttribute('data-init-id');
+        const input = this.container.querySelector(`.hp-input[data-init-id="${initId}"]`);
+        const amount = parseInt(input.value) || 0;
+        if (amount > 0) {
+          this.applyHealing(initId, amount);
+          input.value = '';
+        }
+        return;
+      }
+
+      // Add status buttons
+      const statusBtn = e.target.closest('.add-status-btn');
+      if (statusBtn) {
+        const initId = statusBtn.getAttribute('data-init-id');
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.showAddStatusModal(initId);
+        return;
+      }
+
+      // Add temp HP buttons
+      const tempHpBtn = e.target.closest('.add-temp-hp-btn');
+      if (tempHpBtn) {
+        const initId = tempHpBtn.getAttribute('data-init-id');
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.showAddTempHpModal(initId);
+        return;
+      }
+
+      // Toggle remove from combat
+      const removeBtn = e.target.closest('.toggle-remove-btn');
+      if (removeBtn) {
+        const initId = removeBtn.getAttribute('data-init-id');
+        const isCurrentlyRemoved = removeBtn.getAttribute('data-is-removed') === 'true';
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.toggleRemoveFromCombat(initId, !isCurrentlyRemoved);
+        return;
+      }
+
+      // Menu toggles
+      const menuToggle = e.target.closest('.menu-toggle');
+      if (menuToggle) {
+        e.stopPropagation();
+        const dropdown = menuToggle.nextElementSibling;
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          if (menu !== dropdown) menu.classList.remove('show');
+        });
+        dropdown.classList.toggle('show');
+        return;
+      }
+
+      // Condition badges
+      const conditionBadge = e.target.closest('.condition-badge');
+      if (conditionBadge) {
+        e.stopPropagation();
+        const conditionData = conditionBadge.getAttribute('data-condition');
+        let condition;
+        try {
+          condition = JSON.parse(conditionData);
+        } catch {
+          condition = conditionData;
+        }
+        this.showConditionBubble(condition, conditionBadge);
+        return;
+      }
+
+      // Death saves badges
+      const deathSavesBadge = e.target.closest('.badge-death-saves');
+      if (deathSavesBadge) {
+        e.stopPropagation();
+        const initId = deathSavesBadge.getAttribute('data-init-id');
+        this.showDeathSavesModal(initId);
+        return;
+      }
+
+      // Actions toggle
+      const actionsHeader = e.target.closest('.actions-header');
+      if (actionsHeader) {
+        const toggle = actionsHeader.querySelector('.actions-toggle');
+        const content = actionsHeader.nextElementSibling;
+        toggle.classList.toggle('expanded');
+        content.classList.toggle('collapsed');
+        return;
+      }
+
+      // Close dropdowns when clicking outside actions menu
+      if (!e.target.closest('.actions-menu')) {
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      }
+    });
+  },
+
   setupEventListeners() {
+    // Set up listeners for top-level buttons that are recreated on each render
+
     // Next turn button
     const nextBtn = this.container.querySelector('#next-turn-btn');
     if (nextBtn) {
@@ -533,134 +655,6 @@ const Initiative = {
     if (endBtn) {
       endBtn.addEventListener('click', () => this.endCombat());
     }
-
-    // HP damage buttons
-    this.container.querySelectorAll('.hp-damage-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const initId = e.target.getAttribute('data-init-id');
-        const input = this.container.querySelector(`.hp-input[data-init-id="${initId}"]`);
-        const amount = parseInt(input.value) || 0;
-        if (amount > 0) {
-          this.applyDamage(initId, amount);
-          input.value = '';
-        }
-      });
-    });
-
-    // HP heal buttons
-    this.container.querySelectorAll('.hp-heal-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const initId = e.target.getAttribute('data-init-id');
-        const input = this.container.querySelector(`.hp-input[data-init-id="${initId}"]`);
-        const amount = parseInt(input.value) || 0;
-        if (amount > 0) {
-          this.applyHealing(initId, amount);
-          input.value = '';
-        }
-      });
-    });
-
-    // Add status buttons
-    this.container.querySelectorAll('.add-status-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const initId = e.target.getAttribute('data-init-id');
-        // Close any open dropdowns
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          menu.classList.remove('show');
-        });
-        this.showAddStatusModal(initId);
-      });
-    });
-
-    // Add temp HP buttons
-    this.container.querySelectorAll('.add-temp-hp-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const initId = e.target.getAttribute('data-init-id');
-        // Close any open dropdowns
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          menu.classList.remove('show');
-        });
-        this.showAddTempHpModal(initId);
-      });
-    });
-
-    // Toggle remove from combat buttons
-    this.container.querySelectorAll('.toggle-remove-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const initId = e.target.getAttribute('data-init-id');
-        const isCurrentlyRemoved = e.target.getAttribute('data-is-removed') === 'true';
-
-        // Close any open dropdowns
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          menu.classList.remove('show');
-        });
-
-        this.toggleRemoveFromCombat(initId, !isCurrentlyRemoved);
-      });
-    });
-
-    // Dropdown menu toggles
-    this.container.querySelectorAll('.menu-toggle').forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const dropdown = toggle.nextElementSibling;
-
-        // Close all other dropdowns
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          if (menu !== dropdown) {
-            menu.classList.remove('show');
-          }
-        });
-
-        // Toggle this dropdown
-        dropdown.classList.toggle('show');
-      });
-    });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.actions-menu')) {
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          menu.classList.remove('show');
-        });
-      }
-    });
-
-    // Condition badge click handlers
-    this.container.querySelectorAll('.condition-badge').forEach(badge => {
-      badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const conditionData = e.target.getAttribute('data-condition');
-
-        let condition;
-        try {
-          condition = JSON.parse(conditionData);
-        } catch {
-          condition = conditionData; // Simple string
-        }
-
-        this.showConditionBubble(condition, e.target);
-      });
-    });
-
-    // Death saves badge click handlers
-    this.container.querySelectorAll('.badge-death-saves').forEach(badge => {
-      badge.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const initId = e.target.getAttribute('data-init-id');
-        this.showDeathSavesModal(initId);
-      });
-    });
-
-    // Actions toggle handlers
-    this.container.querySelectorAll('.actions-header').forEach(header => {
-      header.addEventListener('click', (e) => {
-        const toggle = header.querySelector('.actions-toggle');
-        const content = header.nextElementSibling;
-        toggle.classList.toggle('expanded');
-        content.classList.toggle('collapsed');
-      });
-    });
   },
 
   async showStartCombatModal() {
