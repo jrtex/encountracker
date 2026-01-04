@@ -477,9 +477,8 @@ const App = {
 
     await CampaignContext.setActiveCampaign(parseInt(campaignId));
 
-    // Update sidebar to show new active campaign and encounters
-    Sidebar.renderCampaignsList();
-    Sidebar.renderEncountersList();
+    // Sidebar will be updated automatically via the CampaignContext listener
+    // (subscribed in Sidebar.init())
 
     // Reload active page
     if (activePage) {

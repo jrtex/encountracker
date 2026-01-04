@@ -290,10 +290,21 @@ const Encounters = {
         Components.showToast('Encounter updated successfully', 'success');
       } else {
         await API.encounters.create(data);
+        Components.showToast('Encounter created successfully', 'success');
       }
 
       document.querySelector('.modal-overlay').remove();
       await this.loadEncounters();
+
+      // Update sidebar encounter list
+      if (typeof Sidebar !== 'undefined' && Sidebar.renderEncountersList) {
+        await Sidebar.renderEncountersList();
+      }
+
+      // Update dashboard initiative tracker
+      if (typeof Initiative !== 'undefined' && Initiative.init) {
+        await Initiative.init();
+      }
     } catch (error) {
       Components.showToast(error.message || 'Failed to save encounter', 'error');
     }
@@ -307,6 +318,16 @@ const Encounters = {
           await API.encounters.delete(encounterId);
           Components.showToast('Encounter deleted successfully', 'success');
           await this.loadEncounters();
+
+          // Update sidebar encounter list
+          if (typeof Sidebar !== 'undefined' && Sidebar.renderEncountersList) {
+            await Sidebar.renderEncountersList();
+          }
+
+          // Update dashboard initiative tracker
+          if (typeof Initiative !== 'undefined' && Initiative.init) {
+            await Initiative.init();
+          }
         } catch (error) {
           Components.showToast(error.message || 'Failed to delete encounter', 'error');
         }
