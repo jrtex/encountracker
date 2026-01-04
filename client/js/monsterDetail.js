@@ -84,9 +84,8 @@ const MonsterDetail = {
       this.render();
 
       // Show edit button if admin
-      const editBtn = document.getElementById('monster-edit-toggle-btn');
-      if (editBtn && Auth.isAdmin()) {
-        editBtn.style.display = 'inline-block';
+      if (Auth.isAdmin()) {
+        this.showViewModeButtons();
       }
     } catch (error) {
       Components.hideSpinner(contentEl);
@@ -304,10 +303,7 @@ const MonsterDetail = {
 
   renderEditMode() {
     const contentEl = document.getElementById('monster-detail-content');
-    const editActions = document.getElementById('monster-detail-edit-actions');
     const m = this.currentMonster;
-
-    editActions.style.display = 'flex';
 
     const html = `
       <form id="monster-detail-edit-form" onsubmit="return false;">
@@ -428,17 +424,32 @@ const MonsterDetail = {
     return html;
   },
 
+  showViewModeButtons() {
+    const editBtn = document.getElementById('monster-edit-toggle-btn');
+    const cancelBtn = document.getElementById('monster-detail-cancel-btn');
+    const saveBtn = document.getElementById('monster-detail-save-btn');
+
+    if (editBtn) editBtn.style.display = 'inline-block';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+  },
+
+  showEditModeButtons() {
+    const editBtn = document.getElementById('monster-edit-toggle-btn');
+    const cancelBtn = document.getElementById('monster-detail-cancel-btn');
+    const saveBtn = document.getElementById('monster-detail-save-btn');
+
+    if (editBtn) editBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (saveBtn) saveBtn.style.display = 'inline-block';
+  },
+
   toggleEditMode() {
     if (this.isEditMode) {
       this.cancelEdit();
     } else {
       this.isEditMode = true;
-      const editBtn = document.getElementById('monster-edit-toggle-btn');
-      if (editBtn) {
-        editBtn.innerHTML = '<i class="fas fa-times"></i> Cancel';
-        editBtn.classList.remove('btn-primary');
-        editBtn.classList.add('btn-secondary');
-      }
+      this.showEditModeButtons();
       this.render();
     }
   },
@@ -447,19 +458,7 @@ const MonsterDetail = {
     // Revert to original data and exit edit mode
     this.currentMonster = JSON.parse(JSON.stringify(this.originalMonsterData));
     this.isEditMode = false;
-
-    const editBtn = document.getElementById('monster-edit-toggle-btn');
-    if (editBtn) {
-      editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-      editBtn.classList.remove('btn-secondary');
-      editBtn.classList.add('btn-primary');
-    }
-
-    const editActions = document.getElementById('monster-detail-edit-actions');
-    if (editActions) {
-      editActions.style.display = 'none';
-    }
-
+    this.showViewModeButtons();
     this.render();
   },
 
@@ -507,18 +506,7 @@ const MonsterDetail = {
       // Reload and exit edit mode
       this.isEditMode = false;
       await this.loadMonster(this.currentMonster.id);
-
-      const editBtn = document.getElementById('monster-edit-toggle-btn');
-      if (editBtn) {
-        editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
-        editBtn.classList.remove('btn-secondary');
-        editBtn.classList.add('btn-primary');
-      }
-
-      const editActions = document.getElementById('monster-detail-edit-actions');
-      if (editActions) {
-        editActions.style.display = 'none';
-      }
+      // loadMonster() will call showViewModeButtons() for admin users
     } catch (error) {
       Components.showToast(error.message || 'Failed to save changes', 'error');
     }
