@@ -214,18 +214,26 @@ const Initiative = {
       }
     } else {
       // Show list of pending encounters with "Start" button for each
-      const encounterCards = pendingEncounters.map(enc => `
-        <div class="pending-encounter-card">
-          <div class="pending-encounter-header">
-            <h4>${enc.name}</h4>
-            <span class="badge badge-${this.getDifficultyBadgeType(enc.difficulty)}">${enc.difficulty}</span>
+      const encounterCards = pendingEncounters.map(enc => {
+        const monsterCount = enc.monster_count || 0;
+        const monsterText = monsterCount === 1 ? 'monster' : 'monsters';
+
+        return `
+          <div class="pending-encounter-card">
+            <div class="pending-encounter-header">
+              <h4>${enc.name}</h4>
+              <span class="badge badge-${this.getDifficultyBadgeType(enc.difficulty)}">${enc.difficulty}</span>
+            </div>
+            <p class="pending-encounter-description">${enc.description || 'No description'}</p>
+            <p class="pending-encounter-meta">
+              <small><i class="fas fa-dragon"></i> ${monsterCount} ${monsterText}</small>
+            </p>
+            <button class="btn btn-success btn-sm start-encounter-btn admin-only" data-encounter-id="${enc.id}">
+              Start Combat
+            </button>
           </div>
-          <p class="pending-encounter-description">${enc.description || 'No description'}</p>
-          <button class="btn btn-success btn-sm start-encounter-btn admin-only" data-encounter-id="${enc.id}">
-            Start Combat
-          </button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       this.container.innerHTML = `
         <div class="pending-encounters-list">

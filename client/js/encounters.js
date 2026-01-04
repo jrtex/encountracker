@@ -103,6 +103,9 @@ const Encounters = {
       this.getStatusBadgeType(encounter.status)
     );
 
+    const monsterCount = encounter.monster_count || 0;
+    const monsterText = monsterCount === 1 ? 'monster' : 'monsters';
+
     const content = `
       <p class="encounter-campaign">
         <small><strong>Campaign:</strong> ${encounter.campaign_name || 'Unknown'}</small>
@@ -113,6 +116,7 @@ const Encounters = {
         ${statusBadge.outerHTML}
       </div>
       <p class="encounter-meta">
+        <small><i class="fas fa-dragon"></i> ${monsterCount} ${monsterText}</small>
         <small>Created: ${createdDate}</small>
       </p>
     `;

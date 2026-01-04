@@ -219,6 +219,22 @@ const Monsters = {
       card.classList.add('monster-card-wounded');
     }
 
+    // Make card clickable to view details
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', (e) => {
+      // Don't navigate if clicking on buttons
+      if (e.target.closest('button')) {
+        return;
+      }
+
+      // Navigate to detail page
+      const detailPage = document.getElementById('monster-detail-page');
+      if (detailPage) {
+        detailPage.dataset.monsterId = monster.id;
+        App.showPage('monster-detail-page');
+      }
+    });
+
     return card;
   },
 

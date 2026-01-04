@@ -113,6 +113,44 @@ router.get('/dnd/:id', async (req, res, next) => {
   }
 });
 
+// GET /api/monsters/:id - Get single monster with actions
+router.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Verify ownership through encounter → campaign
+    const monster = await database.get(
+      `SELECT m.*, e.name as encounter_name, c.name as campaign_name
+       FROM monsters m
+       JOIN encounters e ON m.encounter_id = e.id
+       JOIN campaigns c ON e.campaign_id = c.id
+       WHERE m.id = $1 AND c.dm_user_id = $2`,
+      [id, userId]
+    );
+
+    if (!monster) {
+      return res.status(404).json({
+        success: false,
+        message: 'Monster not found'
+      });
+    }
+
+    // Get actions
+    const actions = await database.all(
+      'SELECT * FROM monster_actions WHERE monster_id = $1 ORDER BY action_category, name',
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: { ...monster, actions }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/monsters - Add monster to encounter (admin only)
 router.post('/',
   authorize('admin'),
@@ -386,5 +424,174 @@ router.get('/:id/actions', authenticate, async (req, res, next) => {
     next(error);
   }
 });
+
+// POST /api/monsters/:id/actions - Create monster action (admin only)
+router.post('/:id/actions',
+  authorize('admin'),
+  [
+    body('category').isIn(['action', 'legendary', 'special', 'reaction']).withMessage('Invalid category'),
+    body('name').trim().notEmpty().withMessage('Action name required'),
+    body('description').trim().notEmpty().withMessage('Description required'),
+    validate
+  ],
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { category, name, description } = req.body;
+      const userId = req.user.id;
+
+      // Verify ownership
+      const monster = await database.get(
+        `SELECT m.id FROM monsters m
+         JOIN encounters e ON m.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE m.id = $1 AND c.dm_user_id = $2`,
+        [id, userId]
+      );
+
+      if (!monster) {
+        return res.status(404).json({
+          success: false,
+          message: 'Monster not found'
+        });
+      }
+
+      const result = await database.run(
+        `INSERT INTO monster_actions (monster_id, action_category, name, description)
+         VALUES ($1, $2, $3, $4)`,
+        [id, category, name, description]
+      );
+
+      const action = await database.get(
+        'SELECT * FROM monster_actions WHERE id = $1',
+        [result.lastID]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Action created',
+        data: action
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// PUT /api/monsters/actions/:id - Update monster action (admin only)
+router.put('/actions/:id',
+  authorize('admin'),
+  [
+    body('category').optional().isIn(['action', 'legendary', 'special', 'reaction']),
+    body('name').optional().trim().notEmpty(),
+    body('description').optional().trim().notEmpty(),
+    validate
+  ],
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { category, name, description } = req.body;
+      const userId = req.user.id;
+
+      // Verify ownership through monster → encounter → campaign
+      const action = await database.get(
+        `SELECT ma.id FROM monster_actions ma
+         JOIN monsters m ON ma.monster_id = m.id
+         JOIN encounters e ON m.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE ma.id = $1 AND c.dm_user_id = $2`,
+        [id, userId]
+      );
+
+      if (!action) {
+        return res.status(404).json({
+          success: false,
+          message: 'Action not found'
+        });
+      }
+
+      const updates = [];
+      const params = [];
+
+      if (category !== undefined) {
+        updates.push('action_category = $' + (params.length + 1));
+        params.push(category);
+      }
+      if (name !== undefined) {
+        updates.push('name = $' + (params.length + 1));
+        params.push(name);
+      }
+      if (description !== undefined) {
+        updates.push('description = $' + (params.length + 1));
+        params.push(description);
+      }
+
+      if (updates.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No fields to update'
+        });
+      }
+
+      params.push(id);
+
+      await database.run(
+        `UPDATE monster_actions SET ${updates.join(', ')} WHERE id = $${params.length}`,
+        params
+      );
+
+      const updated = await database.get(
+        'SELECT * FROM monster_actions WHERE id = $1',
+        [id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Action updated',
+        data: updated
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// DELETE /api/monsters/actions/:id - Delete monster action (admin only)
+router.delete('/actions/:id',
+  authorize('admin'),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      // Verify ownership
+      const action = await database.get(
+        `SELECT ma.id FROM monster_actions ma
+         JOIN monsters m ON ma.monster_id = m.id
+         JOIN encounters e ON m.encounter_id = e.id
+         JOIN campaigns c ON e.campaign_id = c.id
+         WHERE ma.id = $1 AND c.dm_user_id = $2`,
+        [id, userId]
+      );
+
+      if (!action) {
+        return res.status(404).json({
+          success: false,
+          message: 'Action not found'
+        });
+      }
+
+      await database.run('DELETE FROM monster_actions WHERE id = $1', [id]);
+
+      res.json({
+        success: true,
+        message: 'Action deleted',
+        data: { id: parseInt(id), deleted: true }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 module.exports = router;

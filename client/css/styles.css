@@ -774,6 +774,14 @@ body {
 .encounter-meta {
   color: #666;
   margin: 0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.encounter-meta i {
+  margin-right: 0.25rem;
+  color: var(--primary-color);
 }
 
 /* Completed Encounter Styling */
@@ -1949,5 +1957,247 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+}
+
+/* Monster Detail Page Styles */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.breadcrumb i {
+  font-size: 0.75rem;
+}
+
+.detail-section {
+  background: white;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.detail-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.detail-section h4 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-item label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hp-display {
+  font-family: monospace;
+}
+
+.notes-display {
+  white-space: pre-wrap;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.stat-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.success-text {
+  color: var(--success-color);
+}
+
+.danger-text {
+  color: var(--danger-color);
+}
+
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header-with-action h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.action-category-header {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.25rem;
+}
+
+.action-block {
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+
+.action-block strong {
+  color: var(--text-color);
+}
+
+.action-block p {
+  margin: 0.25rem 0 0 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.action-edit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: var(--border-radius);
+  border-left: 3px solid var(--primary-color);
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-content strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.action-content p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.action-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.dnd-api-section {
+  background: #f8f9fa;
+  border-left: 4px solid var(--primary-color);
+}
+
+.dnd-meta {
+  font-style: italic;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.ability-scores-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.ability-score {
+  text-align: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.ability-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.ability-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dnd-detail-row {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.dnd-detail-row strong {
+  color: var(--text-color);
+}
+
+.page-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #dee2e6;
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+}
+
+/* Mobile responsiveness for monster detail page */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ability-scores-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .action-edit-item {
+    flex-direction: column;
+  }
+
+  .action-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .ability-scores-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

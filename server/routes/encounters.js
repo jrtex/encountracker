@@ -13,7 +13,8 @@ router.get('/', async (req, res) => {
   const { campaign_id, status } = req.query;
 
   let query = `
-    SELECT e.*, c.name as campaign_name
+    SELECT e.*, c.name as campaign_name,
+           (SELECT COUNT(*) FROM monsters m WHERE m.encounter_id = e.id) as monster_count
     FROM encounters e
     JOIN campaigns c ON e.campaign_id = c.id
     WHERE c.dm_user_id = ?

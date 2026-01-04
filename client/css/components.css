@@ -558,8 +558,19 @@ textarea.form-control {
 .pending-encounter-description {
   color: var(--text-muted);
   font-size: 0.9rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   min-height: 3rem;
+}
+
+.pending-encounter-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.pending-encounter-meta i {
+  margin-right: 0.25rem;
+  color: var(--primary-color);
 }
 
 .no-active-encounter {

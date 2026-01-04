@@ -83,7 +83,8 @@ const Components = {
           {
             id: 'cancel',
             label: 'Cancel',
-            class: 'btn-secondary'
+            class: 'btn-secondary',
+            handler: () => {} // Empty handler to close modal
           },
           {
             id: 'confirm',

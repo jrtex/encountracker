@@ -217,6 +217,30 @@ const API = {
 
     getActions(id) {
       return API.request(`/monsters/${id}/actions`);
+    },
+
+    getById(id) {
+      return API.request(`/monsters/${id}`);
+    },
+
+    createAction(monsterId, data) {
+      return API.request(`/monsters/${monsterId}/actions`, {
+        method: 'POST',
+        body: data
+      });
+    },
+
+    updateAction(actionId, data) {
+      return API.request(`/monsters/actions/${actionId}`, {
+        method: 'PUT',
+        body: data
+      });
+    },
+
+    deleteAction(actionId) {
+      return API.request(`/monsters/actions/${actionId}`, {
+        method: 'DELETE'
+      });
     }
   },
 
