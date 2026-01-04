@@ -430,11 +430,17 @@ const Initiative = {
           <div class="actions-menu admin-only">
             <button class="btn-icon menu-toggle" data-init-id="${participant.id}" title="Actions"><i class="fas fa-ellipsis-v"></i></button>
             <div class="dropdown-menu">
-              <button class="dropdown-item toggle-remove-btn" data-init-id="${participant.id}" data-is-removed="${participant.is_removed_from_combat || false}">
-                ${participant.is_removed_from_combat ? 'Re-add to Combat' : 'Remove from Combat'}
-              </button>
-              <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Manage Status Effects</button>
-              <button class="dropdown-item add-temp-hp-btn" data-init-id="${participant.id}">Add Temporary HP</button>
+              ${participant.is_removed_from_combat ? `
+                <button class="dropdown-item toggle-remove-btn" data-init-id="${participant.id}" data-is-removed="true">
+                  Re-add to Combat
+                </button>
+              ` : `
+                <button class="dropdown-item toggle-remove-btn" data-init-id="${participant.id}" data-is-removed="false">
+                  Remove from Combat
+                </button>
+                <button class="dropdown-item add-status-btn" data-init-id="${participant.id}">Manage Status Effects</button>
+                <button class="dropdown-item add-temp-hp-btn" data-init-id="${participant.id}">Add Temporary HP</button>
+              `}
             </div>
           </div>
 
@@ -562,7 +568,11 @@ const Initiative = {
       const statusBtn = e.target.closest('.add-status-btn');
       if (statusBtn) {
         const initId = statusBtn.getAttribute('data-init-id');
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+          const row = menu.closest('.initiative-row');
+          if (row) row.classList.remove('dropdown-open');
+        });
         this.showAddStatusModal(initId);
         return;
       }
@@ -571,7 +581,11 @@ const Initiative = {
       const tempHpBtn = e.target.closest('.add-temp-hp-btn');
       if (tempHpBtn) {
         const initId = tempHpBtn.getAttribute('data-init-id');
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+          const row = menu.closest('.initiative-row');
+          if (row) row.classList.remove('dropdown-open');
+        });
         this.showAddTempHpModal(initId);
         return;
       }
@@ -581,7 +595,11 @@ const Initiative = {
       if (removeBtn) {
         const initId = removeBtn.getAttribute('data-init-id');
         const isCurrentlyRemoved = removeBtn.getAttribute('data-is-removed') === 'true';
-        this.container.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
+          menu.classList.remove('show');
+          const row = menu.closest('.initiative-row');
+          if (row) row.classList.remove('dropdown-open');
+        });
         this.toggleRemoveFromCombat(initId, !isCurrentlyRemoved);
         return;
       }
@@ -591,10 +609,24 @@ const Initiative = {
       if (menuToggle) {
         e.stopPropagation();
         const dropdown = menuToggle.nextElementSibling;
+        const parentRow = menuToggle.closest('.initiative-row');
+
+        // Close all other dropdowns and remove z-index class from their rows
         this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
-          if (menu !== dropdown) menu.classList.remove('show');
+          if (menu !== dropdown) {
+            menu.classList.remove('show');
+            const otherRow = menu.closest('.initiative-row');
+            if (otherRow) otherRow.classList.remove('dropdown-open');
+          }
         });
+
+        // Toggle this dropdown and add z-index class to parent row
         dropdown.classList.toggle('show');
+        if (dropdown.classList.contains('show')) {
+          parentRow.classList.add('dropdown-open');
+        } else {
+          parentRow.classList.remove('dropdown-open');
+        }
         return;
       }
 
@@ -636,6 +668,8 @@ const Initiative = {
       if (!e.target.closest('.actions-menu')) {
         this.container.querySelectorAll('.dropdown-menu').forEach(menu => {
           menu.classList.remove('show');
+          const row = menu.closest('.initiative-row');
+          if (row) row.classList.remove('dropdown-open');
         });
       }
     });

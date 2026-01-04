@@ -1436,6 +1436,13 @@ body {
   border-left: 4px solid transparent;
   transition: var(--transition);
   position: relative;
+  z-index: 1;
+}
+
+/* Ensure row with open dropdown appears above other rows */
+.initiative-row:has(.dropdown-menu.show),
+.initiative-row.dropdown-open {
+  z-index: 1001;
 }
 
 .initiative-row.current-turn {
@@ -1600,7 +1607,7 @@ body {
   position: absolute;
   top: -0.5rem;
   right: -0.5rem;
-  z-index: 10;
+  z-index: 100;
 }
 
 .btn-icon {
@@ -1634,6 +1641,7 @@ body {
   overflow: hidden;
   z-index: 1000;
   display: none;
+  opacity: 1;
 }
 
 .dropdown-menu.show {
