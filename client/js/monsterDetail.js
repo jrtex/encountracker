@@ -488,6 +488,10 @@ const MonsterDetail = {
       Components.showToast('Armor Class must be non-negative', 'error');
       return;
     }
+    if (currentHp > maxHp) {
+      Components.showToast('Current HP cannot exceed max HP', 'error');
+      return;
+    }
 
     try {
       const data = {

@@ -1285,6 +1285,11 @@ const Monsters = {
       return;
     }
 
+    if (currentHp > maxHp) {
+      Components.showToast('Current HP cannot exceed max HP', 'error');
+      return;
+    }
+
     const data = {
       encounter_id: this.encounterId,
       name: monster.name,

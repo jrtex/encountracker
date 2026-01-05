@@ -274,6 +274,25 @@ router.put('/:id',
         });
       }
 
+      // Validate HP relationship
+      if (current_hp !== undefined || max_hp !== undefined) {
+        // Get existing HP values to validate against
+        const existing = await database.get(
+          'SELECT max_hp, current_hp FROM monsters WHERE id = ?',
+          [id]
+        );
+
+        const finalMaxHp = max_hp !== undefined ? max_hp : existing.max_hp;
+        const finalCurrentHp = current_hp !== undefined ? current_hp : existing.current_hp;
+
+        if (finalCurrentHp > finalMaxHp) {
+          return res.status(400).json({
+            success: false,
+            message: 'Current HP cannot exceed max HP'
+          });
+        }
+      }
+
       // Build update query dynamically based on provided fields
       const updates = [];
       const params = [];
