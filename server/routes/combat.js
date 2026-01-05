@@ -805,6 +805,19 @@ router.put('/initiative/:id',
 
             const nextParticipant = participants[nextIndex];
 
+            // If we wrapped around to the first participant, increment the round
+            if (nextIndex === 0) {
+              const encounter = await database.get(
+                'SELECT current_round FROM encounters WHERE id = ?',
+                [entry.encounter_id]
+              );
+              const currentRound = encounter.current_round || 1;
+              await database.run(
+                'UPDATE encounters SET current_round = ? WHERE id = ?',
+                [currentRound + 1, entry.encounter_id]
+              );
+            }
+
             // Update all participants to clear current turn
             await database.run(
               'UPDATE initiative_tracker SET is_current_turn = false WHERE encounter_id = ?',
