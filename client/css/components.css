@@ -529,6 +529,11 @@ textarea.form-control {
   gap: 1rem;
 }
 
+.pending-encounters-grid > .pending-encounter-card {
+  display: flex;
+  flex-direction: column;
+}
+
 .pending-encounter-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -559,7 +564,10 @@ textarea.form-control {
   color: var(--text-muted);
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
-  min-height: 3rem;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pending-encounter-meta {

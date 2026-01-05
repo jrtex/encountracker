@@ -695,10 +695,24 @@ body {
   margin-top: 1rem;
 }
 
+.campaign-grid > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.campaign-grid > .card > .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .campaign-description {
   color: var(--text-color);
   margin-bottom: 1rem;
-  min-height: 3rem;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .campaign-meta {
@@ -755,6 +769,17 @@ body {
   margin-top: 1rem;
 }
 
+.encounter-grid > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.encounter-grid > .card > .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .encounter-campaign {
   margin-bottom: 0.5rem;
 }
@@ -762,7 +787,10 @@ body {
 .encounter-description {
   color: var(--text-color);
   margin-bottom: 1rem;
-  min-height: 2.5rem;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .encounter-badges {
@@ -802,6 +830,17 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
+}
+
+.player-grid > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.player-grid > .card > .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .player-class-info {
@@ -845,6 +884,10 @@ body {
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
   font-style: italic;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .player-meta {
@@ -868,6 +911,17 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-top: 1rem;
+}
+
+.monster-grid > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.monster-grid > .card > .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .monster-stats {
@@ -903,6 +957,10 @@ body {
   color: var(--text-color);
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
+  min-height: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .monster-source {
@@ -910,6 +968,7 @@ body {
   margin: 0;
   font-size: 0.8rem;
   font-style: italic;
+  min-height: 1.2rem;
 }
 
 .monster-card-wounded {
