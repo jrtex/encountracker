@@ -28,9 +28,8 @@ jobs:
 
         # Environment variables for PostgreSQL container
         env:
-          POSTGRES_DB: encountracker_test
-          POSTGRES_USER: encountracker_test_user
-          POSTGRES_PASSWORD: test_password_only_for_testing
+          # Set password for default postgres superuser
+          POSTGRES_PASSWORD: postgres
           # Allow local connections without password (safe in isolated container)
           POSTGRES_HOST_AUTH_METHOD: trust
 
