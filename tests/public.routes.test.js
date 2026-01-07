@@ -19,9 +19,19 @@ describe('Public Routes', () => {
   beforeAll(async () => {
     await database.connect();
 
+    // Drop existing tables to ensure clean schema
+    await database.exec(`
+      DROP TABLE IF EXISTS initiative_tracker CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS players CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Create necessary tables
     await database.exec(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
@@ -30,7 +40,7 @@ describe('Public Routes', () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS campaigns (
+      CREATE TABLE campaigns (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         description TEXT,
@@ -40,7 +50,7 @@ describe('Public Routes', () => {
         FOREIGN KEY (dm_user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS encounters (
+      CREATE TABLE encounters (
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         name VARCHAR(100) NOT NULL,
@@ -53,7 +63,7 @@ describe('Public Routes', () => {
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS players (
+      CREATE TABLE players (
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         character_name VARCHAR(100) NOT NULL,
@@ -71,7 +81,7 @@ describe('Public Routes', () => {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );
 
-      CREATE TABLE IF NOT EXISTS monsters (
+      CREATE TABLE monsters (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         name VARCHAR(100) NOT NULL,
@@ -85,7 +95,7 @@ describe('Public Routes', () => {
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS initiative_tracker (
+      CREATE TABLE initiative_tracker (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         participant_type VARCHAR(20) NOT NULL,
