@@ -25,9 +25,18 @@ describe('Monster Actions Routes', () => {
   beforeAll(async () => {
     await database.connect();
 
+    // Drop existing tables to ensure clean schema
+    await database.exec(`
+      DROP TABLE IF EXISTS monster_actions CASCADE;
+      DROP TABLE IF EXISTS monsters CASCADE;
+      DROP TABLE IF EXISTS encounters CASCADE;
+      DROP TABLE IF EXISTS campaigns CASCADE;
+      DROP TABLE IF EXISTS users CASCADE;
+    `);
+
     // Initialize test database schema
     await database.exec(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -36,24 +45,30 @@ describe('Monster Actions Routes', () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      CREATE TABLE IF NOT EXISTS campaigns (
+      CREATE TABLE campaigns (
         id SERIAL PRIMARY KEY,
         dm_user_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
+        description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (dm_user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS encounters (
+      CREATE TABLE encounters (
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
+        description TEXT,
+        difficulty VARCHAR(50),
         status VARCHAR(50) DEFAULT 'pending',
+        current_round INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS monsters (
+      CREATE TABLE monsters (
         id SERIAL PRIMARY KEY,
         encounter_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -62,12 +77,13 @@ describe('Monster Actions Routes', () => {
         current_hp INTEGER NOT NULL,
         armor_class INTEGER DEFAULT 10,
         initiative_bonus INTEGER DEFAULT 0,
+        allow_death_saves BOOLEAN DEFAULT false,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS monster_actions (
+      CREATE TABLE monster_actions (
         id SERIAL PRIMARY KEY,
         monster_id INTEGER NOT NULL,
         action_category VARCHAR(50) NOT NULL CHECK(action_category IN ('action', 'legendary', 'special', 'reaction')),

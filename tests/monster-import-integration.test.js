@@ -56,8 +56,12 @@ describe('Monster Import Integration Test', () => {
         id SERIAL PRIMARY KEY,
         campaign_id INTEGER NOT NULL,
         name VARCHAR(255) NOT NULL,
+        description TEXT,
+        difficulty VARCHAR(50),
         status VARCHAR(50) DEFAULT 'pending',
+        current_round INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
       );
 
