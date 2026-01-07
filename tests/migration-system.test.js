@@ -201,7 +201,7 @@ describe('Migration System', () => {
       );
 
       // All migrations should be present
-      expect(applied).toHaveLength(5);
+      expect(applied).toHaveLength(8);
 
       // When sorted by name, they should be in sequential order
       const migrationNames = applied.map(m => m.migration_name);
@@ -210,7 +210,10 @@ describe('Migration System', () => {
         '001_add_is_active',
         '002_add_speed',
         '003_add_round',
-        '004_add_monster_actions'
+        '004_add_monster_actions',
+        '005_add_is_removed_from_combat',
+        '006_add_death_saves',
+        '007_add_allow_death_saves_to_monsters'
       ]);
     });
 

@@ -70,6 +70,7 @@ describe('Monster Import Integration Test', () => {
         current_hp INTEGER NOT NULL,
         armor_class INTEGER DEFAULT 10,
         initiative_bonus INTEGER DEFAULT 0,
+        allow_death_saves BOOLEAN DEFAULT false,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE

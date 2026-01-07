@@ -103,6 +103,7 @@ describe('Encounter Status Management', () => {
         current_hp INTEGER NOT NULL,
         armor_class INTEGER NOT NULL,
         initiative_bonus INTEGER DEFAULT 0,
+        allow_death_saves BOOLEAN DEFAULT false,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
@@ -118,6 +119,10 @@ describe('Encounter Status Management', () => {
         is_current_turn BOOLEAN DEFAULT false,
         conditions TEXT,
         temp_hp INTEGER DEFAULT 0,
+        is_removed_from_combat BOOLEAN DEFAULT false,
+        death_save_successes INTEGER DEFAULT 0,
+        death_save_failures INTEGER DEFAULT 0,
+        is_stabilized BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
       );

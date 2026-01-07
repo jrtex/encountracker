@@ -64,6 +64,7 @@ describe('Combat Routes - Status Effects', () => {
         description TEXT,
         difficulty VARCHAR(50) CHECK(difficulty IN ('easy', 'medium', 'hard', 'deadly')),
         status VARCHAR(50) CHECK(status IN ('pending', 'active', 'completed')) DEFAULT 'pending',
+        current_round INTEGER DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE
@@ -98,6 +99,7 @@ describe('Combat Routes - Status Effects', () => {
         current_hp INTEGER NOT NULL,
         armor_class INTEGER NOT NULL,
         initiative_bonus INTEGER DEFAULT 0,
+        allow_death_saves BOOLEAN DEFAULT false,
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (encounter_id) REFERENCES encounters(id) ON DELETE CASCADE
@@ -789,8 +791,8 @@ describe('Combat Routes - Status Effects', () => {
         .post(`/api/combat/${encounterId}/start`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          mode: 'manual',
-          initiatives: [
+          initiative_mode: 'manual',
+          manual_initiatives: [
             { participant_type: 'player', participant_id: playerId, initiative: 20 },
             { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
           ]
@@ -838,8 +840,8 @@ describe('Combat Routes - Status Effects', () => {
         .post(`/api/combat/${encounterId}/start`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          mode: 'manual',
-          initiatives: [
+          initiative_mode: 'manual',
+          manual_initiatives: [
             { participant_type: 'player', participant_id: playerId, initiative: 20 },
             { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
           ]
@@ -880,8 +882,8 @@ describe('Combat Routes - Status Effects', () => {
         .post(`/api/combat/${encounterId}/start`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          mode: 'manual',
-          initiatives: [
+          initiative_mode: 'manual',
+          manual_initiatives: [
             { participant_type: 'player', participant_id: playerId, initiative: 20 }
           ]
         });
@@ -911,8 +913,8 @@ describe('Combat Routes - Status Effects', () => {
         .post(`/api/combat/${encounterId}/start`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          mode: 'manual',
-          initiatives: [
+          initiative_mode: 'manual',
+          manual_initiatives: [
             { participant_type: 'player', participant_id: playerId, initiative: 20 }
           ]
         });
@@ -936,8 +938,8 @@ describe('Combat Routes - Status Effects', () => {
         .post(`/api/combat/${encounterId}/start`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          mode: 'manual',
-          initiatives: [
+          initiative_mode: 'manual',
+          manual_initiatives: [
             { participant_type: 'player', participant_id: playerId, initiative: 20 },
             { participant_type: 'monster', participant_id: monsterId, initiative: 15 }
           ]
