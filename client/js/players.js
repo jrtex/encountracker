@@ -10,13 +10,6 @@ const Players = {
   },
 
   setupEventListeners() {
-    const newPlayerBtn = document.getElementById('new-player-btn');
-    if (newPlayerBtn) {
-      newPlayerBtn.addEventListener('click', () => {
-        this.showPlayerModal();
-      });
-    }
-
     const showInactiveToggle = document.getElementById('show-inactive-toggle');
     if (showInactiveToggle) {
       showInactiveToggle.checked = this.showInactive;
@@ -64,6 +57,15 @@ const Players = {
 
     listContainer.innerHTML = '';
 
+    // Add breadcrumb
+    const activeCampaign = CampaignContext.getActiveCampaign();
+    if (activeCampaign) {
+      const breadcrumb = document.createElement('div');
+      breadcrumb.className = 'breadcrumb';
+      breadcrumb.innerHTML = `<span>${activeCampaign.name}</span>`;
+      listContainer.appendChild(breadcrumb);
+    }
+
     // Filter players based on showInactive toggle
     const filteredPlayers = this.currentPlayers.filter(player => {
       if (this.showInactive) {
@@ -72,22 +74,54 @@ const Players = {
       return player.is_active; // Hide inactive players
     });
 
-    if (filteredPlayers.length === 0) {
-      const message = this.currentPlayers.length === 0
-        ? 'No players yet. Create your first character to get started!'
-        : 'No active players to display. Enable "Show inactive" to see inactive players.';
-      const alert = Components.createAlert(message, 'info');
-      listContainer.appendChild(alert);
-      return;
-    }
-
     const grid = document.createElement('div');
     grid.className = 'player-grid';
 
-    filteredPlayers.forEach(player => {
-      const card = this.createPlayerCard(player);
-      grid.appendChild(card);
-    });
+    if (filteredPlayers.length === 0 && this.currentPlayers.length === 0) {
+      // Show message when no players exist at all
+      const messageDiv = document.createElement('div');
+      messageDiv.style.gridColumn = '1 / -1';
+      const alert = Components.createAlert(
+        'No players yet. Create your first character to get started!',
+        'info'
+      );
+      messageDiv.appendChild(alert);
+      grid.appendChild(messageDiv);
+    } else if (filteredPlayers.length === 0) {
+      // Show message when players exist but are filtered out
+      const messageDiv = document.createElement('div');
+      messageDiv.style.gridColumn = '1 / -1';
+      const alert = Components.createAlert(
+        'No active players to display. Enable "Show inactive" to see inactive players.',
+        'info'
+      );
+      messageDiv.appendChild(alert);
+      grid.appendChild(messageDiv);
+    } else {
+      // Add player cards
+      filteredPlayers.forEach(player => {
+        const card = this.createPlayerCard(player);
+        grid.appendChild(card);
+      });
+    }
+
+    // Add "+" card for creating new player (admin only)
+    if (Auth.isAdmin()) {
+      const addCard = document.createElement('div');
+      addCard.className = 'card add-player-card';
+      addCard.style.cursor = 'pointer';
+      addCard.style.display = 'flex';
+      addCard.style.alignItems = 'center';
+      addCard.style.justifyContent = 'center';
+      addCard.style.minHeight = '200px';
+      addCard.style.border = '2px dashed var(--border-color)';
+      addCard.style.backgroundColor = 'var(--background-color)';
+      addCard.innerHTML = '<i class="fas fa-plus" style="font-size: 3rem; color: var(--primary-color); opacity: 0.6;"></i>';
+      addCard.addEventListener('click', () => {
+        this.showPlayerModal();
+      });
+      grid.appendChild(addCard);
+    }
 
     listContainer.appendChild(grid);
   },

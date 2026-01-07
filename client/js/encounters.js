@@ -10,13 +10,6 @@ const Encounters = {
   },
 
   setupEventListeners() {
-    const newEncounterBtn = document.getElementById('new-encounter-btn');
-    if (newEncounterBtn) {
-      newEncounterBtn.addEventListener('click', () => {
-        this.showEncounterModal();
-      });
-    }
-
     const showCompletedToggle = document.getElementById('show-completed-toggle');
     if (showCompletedToggle) {
       showCompletedToggle.checked = this.showCompleted;
@@ -64,6 +57,15 @@ const Encounters = {
 
     listContainer.innerHTML = '';
 
+    // Add breadcrumb
+    const activeCampaign = CampaignContext.getActiveCampaign();
+    if (activeCampaign) {
+      const breadcrumb = document.createElement('div');
+      breadcrumb.className = 'breadcrumb';
+      breadcrumb.innerHTML = `<span>${activeCampaign.name}</span>`;
+      listContainer.appendChild(breadcrumb);
+    }
+
     // Filter encounters based on showCompleted toggle
     const filteredEncounters = this.currentEncounters.filter(encounter => {
       if (this.showCompleted) {
@@ -72,22 +74,54 @@ const Encounters = {
       return encounter.status !== 'completed'; // Hide completed encounters
     });
 
-    if (filteredEncounters.length === 0) {
-      const message = this.currentEncounters.length === 0
-        ? 'No encounters yet. Create your first encounter to get started!'
-        : 'No encounters to display. Enable "Show completed" to see completed encounters.';
-      const alert = Components.createAlert(message, 'info');
-      listContainer.appendChild(alert);
-      return;
-    }
-
     const grid = document.createElement('div');
     grid.className = 'encounter-grid';
 
-    filteredEncounters.forEach(encounter => {
-      const card = this.createEncounterCard(encounter);
-      grid.appendChild(card);
-    });
+    if (filteredEncounters.length === 0 && this.currentEncounters.length === 0) {
+      // Show message when no encounters exist at all
+      const messageDiv = document.createElement('div');
+      messageDiv.style.gridColumn = '1 / -1';
+      const alert = Components.createAlert(
+        'No encounters yet. Create your first encounter to get started!',
+        'info'
+      );
+      messageDiv.appendChild(alert);
+      grid.appendChild(messageDiv);
+    } else if (filteredEncounters.length === 0) {
+      // Show message when encounters exist but are filtered out
+      const messageDiv = document.createElement('div');
+      messageDiv.style.gridColumn = '1 / -1';
+      const alert = Components.createAlert(
+        'No encounters to display. Enable "Show completed" to see completed encounters.',
+        'info'
+      );
+      messageDiv.appendChild(alert);
+      grid.appendChild(messageDiv);
+    } else {
+      // Add encounter cards
+      filteredEncounters.forEach(encounter => {
+        const card = this.createEncounterCard(encounter);
+        grid.appendChild(card);
+      });
+    }
+
+    // Add "+" card for creating new encounter (admin only)
+    if (Auth.isAdmin()) {
+      const addCard = document.createElement('div');
+      addCard.className = 'card add-encounter-card';
+      addCard.style.cursor = 'pointer';
+      addCard.style.display = 'flex';
+      addCard.style.alignItems = 'center';
+      addCard.style.justifyContent = 'center';
+      addCard.style.minHeight = '200px';
+      addCard.style.border = '2px dashed var(--border-color)';
+      addCard.style.backgroundColor = 'var(--background-color)';
+      addCard.innerHTML = '<i class="fas fa-plus" style="font-size: 3rem; color: var(--primary-color); opacity: 0.6;"></i>';
+      addCard.addEventListener('click', () => {
+        this.showEncounterModal();
+      });
+      grid.appendChild(addCard);
+    }
 
     listContainer.appendChild(grid);
   },
