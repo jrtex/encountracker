@@ -2,6 +2,8 @@
 
 A web application for managing D&D 5e encounters, featuring initiative tracking, combat management, and campaign organization.
 
+[![CI](https://github.com/jrtex/Encountracker/actions/workflows/ci.yml/badge.svg)](https://github.com/jrtex/Encountracker/actions/workflows/ci.yml)
+
 ## Disclaimer
 
 This application is built primarily using AI coding tools. This project is intended as a learning project while providing useful functionality for personal hobbies. While safety is taken into account as part of the development of this application, safety is not guaranteed. Run this application at your own risk.

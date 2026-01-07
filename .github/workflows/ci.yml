@@ -1,0 +1,138 @@
+name: CI
+
+# Trigger on all pushes and pull requests
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+# Prevent concurrent runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    # Set timeout to 15 minutes
+    timeout-minutes: 15
+
+    # PostgreSQL service container
+    services:
+      postgres:
+        # Use PostgreSQL 16 to match production (docker-compose.yml uses postgres:16-alpine)
+        image: postgres:16-alpine
+
+        # Environment variables for PostgreSQL container
+        env:
+          POSTGRES_DB: encountracker_test
+          POSTGRES_USER: encountracker_test_user
+          POSTGRES_PASSWORD: test_password_only_for_testing
+          # Allow local connections without password (safe in isolated container)
+          POSTGRES_HOST_AUTH_METHOD: trust
+
+        # Health checks to ensure PostgreSQL is ready before tests run
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+        # Map container port to host
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Use Node 18 to match Dockerfile
+          node-version: '18'
+          # Cache npm dependencies for faster runs
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup PostgreSQL admin password environment variable
+        run: |
+          echo "POSTGRES_ADMIN_PASSWORD=postgres" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Verify PostgreSQL connection
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "SELECT version();"
+        shell: bash
+
+      - name: Setup test database
+        run: npm run test:setup
+        env:
+          # Test database connection settings (matches .env.test)
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: encountracker_test
+          POSTGRES_USER: encountracker_test_user
+          POSTGRES_PASSWORD: test_password_only_for_testing
+          # Admin credentials for database creation
+          POSTGRES_ADMIN_USER: postgres
+          POSTGRES_ADMIN_PASSWORD: postgres
+          NODE_ENV: test
+
+      - name: Run tests with coverage
+        run: npm test
+        env:
+          # Test environment variables (matches .env.test)
+          NODE_ENV: test
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: encountracker_test
+          POSTGRES_USER: encountracker_test_user
+          POSTGRES_PASSWORD: test_password_only_for_testing
+          JWT_SECRET: test-secret-key-do-not-use-in-production
+          JWT_EXPIRES_IN: 1h
+          CORS_ORIGIN: '*'
+          LOG_LEVEL: error
+          # Relaxed rate limits for testing
+          RATE_LIMIT_WINDOW_MS: 900000
+          RATE_LIMIT_MAX_REQUESTS: 10000
+          AUTH_RATE_LIMIT_WINDOW_MS: 900000
+          AUTH_RATE_LIMIT_MAX_REQUESTS: 10000
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            coverage/coverage-final.json
+            coverage/lcov.info
+          retention-days: 30
+
+      - name: Display coverage summary
+        if: always()
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/lcov-report/index.html ]; then
+            echo "Coverage report generated successfully" >> $GITHUB_STEP_SUMMARY
+            # Extract and display coverage percentages if available
+            if [ -f coverage/coverage-summary.json ]; then
+              cat coverage/coverage-summary.json >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No coverage report found" >> $GITHUB_STEP_SUMMARY
+          fi
+        shell: bash
