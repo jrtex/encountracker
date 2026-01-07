@@ -2099,6 +2099,7 @@ body {
   white-space: pre-wrap;
   font-size: 1rem;
   line-height: 1.6;
+  font-weight: normal;
 }
 
 .stat-item.full-width {

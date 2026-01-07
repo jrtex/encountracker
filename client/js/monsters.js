@@ -2,31 +2,117 @@
 const Monsters = {
   currentMonsters: [],
   currentEncounter: null,
+  originalEncounterData: null,
   encounterId: null,
+  isEditMode: false,
 
   async init(encounterId) {
     this.encounterId = encounterId;
+    this.isEditMode = false;
     await this.loadEncounter();
     await this.loadMonsters();
     this.setupEventListeners();
   },
 
   setupEventListeners() {
-    const addMonsterBtn = document.getElementById('add-monster-btn');
-    if (addMonsterBtn) {
-      addMonsterBtn.addEventListener('click', () => {
-        this.showMonsterModal();
-      });
-    }
-
     const backBtn = document.getElementById('back-to-encounters-btn');
     if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        App.showPage('encounters-page');
-      });
+      backBtn.onclick = () => {
+        if (this.isEditMode) {
+          Components.confirm('Discard unsaved changes?', () => {
+            App.showPage('encounters-page');
+          });
+        } else {
+          App.showPage('encounters-page');
+        }
+      };
     }
 
+    this.setupActionButtons();
     this.setupStartCombatButton();
+  },
+
+  setupActionButtons() {
+    const editBtn = document.getElementById('encounter-edit-toggle-btn');
+    const cancelBtn = document.getElementById('encounter-detail-cancel-btn');
+    const saveBtn = document.getElementById('encounter-detail-save-btn');
+
+    if (editBtn) {
+      editBtn.onclick = () => this.toggleEditMode();
+    }
+
+    if (cancelBtn) {
+      cancelBtn.onclick = () => this.cancelEdit();
+    }
+
+    if (saveBtn) {
+      saveBtn.onclick = () => this.saveChanges();
+    }
+  },
+
+  showViewModeButtons() {
+    const editBtn = document.getElementById('encounter-edit-toggle-btn');
+    const cancelBtn = document.getElementById('encounter-detail-cancel-btn');
+    const saveBtn = document.getElementById('encounter-detail-save-btn');
+
+    if (editBtn) editBtn.style.display = 'inline-block';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+  },
+
+  showEditModeButtons() {
+    const editBtn = document.getElementById('encounter-edit-toggle-btn');
+    const cancelBtn = document.getElementById('encounter-detail-cancel-btn');
+    const saveBtn = document.getElementById('encounter-detail-save-btn');
+
+    if (editBtn) editBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (saveBtn) saveBtn.style.display = 'inline-block';
+  },
+
+  toggleEditMode() {
+    if (this.isEditMode) {
+      this.cancelEdit();
+    } else {
+      this.isEditMode = true;
+      this.showEditModeButtons();
+      this.render();
+    }
+  },
+
+  cancelEdit() {
+    this.currentEncounter = JSON.parse(JSON.stringify(this.originalEncounterData));
+    this.isEditMode = false;
+    this.showViewModeButtons();
+    this.render();
+  },
+
+  async saveChanges() {
+    const name = document.getElementById('edit-encounter-name')?.value.trim();
+    const description = document.getElementById('edit-encounter-description')?.value.trim();
+    const difficulty = document.getElementById('edit-encounter-difficulty')?.value;
+
+    if (!name) {
+      Components.showToast('Encounter name is required', 'error');
+      return;
+    }
+
+    try {
+      const data = {
+        name,
+        description: description || null,
+        difficulty
+      };
+
+      await API.encounters.update(this.encounterId, data);
+      Components.showToast('Encounter updated successfully', 'success');
+
+      this.isEditMode = false;
+      await this.loadEncounter();
+      this.showViewModeButtons();
+    } catch (error) {
+      Components.showToast(error.message || 'Failed to save changes', 'error');
+    }
   },
 
   setupStartCombatButton() {
@@ -60,47 +146,230 @@ const Monsters = {
     try {
       const response = await API.encounters.getById(this.encounterId);
       this.currentEncounter = response.data;
-      this.renderEncounterInfo();
+      this.originalEncounterData = JSON.parse(JSON.stringify(response.data));
+      this.render();
+
+      // Show edit button if admin
+      if (Auth.isAdmin()) {
+        this.showViewModeButtons();
+      }
     } catch (error) {
       console.error('Failed to load encounter:', error);
       Components.showToast(error.message || 'Failed to load encounter', 'error');
     }
   },
 
-  renderEncounterInfo() {
+  render() {
     const titleEl = document.getElementById('encounter-detail-title');
-    const infoEl = document.getElementById('encounter-detail-info');
+    const contentEl = document.getElementById('encounter-detail-content');
 
     if (!this.currentEncounter) return;
 
-    if (titleEl) {
-      titleEl.textContent = this.currentEncounter.name;
+    titleEl.textContent = this.currentEncounter.name;
+
+    if (this.isEditMode) {
+      this.renderEditMode();
+    } else {
+      this.renderViewMode();
     }
 
-    if (infoEl) {
-      const difficultyBadge = Components.createBadge(
-        this.currentEncounter.difficulty || 'medium',
-        this.getDifficultyBadgeType(this.currentEncounter.difficulty)
-      );
-      const statusBadge = Components.createBadge(
-        this.currentEncounter.status || 'pending',
-        this.getStatusBadgeType(this.currentEncounter.status)
-      );
+    this.setupStartCombatButton();
+  },
 
-      infoEl.innerHTML = `
-        <div class="encounter-info-card">
-          <p><strong>Campaign:</strong> ${this.currentEncounter.campaign_name || 'Unknown'}</p>
-          ${this.currentEncounter.description ? `<p><strong>Description:</strong> ${this.currentEncounter.description}</p>` : ''}
-          <div class="encounter-badges">
-            ${difficultyBadge.outerHTML}
-            ${statusBadge.outerHTML}
+  renderViewMode() {
+    const contentEl = document.getElementById('encounter-detail-content');
+    const e = this.currentEncounter;
+
+    const breadcrumb = `
+      <div class="breadcrumb">
+        <span>${e.campaign_name || 'Campaign'}</span>
+        <i class="fas fa-chevron-right"></i>
+        <span>${e.name}</span>
+      </div>
+    `;
+
+    const difficultyBadge = Components.createBadge(
+      e.difficulty || 'medium',
+      this.getDifficultyBadgeType(e.difficulty)
+    );
+    const statusBadge = Components.createBadge(
+      e.status || 'pending',
+      this.getStatusBadgeType(e.status)
+    );
+
+    const encounterInfoSection = `
+      <div class="detail-section">
+        <h3>Encounter Details</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <label>Status</label>
+            <div class="stat-value">${statusBadge.outerHTML}</div>
           </div>
+          <div class="stat-item">
+            <label>Difficulty</label>
+            <div class="stat-value">${difficultyBadge.outerHTML}</div>
+          </div>
+        </div>
+        ${e.description ? `
+          <div class="stat-item full-width">
+            <label>Description</label>
+            <div class="stat-value notes-display">${e.description}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    const monstersSection = this.renderMonstersSection();
+
+    contentEl.innerHTML = breadcrumb + encounterInfoSection + monstersSection;
+  },
+
+  renderEditMode() {
+    const contentEl = document.getElementById('encounter-detail-content');
+    const e = this.currentEncounter;
+
+    const html = `
+      <form id="encounter-detail-edit-form" onsubmit="return false;">
+        <div class="detail-section">
+          <h3>Encounter Details</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-encounter-name">Encounter Name *</label>
+              <input type="text" id="edit-encounter-name" class="form-control" value="${e.name}" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-encounter-description">Description</label>
+            <textarea id="edit-encounter-description" class="form-control" rows="3">${e.description || ''}</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-encounter-difficulty">Difficulty</label>
+              <select id="edit-encounter-difficulty" class="form-control">
+                <option value="easy" ${e.difficulty === 'easy' ? 'selected' : ''}>Easy</option>
+                <option value="medium" ${e.difficulty === 'medium' ? 'selected' : ''}>Medium</option>
+                <option value="hard" ${e.difficulty === 'hard' ? 'selected' : ''}>Hard</option>
+                <option value="deadly" ${e.difficulty === 'deadly' ? 'selected' : ''}>Deadly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      ${this.renderMonstersSection()}
+    `;
+
+    contentEl.innerHTML = html;
+  },
+
+  renderMonstersSection() {
+    let html = '<div class="detail-section"><h3>Monsters</h3>';
+
+    html += '<div class="monster-grid" id="monsters-container-grid">';
+
+    if (this.currentMonsters.length === 0) {
+      // Show message when no monsters
+      html += '<div style="grid-column: 1 / -1;"><p class="text-muted">No monsters yet. Add your first monster to this encounter!</p></div>';
+    } else {
+      // Add all monster cards
+      this.currentMonsters.forEach(monster => {
+        html += this.createMonsterCardHTML(monster);
+      });
+    }
+
+    // Add "+" button card for adding monsters (admin only)
+    if (Auth.isAdmin()) {
+      html += `
+        <div class="card add-monster-card" id="add-monster-btn-inline" style="cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 200px; border: 2px dashed var(--border-color); background-color: var(--background-color);">
+          <i class="fas fa-plus" style="font-size: 3rem; color: var(--primary-color); opacity: 0.6;"></i>
         </div>
       `;
     }
 
-    // Setup Start Combat button visibility
-    this.setupStartCombatButton();
+    html += '</div></div>';
+
+    // Set up event listener for add monster button after render
+    setTimeout(() => {
+      const addMonsterBtn = document.getElementById('add-monster-btn-inline');
+      if (addMonsterBtn) {
+        addMonsterBtn.addEventListener('click', () => {
+          this.showMonsterModal();
+        });
+      }
+
+      // Set up click handlers for monster cards
+      const monsterCards = document.querySelectorAll('.monster-card-clickable');
+      monsterCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('button')) return;
+          const monsterId = card.dataset.monsterId;
+          if (monsterId) {
+            const detailPage = document.getElementById('monster-detail-page');
+            if (detailPage) {
+              detailPage.dataset.monsterId = monsterId;
+              App.showPage('monster-detail-page');
+            }
+          }
+        });
+      });
+
+      // Set up delete handlers
+      const deleteButtons = document.querySelectorAll('.monster-delete-btn');
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const monsterId = btn.dataset.monsterId;
+          if (monsterId) {
+            this.deleteMonster(parseInt(monsterId));
+          }
+        });
+      });
+    }, 0);
+
+    return html;
+  },
+
+  createMonsterCardHTML(monster) {
+    const hpBadge = this.getHPBadge(monster);
+    const hpPercent = (monster.current_hp / monster.max_hp) * 100;
+    let cardClass = 'monster-card-clickable';
+    if (hpPercent <= 25) cardClass += ' monster-card-critical';
+    else if (hpPercent <= 75) cardClass += ' monster-card-wounded';
+
+    return `
+      <div class="card ${cardClass}" data-monster-id="${monster.id}" style="cursor: pointer;">
+        <div class="card-header">
+          <h3>${monster.name}</h3>
+        </div>
+        <div class="card-body">
+          <div class="monster-stats">
+            <div class="monster-stat">
+              <strong>HP:</strong>
+              <span>${monster.current_hp} / ${monster.max_hp} ${hpBadge.outerHTML}</span>
+            </div>
+            <div class="monster-stat">
+              <strong>AC:</strong>
+              <span>${monster.armor_class}</span>
+            </div>
+            <div class="monster-stat">
+              <strong>Initiative:</strong>
+              <span>${monster.initiative_bonus >= 0 ? '+' : ''}${monster.initiative_bonus}</span>
+            </div>
+          </div>
+          ${monster.notes ? `<p class="monster-notes"><strong>Notes:</strong> ${monster.notes}</p>` : ''}
+          ${monster.dnd_api_id ? `<p class="monster-source"><small>Source: D&D 5e API (${monster.dnd_api_id})</small></p>` : ''}
+        </div>
+        ${Auth.isAdmin() ? `
+          <div class="card-footer">
+            <div class="card-actions">
+              <button class="btn btn-sm btn-danger monster-delete-btn" data-monster-id="${monster.id}">Delete</button>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
   },
 
   getDifficultyBadgeType(difficulty) {
@@ -123,119 +392,13 @@ const Monsters = {
   },
 
   async loadMonsters() {
-    const container = document.getElementById('monsters-container');
-    if (!container) return;
-
-    Components.showSpinner(container);
-
     try {
       const response = await API.monsters.getAll(this.encounterId);
       this.currentMonsters = response.data || [];
-      this.renderMonsters();
+      this.render();
     } catch (error) {
       Components.showToast(error.message || 'Failed to load monsters', 'error');
-      container.innerHTML = Components.createAlert(
-        'Failed to load monsters. Please try again.',
-        'error'
-      ).outerHTML;
-    } finally {
-      Components.hideSpinner(container);
     }
-  },
-
-  renderMonsters() {
-    const container = document.getElementById('monsters-container');
-    if (!container) return;
-
-    container.innerHTML = '';
-
-    if (this.currentMonsters.length === 0) {
-      const alert = Components.createAlert(
-        'No monsters yet. Add your first monster to this encounter!',
-        'info'
-      );
-      container.appendChild(alert);
-      return;
-    }
-
-    const grid = document.createElement('div');
-    grid.className = 'monster-grid';
-
-    this.currentMonsters.forEach(monster => {
-      const card = this.createMonsterCard(monster);
-      grid.appendChild(card);
-    });
-
-    container.appendChild(grid);
-  },
-
-  createMonsterCard(monster) {
-    const hpBadge = this.getHPBadge(monster);
-
-    const content = `
-      <div class="monster-stats">
-        <div class="monster-stat">
-          <strong>HP:</strong>
-          <span>${monster.current_hp} / ${monster.max_hp} ${hpBadge.outerHTML}</span>
-        </div>
-        <div class="monster-stat">
-          <strong>AC:</strong>
-          <span>${monster.armor_class}</span>
-        </div>
-        <div class="monster-stat">
-          <strong>Initiative:</strong>
-          <span>${monster.initiative_bonus >= 0 ? '+' : ''}${monster.initiative_bonus}</span>
-        </div>
-      </div>
-      ${monster.notes ? `<p class="monster-notes"><strong>Notes:</strong> ${monster.notes}</p>` : ''}
-      ${monster.dnd_api_id ? `<p class="monster-source"><small>Source: D&D 5e API (${monster.dnd_api_id})</small></p>` : ''}
-    `;
-
-    const footer = document.createElement('div');
-    footer.className = 'card-actions';
-
-    if (Auth.isAdmin()) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-secondary';
-      editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', () => this.showEditMonsterModal(monster));
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn btn-sm btn-danger';
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.addEventListener('click', () => this.deleteMonster(monster.id));
-
-      footer.appendChild(editBtn);
-      footer.appendChild(deleteBtn);
-    }
-
-    const card = Components.createCard(monster.name, content, footer);
-
-    // Add HP status class to card
-    const hpPercent = (monster.current_hp / monster.max_hp) * 100;
-    if (hpPercent <= 25) {
-      card.classList.add('monster-card-critical');
-    } else if (hpPercent <= 75) {
-      card.classList.add('monster-card-wounded');
-    }
-
-    // Make card clickable to view details
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', (e) => {
-      // Don't navigate if clicking on buttons
-      if (e.target.closest('button')) {
-        return;
-      }
-
-      // Navigate to detail page
-      const detailPage = document.getElementById('monster-detail-page');
-      if (detailPage) {
-        detailPage.dataset.monsterId = monster.id;
-        App.showPage('monster-detail-page');
-      }
-    });
-
-    return card;
   },
 
   getHPBadge(monster) {
@@ -423,105 +586,6 @@ const Monsters = {
     }
   },
 
-  showEditMonsterModal(monster) {
-    const title = `Edit Monster: ${monster.name}`;
-
-    const content = `
-      <div class="monster-edit-header" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #dee2e6;">
-        <h4 style="margin: 0;">${monster.name}</h4>
-        ${monster.dnd_api_id ? `<p class="monster-source"><small>Source: D&D 5e API (${monster.dnd_api_id})</small></p>` : ''}
-      </div>
-
-      <form id="monster-edit-form" onsubmit="return false;">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="edit-current-hp">Current HP *</label>
-            <input
-              type="number"
-              id="edit-current-hp"
-              class="form-control"
-              value="${monster.current_hp}"
-              min="0"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label for="edit-max-hp">Max HP *</label>
-            <input
-              type="number"
-              id="edit-max-hp"
-              class="form-control"
-              value="${monster.max_hp}"
-              min="1"
-              required
-            >
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="edit-ac">Armor Class *</label>
-            <input
-              type="number"
-              id="edit-ac"
-              class="form-control"
-              value="${monster.armor_class}"
-              min="0"
-              required
-            >
-          </div>
-          <div class="form-group">
-            <label for="edit-initiative">Initiative Bonus</label>
-            <input
-              type="number"
-              id="edit-initiative"
-              class="form-control"
-              value="${monster.initiative_bonus}"
-            >
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="edit-notes">Notes</label>
-          <textarea
-            id="edit-notes"
-            class="form-control"
-            rows="3"
-            placeholder="Special abilities, tactics, etc."
-          >${monster.notes || ''}</textarea>
-        </div>
-        <div class="form-group">
-          <label style="display: flex; align-items: center; gap: 0.5rem;">
-            <input
-              type="checkbox"
-              id="edit-allow-death-saves"
-              ${monster.allow_death_saves ? 'checked' : ''}
-            >
-            <span>Allow death saves</span>
-          </label>
-          <small style="color: var(--text-muted, #6c757d); display: block; margin-top: 0.25rem;">
-            Enable death saving throws for this monster (unchecked by default)
-          </small>
-        </div>
-      </form>
-    `;
-
-    const actions = [
-      {
-        id: 'cancel',
-        label: 'Cancel',
-        class: 'btn-secondary',
-        handler: () => {}
-      },
-      {
-        id: 'save',
-        label: 'Update Monster',
-        class: 'btn-primary',
-        handler: () => this.saveEditMonster(monster),
-        closeOnClick: false
-      }
-    ];
-
-    Components.showModal(title, content, actions);
-  },
 
   async searchDndApi(query, modal) {
     const resultsContainer = modal.querySelector('#monster-search-results');
@@ -1261,56 +1325,6 @@ const Monsters = {
     }
   },
 
-  async saveEditMonster(monster) {
-    const currentHp = parseInt(document.getElementById('edit-current-hp').value);
-    const maxHp = parseInt(document.getElementById('edit-max-hp').value);
-    const armorClass = parseInt(document.getElementById('edit-ac').value);
-    const initiativeBonus = parseInt(document.getElementById('edit-initiative').value) || 0;
-    const notes = document.getElementById('edit-notes').value.trim();
-    const allowDeathSaves = document.getElementById('edit-allow-death-saves')?.checked || false;
-
-    // Validation
-    if (isNaN(maxHp) || maxHp < 1) {
-      Components.showToast('Max HP must be at least 1', 'error');
-      return;
-    }
-
-    if (isNaN(currentHp) || currentHp < 0) {
-      Components.showToast('Current HP must be non-negative', 'error');
-      return;
-    }
-
-    if (isNaN(armorClass) || armorClass < 0) {
-      Components.showToast('Armor class must be non-negative', 'error');
-      return;
-    }
-
-    if (currentHp > maxHp) {
-      Components.showToast('Current HP cannot exceed max HP', 'error');
-      return;
-    }
-
-    const data = {
-      encounter_id: this.encounterId,
-      name: monster.name,
-      max_hp: maxHp,
-      current_hp: currentHp,
-      armor_class: armorClass,
-      initiative_bonus: initiativeBonus,
-      notes: notes || null,
-      dnd_api_id: monster.dnd_api_id || null,
-      allow_death_saves: allowDeathSaves
-    };
-
-    try {
-      await API.monsters.update(monster.id, data);
-      Components.showToast('Monster updated successfully', 'success');
-      document.querySelector('.modal-overlay').remove();
-      await this.loadMonsters();
-    } catch (error) {
-      Components.showToast(error.message || 'Failed to update monster', 'error');
-    }
-  },
 
   async deleteMonster(monsterId) {
     Components.confirm(

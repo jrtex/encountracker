@@ -205,15 +205,21 @@
                 <div class="page-header">
                     <button id="back-to-encounters-btn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Encounters</button>
                     <h2 id="encounter-detail-title">Encounter Details</h2>
-                    <div>
-                        <button id="start-encounter-combat-btn" class="btn btn-success admin-only" style="display: none;">Start Combat</button>
-                        <button id="add-monster-btn" class="btn btn-primary admin-only">Add Monster</button>
+                    <div class="page-actions">
+                        <button id="encounter-edit-toggle-btn" class="btn btn-primary admin-only" style="display: none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="encounter-detail-cancel-btn" class="btn btn-secondary admin-only" style="display: none;">
+                            Cancel
+                        </button>
+                        <button id="encounter-detail-save-btn" class="btn btn-success admin-only" style="display: none;">
+                            Save Changes
+                        </button>
                     </div>
                 </div>
-                <div id="encounter-detail-info" class="encounter-detail-info"></div>
-                <div id="monsters-list" class="monsters-section">
-                    <h3>Monsters</h3>
-                    <div id="monsters-container"></div>
+                <div id="encounter-detail-content"></div>
+                <div id="encounter-start-combat-section" style="margin-top: 2rem; text-align: center;">
+                    <button id="start-encounter-combat-btn" class="btn btn-success btn-lg admin-only" style="display: none;">Start Combat</button>
                 </div>
             </div>
         </div>
