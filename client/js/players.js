@@ -170,14 +170,6 @@ const Players = {
     footer.className = 'card-actions';
 
     if (Auth.isAdmin()) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-secondary';
-      editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent card click
-        this.showPlayerModal(player);
-      });
-
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn btn-sm btn-danger';
       deleteBtn.textContent = 'Delete';
@@ -186,7 +178,6 @@ const Players = {
         this.deletePlayer(player.id);
       });
 
-      footer.appendChild(editBtn);
       footer.appendChild(deleteBtn);
     }
 
