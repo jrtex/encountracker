@@ -170,17 +170,14 @@ const Players = {
     footer.className = 'card-actions';
 
     if (Auth.isAdmin()) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-secondary';
-      editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', () => this.showPlayerModal(player));
-
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn btn-sm btn-danger';
       deleteBtn.textContent = 'Delete';
-      deleteBtn.addEventListener('click', () => this.deletePlayer(player.id));
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent card click
+        this.deletePlayer(player.id);
+      });
 
-      footer.appendChild(editBtn);
       footer.appendChild(deleteBtn);
     }
 
@@ -188,6 +185,25 @@ const Players = {
     if (!player.is_active) {
       card.classList.add('player-card-inactive');
     }
+
+    // Make card clickable to navigate to detail page
+    card.style.cursor = 'pointer';
+    card.dataset.playerId = player.id;
+
+    card.addEventListener('click', (e) => {
+      // Don't navigate if clicking action buttons
+      if (!e.target.closest('.card-actions')) {
+        const playerId = card.dataset.playerId;
+        if (playerId) {
+          const detailPage = document.getElementById('player-detail-page');
+          if (detailPage) {
+            detailPage.dataset.playerId = playerId;
+            App.showPage('player-detail-page');
+          }
+        }
+      }
+    });
+
     return card;
   },
 
