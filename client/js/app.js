@@ -133,7 +133,14 @@ const Sidebar = {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         const page = item.getAttribute('data-page');
-        App.showPage(`${page}-page`);
+        if (typeof Router !== 'undefined') {
+          const url = Router.getUrlForPage(`${page}-page`);
+          if (url) {
+            Router.navigate(url);
+          }
+        } else {
+          App.showPage(`${page}-page`);
+        }
         this.close();
       });
     });
@@ -143,7 +150,11 @@ const Sidebar = {
     if (settingsLink) {
       settingsLink.addEventListener('click', (e) => {
         e.preventDefault();
-        App.showPage('settings-page');
+        if (typeof Router !== 'undefined') {
+          Router.navigate('/settings');
+        } else {
+          App.showPage('settings-page');
+        }
         this.close();
       });
     }
@@ -300,9 +311,17 @@ const App = {
     const isAuthenticated = await Auth.init();
 
     if (isAuthenticated) {
-      this.showApp();
+      await this.showApp();
+      // Initialize router to handle URL-based navigation
+      if (typeof Router !== 'undefined') {
+        Router.init();
+      }
     } else {
       this.showLogin();
+      // Initialize router to handle URL-based navigation (login/register pages)
+      if (typeof Router !== 'undefined') {
+        Router.init();
+      }
     }
 
     this.setupEventListeners();
@@ -332,7 +351,11 @@ const App = {
     if (showRegisterLink) {
       showRegisterLink.addEventListener('click', (e) => {
         e.preventDefault();
-        this.showPage('register-page');
+        if (typeof Router !== 'undefined') {
+          Router.navigate('/register');
+        } else {
+          this.showPage('register-page');
+        }
       });
     }
 
@@ -341,7 +364,11 @@ const App = {
     if (showLoginLink) {
       showLoginLink.addEventListener('click', (e) => {
         e.preventDefault();
-        this.showPage('login-page');
+        if (typeof Router !== 'undefined') {
+          Router.navigate('/login');
+        } else {
+          this.showPage('login-page');
+        }
       });
     }
 
@@ -377,7 +404,14 @@ const App = {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const page = e.target.getAttribute('data-page');
-        this.showPage(`${page}-page`);
+        if (typeof Router !== 'undefined') {
+          const url = Router.getUrlForPage(`${page}-page`);
+          if (url) {
+            Router.navigate(url);
+          }
+        } else {
+          this.showPage(`${page}-page`);
+        }
       });
     });
   },
@@ -390,7 +424,11 @@ const App = {
 
     if (result.success) {
       Components.showToast('Login successful!', 'success');
-      this.showApp();
+      await this.showApp();
+      // Initialize router to handle redirect parameter if present
+      if (typeof Router !== 'undefined') {
+        Router.init();
+      }
     } else {
       Components.showToast(result.error, 'error');
     }
@@ -461,8 +499,8 @@ const App = {
       }
     });
 
-    // Show dashboard
-    this.showPage('dashboard-page');
+    // Router will handle showing the correct page based on URL
+    // Don't call showPage here - it's handled by Router.init() in App.init()
   },
 
   async handleCampaignChange(campaignId) {
@@ -546,7 +584,7 @@ const App = {
     document.getElementById('login-page').classList.add('active');
   },
 
-  showPage(pageId) {
+  showPage(pageId, options = {}) {
     // Hide all pages
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
@@ -581,6 +619,25 @@ const App = {
       } else {
         settingsLink.style.fontWeight = '500';
         settingsLink.style.color = 'var(--text-color)';
+      }
+    }
+
+    // Update URL if Router is available and skipRouterUpdate is not set
+    if (typeof Router !== 'undefined' && !options.skipRouterUpdate) {
+      // Extract params from page dataset for detail pages
+      const params = {};
+      if (pageId === 'encounter-detail-page' && page && page.dataset.encounterId) {
+        params.id = page.dataset.encounterId;
+      } else if (pageId === 'monster-detail-page' && page && page.dataset.monsterId) {
+        params.id = page.dataset.monsterId;
+      } else if (pageId === 'player-detail-page' && page && page.dataset.playerId) {
+        params.id = page.dataset.playerId;
+      }
+
+      // Get URL for page and navigate
+      const url = Router.getUrlForPage(pageId, params);
+      if (url) {
+        Router.navigate(url, { skipHandler: true });
       }
     }
   }

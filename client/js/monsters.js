@@ -307,10 +307,14 @@ const Monsters = {
           if (e.target.closest('button')) return;
           const monsterId = card.dataset.monsterId;
           if (monsterId) {
-            const detailPage = document.getElementById('monster-detail-page');
-            if (detailPage) {
-              detailPage.dataset.monsterId = monsterId;
-              App.showPage('monster-detail-page');
+            if (typeof Router !== 'undefined') {
+              Router.navigate(`/monsters/${monsterId}`);
+            } else {
+              const detailPage = document.getElementById('monster-detail-page');
+              if (detailPage) {
+                detailPage.dataset.monsterId = monsterId;
+                App.showPage('monster-detail-page');
+              }
             }
           }
         });
@@ -1035,12 +1039,16 @@ const Monsters = {
 
     if (!detailPage || !contentEl) return;
 
-    // Store monster ID for later use
-    detailPage.dataset.monsterId = monsterId;
-
     // Show loading state
     contentEl.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="spinner"></div></div>';
-    App.showPage('monster-detail-page');
+
+    if (typeof Router !== 'undefined') {
+      Router.navigate(`/monsters/${monsterId}`);
+    } else {
+      // Store monster ID for later use
+      detailPage.dataset.monsterId = monsterId;
+      App.showPage('monster-detail-page');
+    }
 
     try {
       // Use server-side proxy to fetch monster details (avoids CSP issues)

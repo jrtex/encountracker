@@ -53,11 +53,20 @@ const MonsterDetail = {
   },
 
   navigateBack() {
-    const encounterPage = document.getElementById('encounter-detail-page');
-    if (encounterPage && encounterPage.dataset.encounterId) {
-      App.showPage('encounter-detail-page');
+    if (typeof Router !== 'undefined') {
+      const encounterPage = document.getElementById('encounter-detail-page');
+      if (encounterPage && encounterPage.dataset.encounterId) {
+        Router.navigate(`/encounters/${encounterPage.dataset.encounterId}`);
+      } else {
+        Router.navigate('/encounters');
+      }
     } else {
-      App.showPage('encounters-page');
+      const encounterPage = document.getElementById('encounter-detail-page');
+      if (encounterPage && encounterPage.dataset.encounterId) {
+        App.showPage('encounter-detail-page');
+      } else {
+        App.showPage('encounters-page');
+      }
     }
   },
 

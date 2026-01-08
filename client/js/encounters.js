@@ -163,9 +163,13 @@ const Encounters = {
     viewBtn.className = 'btn btn-sm btn-primary';
     viewBtn.textContent = 'View Details';
     viewBtn.addEventListener('click', () => {
-      const detailPage = document.getElementById('encounter-detail-page');
-      detailPage.dataset.encounterId = encounter.id;
-      App.showPage('encounter-detail-page');
+      if (typeof Router !== 'undefined') {
+        Router.navigate(`/encounters/${encounter.id}`);
+      } else {
+        const detailPage = document.getElementById('encounter-detail-page');
+        detailPage.dataset.encounterId = encounter.id;
+        App.showPage('encounter-detail-page');
+      }
     });
     footer.appendChild(viewBtn);
 
@@ -197,9 +201,13 @@ const Encounters = {
       cardHeader.classList.add('clickable');
       cardHeader.style.cursor = 'pointer';
       cardHeader.addEventListener('click', () => {
-        const detailPage = document.getElementById('encounter-detail-page');
-        detailPage.dataset.encounterId = encounter.id;
-        App.showPage('encounter-detail-page');
+        if (typeof Router !== 'undefined') {
+          Router.navigate(`/encounters/${encounter.id}`);
+        } else {
+          const detailPage = document.getElementById('encounter-detail-page');
+          detailPage.dataset.encounterId = encounter.id;
+          App.showPage('encounter-detail-page');
+        }
       });
     }
 
