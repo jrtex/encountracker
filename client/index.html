@@ -263,6 +263,30 @@
             </div>
         </div>
 
+        <!-- Player Detail Page -->
+        <div id="player-detail-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <button id="player-detail-back-btn" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Players
+                    </button>
+                    <h2 id="player-detail-page-title">Player Details</h2>
+                    <div class="page-actions">
+                        <button id="player-edit-toggle-btn" class="btn btn-primary admin-only" style="display: none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="player-detail-cancel-btn" class="btn btn-secondary admin-only" style="display: none;">
+                            Cancel
+                        </button>
+                        <button id="player-detail-save-btn" class="btn btn-success admin-only" style="display: none;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+                <div id="player-detail-content"></div>
+            </div>
+        </div>
+
         <!-- Settings Page -->
         <div id="settings-page" class="page">
             <div class="container">
@@ -309,6 +333,7 @@
     <script src="js/monsters.js"></script>
     <script src="js/monsterDetail.js"></script>
     <script src="js/players.js"></script>
+    <script src="js/playerDetail.js"></script>
     <script src="js/initiative.js"></script>
     <script src="js/app.js"></script>
 </body>
