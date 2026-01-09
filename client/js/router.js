@@ -177,8 +177,41 @@ const Router = (() => {
     // Set dataset properties for detail pages before showing page
     setDatasetFromParams(route.pageId, params);
 
-    // Show the page (this will trigger MutationObserver to initialize)
-    App.showPage(route.pageId, { skipRouterUpdate: true });
+    // Handle login/register pages specially - they need to hide top bar and sidebar
+    if (route.pageId === 'login-page' || route.pageId === 'register-page') {
+      // Remove grid layout from app-wrapper for auth pages
+      const appWrapper = document.getElementById('app-wrapper');
+      if (appWrapper) {
+        appWrapper.classList.remove('sidebar-collapsed');
+        appWrapper.style.display = 'block';
+      }
+
+      // Hide top bar and sidebar
+      const topBar = document.getElementById('top-bar');
+      const sidebar = document.getElementById('sidebar');
+      if (topBar) topBar.classList.add('hidden');
+      if (sidebar) sidebar.style.display = 'none';
+
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+
+      // Show the correct auth page
+      const pageToShow = document.getElementById(route.pageId);
+      if (pageToShow) {
+        pageToShow.classList.add('active');
+      }
+    } else {
+      // Restore grid layout for app pages
+      const appWrapper = document.getElementById('app-wrapper');
+      if (appWrapper && appWrapper.style.display === 'block') {
+        appWrapper.style.display = '';
+      }
+
+      // Show the page (this will trigger MutationObserver to initialize)
+      App.showPage(route.pageId, { skipRouterUpdate: true });
+    }
   }
 
   /**

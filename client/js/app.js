@@ -453,7 +453,13 @@ const App = {
   async handleLogout() {
     await Auth.logout();
     Components.showToast('Logged out successfully', 'info');
-    this.showLogin();
+
+    // Navigate to login page using router
+    if (typeof Router !== 'undefined') {
+      Router.navigate('/login');
+    } else {
+      this.showLogin();
+    }
   },
 
   async showApp() {
