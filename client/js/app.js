@@ -467,9 +467,20 @@ const App = {
     document.getElementById('login-page').classList.remove('active');
     document.getElementById('register-page').classList.remove('active');
 
+    // Restore grid layout (in case coming from login page)
+    const appWrapper = document.getElementById('app-wrapper');
+    if (appWrapper && appWrapper.style.display === 'block') {
+      appWrapper.style.display = '';
+    }
+
     // Show top bar and sidebar
-    document.getElementById('top-bar').classList.remove('hidden');
-    document.getElementById('sidebar').classList.remove('hidden');
+    const topBar = document.getElementById('top-bar');
+    const sidebar = document.getElementById('sidebar');
+    if (topBar) topBar.classList.remove('hidden');
+    if (sidebar) {
+      sidebar.classList.remove('hidden');
+      sidebar.style.display = ''; // Remove inline display:none from login page
+    }
 
     // Initialize campaign context
     await CampaignContext.init();
@@ -540,9 +551,20 @@ const App = {
   },
 
   handleNoCampaigns() {
+    // Restore grid layout (in case coming from login page)
+    const appWrapper = document.getElementById('app-wrapper');
+    if (appWrapper && appWrapper.style.display === 'block') {
+      appWrapper.style.display = '';
+    }
+
     // Show top bar and sidebar
-    document.getElementById('top-bar').classList.remove('hidden');
-    document.getElementById('sidebar').classList.remove('hidden');
+    const topBar = document.getElementById('top-bar');
+    const sidebar = document.getElementById('sidebar');
+    if (topBar) topBar.classList.remove('hidden');
+    if (sidebar) {
+      sidebar.classList.remove('hidden');
+      sidebar.style.display = ''; // Remove inline display:none from login page
+    }
 
     // Initialize sidebar (will show "No campaigns")
     Sidebar.init();
