@@ -11,7 +11,16 @@ router.use(authenticate);
 // GET /api/campaigns - List all campaigns
 router.get('/', async (req, res) => {
   const campaigns = await database.all(
-    'SELECT * FROM campaigns WHERE dm_user_id = ? ORDER BY created_at DESC',
+    `SELECT
+      c.*,
+      COUNT(DISTINCT p.id) as player_count,
+      COUNT(DISTINCT e.id) as encounter_count
+    FROM campaigns c
+    LEFT JOIN players p ON c.id = p.campaign_id
+    LEFT JOIN encounters e ON c.id = e.campaign_id
+    WHERE c.dm_user_id = ?
+    GROUP BY c.id
+    ORDER BY c.created_at DESC`,
     [req.user.id]
   );
 
@@ -24,7 +33,15 @@ router.get('/', async (req, res) => {
 // GET /api/campaigns/:id - Get single campaign
 router.get('/:id', async (req, res) => {
   const campaign = await database.get(
-    'SELECT * FROM campaigns WHERE id = ? AND dm_user_id = ?',
+    `SELECT
+      c.*,
+      COUNT(DISTINCT p.id) as player_count,
+      COUNT(DISTINCT e.id) as encounter_count
+    FROM campaigns c
+    LEFT JOIN players p ON c.id = p.campaign_id
+    LEFT JOIN encounters e ON c.id = e.campaign_id
+    WHERE c.id = ? AND c.dm_user_id = ?
+    GROUP BY c.id`,
     [req.params.id, req.user.id]
   );
 

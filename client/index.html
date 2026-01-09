@@ -174,11 +174,32 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Campaigns</h2>
-                    <div class="page-actions">
-                        <button id="campaigns-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
-                    </div>
                 </div>
                 <div id="campaigns-grid" class="campaign-grid"></div>
+            </div>
+        </div>
+
+        <!-- Campaign Detail Page -->
+        <div id="campaign-detail-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <button id="campaign-detail-back-btn" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Campaigns
+                    </button>
+                    <h2 id="campaign-detail-page-title">Campaign Details</h2>
+                    <div class="page-actions">
+                        <button id="campaign-edit-toggle-btn" class="btn btn-primary admin-only" style="display: none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="campaign-detail-cancel-btn" class="btn btn-secondary admin-only" style="display: none;">
+                            Cancel
+                        </button>
+                        <button id="campaign-detail-save-btn" class="btn btn-success admin-only" style="display: none;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+                <div id="campaign-detail-content"></div>
             </div>
         </div>
 
@@ -328,6 +349,7 @@
     <script src="/js/components.js"></script>
     <script src="/js/campaignContext.js"></script>
     <script src="/js/campaigns.js"></script>
+    <script src="/js/campaignDetail.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/encounters.js"></script>
     <script src="/js/monsters.js"></script>
