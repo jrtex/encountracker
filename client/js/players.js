@@ -195,10 +195,14 @@ const Players = {
       if (!e.target.closest('.card-actions')) {
         const playerId = card.dataset.playerId;
         if (playerId) {
-          const detailPage = document.getElementById('player-detail-page');
-          if (detailPage) {
-            detailPage.dataset.playerId = playerId;
-            App.showPage('player-detail-page');
+          if (typeof Router !== 'undefined') {
+            Router.navigate(`/players/${playerId}`);
+          } else {
+            const detailPage = document.getElementById('player-detail-page');
+            if (detailPage) {
+              detailPage.dataset.playerId = playerId;
+              App.showPage('player-detail-page');
+            }
           }
         }
       }

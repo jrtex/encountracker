@@ -51,7 +51,11 @@ const PlayerDetail = {
   },
 
   navigateBack() {
-    App.showPage('players-page');
+    if (typeof Router !== 'undefined') {
+      Router.navigate('/players');
+    } else {
+      App.showPage('players-page');
+    }
   },
 
   async loadPlayer(playerId) {
