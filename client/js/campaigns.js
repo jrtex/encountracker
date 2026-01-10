@@ -10,7 +10,7 @@ const CampaignManager = {
     const encounterText = encounterCount === 1 ? 'encounter' : 'encounters';
 
     const content = `
-      <p class="campaign-description">${campaign.description || 'No description provided.'}</p>
+      <p class="campaign-description">${campaign.description || ''}</p>
       <p class="campaign-meta">
         <small><i class="fas fa-users"></i> ${playerCount} ${playerText}</small>
         <small><i class="fas fa-dragon"></i> ${encounterCount} ${encounterText}</small>

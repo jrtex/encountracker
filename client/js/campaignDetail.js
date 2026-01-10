@@ -109,6 +109,141 @@ const CampaignDetail = {
   },
 
   /**
+   * Load players belonging to this campaign
+   */
+  async loadCampaignPlayers() {
+    try {
+      const response = await API.players.getAll(this.currentCampaign.id);
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to load campaign players:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Load encounters belonging to this campaign
+   */
+  async loadCampaignEncounters() {
+    try {
+      const response = await API.encounters.getAll(this.currentCampaign.id);
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to load campaign encounters:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Render the players column
+   * @param {Array} players - Array of player objects
+   */
+  renderPlayersColumn(players) {
+    const playerRows = players.map(p => {
+      const levelBadge = `<span class="badge badge-info">Lvl ${p.level || 1}</span>`;
+      const classBadge = p.character_class
+        ? `<span class="badge badge-secondary">${p.character_class}</span>`
+        : '';
+
+      return `
+        <div class="campaign-detail-row" data-player-id="${p.id}">
+          <div class="row-main">
+            <strong>${p.character_name}</strong>
+          </div>
+          <div class="row-badges">
+            ${classBadge}
+            ${levelBadge}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const emptyState = players.length === 0
+      ? `<p class="empty-state-text">No players in this campaign yet.</p>`
+      : '';
+
+    return `
+      <div class="detail-section">
+        <h3>Players</h3>
+        <div class="campaign-detail-list">
+          ${playerRows}
+          ${emptyState}
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Render the encounters column
+   * @param {Array} encounters - Array of encounter objects
+   */
+  renderEncountersColumn(encounters) {
+    const encounterRows = encounters.map(e => {
+      const difficultyBadge = this.getDifficultyBadgeHtml(e.difficulty);
+      const statusBadge = this.getStatusBadgeHtml(e.status);
+
+      return `
+        <div class="campaign-detail-row" data-encounter-id="${e.id}">
+          <div class="row-main">
+            <strong>${e.name}</strong>
+          </div>
+          <div class="row-badges">
+            ${difficultyBadge}
+            ${statusBadge}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const emptyState = encounters.length === 0
+      ? `<p class="empty-state-text">No encounters in this campaign yet.</p>`
+      : '';
+
+    return `
+      <div class="detail-section">
+        <h3>Encounters</h3>
+        <div class="campaign-detail-list">
+          ${encounterRows}
+          ${emptyState}
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Get difficulty badge HTML
+   */
+  getDifficultyBadgeHtml(difficulty) {
+    const badgeTypes = {
+      'easy': 'badge-success',
+      'medium': 'badge-info',
+      'hard': 'badge-warning',
+      'deadly': 'badge-danger'
+    };
+    const badgeClass = badgeTypes[difficulty?.toLowerCase()] || 'badge-info';
+    const displayText = difficulty
+      ? difficulty.charAt(0).toUpperCase() + difficulty.slice(1)
+      : 'Medium';
+    return `<span class="badge ${badgeClass}">${displayText}</span>`;
+  },
+
+  /**
+   * Get status badge HTML
+   */
+  getStatusBadgeHtml(status) {
+    const badgeTypes = {
+      'pending': 'badge-secondary',
+      'active': 'badge-warning',
+      'completed': 'badge-success'
+    };
+    const badgeClass = badgeTypes[status?.toLowerCase()] || 'badge-secondary';
+    const displayText = status
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : 'Pending';
+    return `<span class="badge ${badgeClass}">${displayText}</span>`;
+  },
+
+  /**
    * Orchestrate rendering based on current mode
    */
   render() {
@@ -124,7 +259,7 @@ const CampaignDetail = {
   /**
    * Render campaign details in view mode
    */
-  renderViewMode() {
+  async renderViewMode() {
     const contentEl = document.getElementById('campaign-detail-content');
     const c = this.currentCampaign;
 
@@ -152,17 +287,17 @@ const CampaignDetail = {
       </div>
     `;
 
-    // Active campaign indicator
-    const activeIndicator = isActiveCampaign
+    // Active campaign indicator or Make Active button
+    const headerAction = isActiveCampaign
       ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Active Campaign</span>'
-      : '';
+      : '<button id="make-active-campaign-btn" class="btn btn-primary"><i class="fas fa-star"></i> Make Active Campaign</button>';
 
     // Campaign information section
     const infoSection = `
       <div class="detail-section">
         <div class="detail-section-header">
           <h3>Campaign Information</h3>
-          ${activeIndicator}
+          ${headerAction}
         </div>
         <div class="stats-grid">
           <div class="stat-item">
@@ -182,30 +317,28 @@ const CampaignDetail = {
             <div class="stat-value">${updatedDate}</div>
           </div>
         </div>
-        ${c.description ? `
-          <div class="stat-item full-width" style="margin-top: 1rem;">
-            <label>Description</label>
-            <div class="stat-value notes-display">${c.description}</div>
-          </div>
-        ` : `
-          <div class="stat-item full-width" style="margin-top: 1rem;">
-            <label>Description</label>
-            <div class="stat-value text-muted">No description provided.</div>
-          </div>
-        `}
+        <div class="stat-item full-width" style="margin-top: 1rem;">
+          <label>Description</label>
+          <div class="stat-value notes-display">${c.description || ''}</div>
+        </div>
       </div>
     `;
 
-    // Make Active Campaign button (only show if NOT active)
-    const makeActiveSection = !isActiveCampaign ? `
-      <div class="detail-section">
-        <button id="make-active-campaign-btn" class="btn btn-primary">
-          <i class="fas fa-star"></i> Make Active Campaign
-        </button>
-      </div>
-    ` : '';
+    // Load players and encounters in parallel
+    const [players, encounters] = await Promise.all([
+      this.loadCampaignPlayers(),
+      this.loadCampaignEncounters()
+    ]);
 
-    contentEl.innerHTML = breadcrumb + infoSection + makeActiveSection;
+    // Two-column content section
+    const twoColumnSection = `
+      <div class="form-row">
+        ${this.renderPlayersColumn(players)}
+        ${this.renderEncountersColumn(encounters)}
+      </div>
+    `;
+
+    contentEl.innerHTML = breadcrumb + infoSection + twoColumnSection;
 
     // Setup Make Active button if present
     if (!isActiveCampaign) {
@@ -214,6 +347,24 @@ const CampaignDetail = {
         makeActiveBtn.onclick = () => this.makeActiveCampaign();
       }
     }
+
+    // Setup click handlers for player rows
+    document.querySelectorAll('.campaign-detail-row[data-player-id]').forEach(row => {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => {
+        const playerId = row.dataset.playerId;
+        Router.navigate(`/players/${playerId}`);
+      });
+    });
+
+    // Setup click handlers for encounter rows
+    document.querySelectorAll('.campaign-detail-row[data-encounter-id]').forEach(row => {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => {
+        const encounterId = row.dataset.encounterId;
+        Router.navigate(`/encounters/${encounterId}`);
+      });
+    });
   },
 
   /**
