@@ -25,7 +25,6 @@
             <div class="top-bar-actions">
                 <a href="#" data-page="settings" class="top-bar-settings admin-only">
                     <i class="fas fa-cog settings-icon"></i>
-                    Settings
                 </a>
                 <div class="nav-user">
                     <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
@@ -313,21 +312,63 @@
             <div class="container">
                 <h2>Settings</h2>
 
-                <!-- Current Campaign Section -->
+                <!-- Account Section -->
                 <div class="settings-section">
                     <div class="settings-section-header">
-                        <h3>Current Campaign</h3>
+                        <h3>Account</h3>
                     </div>
-                    <div id="current-campaign-info" class="settings-card"></div>
+                    <div id="account-info" class="settings-card"></div>
                 </div>
 
-                <!-- Campaign Management Section -->
+                <!-- Preferences Section -->
                 <div class="settings-section">
                     <div class="settings-section-header">
-                        <h3>Campaign Management</h3>
-                        <button id="settings-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                        <h3>Preferences</h3>
                     </div>
-                    <div id="settings-campaigns-list" class="settings-campaigns-grid"></div>
+                    <div class="settings-card">
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">Notifications</span>
+                            <div>
+                                <button class="btn btn-sm btn-secondary" id="email-notifications-btn">
+                                    Email Notifications
+                                </button>
+                                <button class="btn btn-sm btn-secondary" id="push-notifications-btn">
+                                    Push Notifications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import/Export Section -->
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>Import & Export</h3>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">Campaign Data</span>
+                            <div>
+                                <button class="btn btn-sm btn-success" id="export-campaign-btn">
+                                    <i class="fas fa-download"></i> Export Campaign
+                                </button>
+                                <button class="btn btn-sm btn-primary" id="import-campaign-btn">
+                                    <i class="fas fa-upload"></i> Import Campaign
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">All Data</span>
+                            <div>
+                                <button class="btn btn-sm btn-success" id="export-all-btn">
+                                    <i class="fas fa-download"></i> Export All
+                                </button>
+                                <button class="btn btn-sm btn-primary" id="import-all-btn">
+                                    <i class="fas fa-upload"></i> Import All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

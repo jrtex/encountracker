@@ -1,121 +1,114 @@
 // Settings Management
 const Settings = {
   async init() {
-    await this.renderCurrentCampaign();
-    await this.renderAllCampaigns();
+    await this.renderAccountInfo();
+    this.setupPreferencesHandlers();
+    this.setupImportExportHandlers();
   },
 
-  renderCurrentCampaign() {
-    const container = document.getElementById('current-campaign-info');
+  async renderAccountInfo() {
+    const container = document.getElementById('account-info');
     if (!container) return;
 
-    const campaign = CampaignContext.getActiveCampaign();
+    try {
+      // Fetch full user data including created_at
+      const response = await API.auth.getMe();
+      const user = response.data;
 
-    if (!campaign) {
+      const createdDate = user.created_at
+        ? new Date(user.created_at).toLocaleDateString()
+        : 'Unknown';
+
+      const roleBadge = Components.createBadge(
+        user.role.charAt(0).toUpperCase() + user.role.slice(1),
+        user.role === 'admin' ? 'danger' : 'info'
+      );
+
       container.innerHTML = `
-        <div class="alert alert-warning">
-          <p>No campaign selected. Create a campaign to get started.</p>
+        <div class="settings-card-row">
+          <span class="settings-card-label">Username:</span>
+          <span class="settings-card-value">${user.username}</span>
+        </div>
+        <div class="settings-card-row">
+          <span class="settings-card-label">Email:</span>
+          <span class="settings-card-value">${user.email}</span>
+        </div>
+        <div class="settings-card-row">
+          <span class="settings-card-label">Role:</span>
+          <span class="settings-card-value" id="role-badge-container"></span>
+        </div>
+        <div class="settings-card-row">
+          <span class="settings-card-label">Member Since:</span>
+          <span class="settings-card-value">${createdDate}</span>
         </div>
       `;
-      return;
-    }
 
-    const createdDate = new Date(campaign.created_at).toLocaleDateString();
-
-    container.innerHTML = `
-      <div class="settings-card-row">
-        <span class="settings-card-label">Name:</span>
-        <span class="settings-card-value">${campaign.name}</span>
-      </div>
-      ${campaign.description ? `
-        <div class="settings-card-row">
-          <span class="settings-card-label">Description:</span>
-          <span class="settings-card-value">${campaign.description}</span>
-        </div>
-      ` : ''}
-      <div class="settings-card-row">
-        <span class="settings-card-label">Created:</span>
-        <span class="settings-card-value">${createdDate}</span>
-      </div>
-      ${Auth.isAdmin() ? `
-        <div class="settings-card-row">
-          <span class="settings-card-label">Actions:</span>
-          <button class="btn btn-sm btn-primary" id="edit-current-campaign-btn">
-            Edit Campaign
-          </button>
-        </div>
-      ` : ''}
-    `;
-
-    // Attach event listener to the edit button
-    if (Auth.isAdmin()) {
-      const editBtn = document.getElementById('edit-current-campaign-btn');
-      if (editBtn) {
-        editBtn.addEventListener('click', () => {
-          CampaignManager.showCampaignModal(campaign);
-        });
+      // Insert badge using Component library
+      const badgeContainer = container.querySelector('#role-badge-container');
+      if (badgeContainer) {
+        badgeContainer.appendChild(roleBadge);
       }
+    } catch (error) {
+      container.innerHTML = `
+        <div class="alert alert-danger">
+          <p>Failed to load account information.</p>
+        </div>
+      `;
+      console.error('Error loading account info:', error);
     }
   },
 
-  async renderAllCampaigns() {
-    const container = document.getElementById('settings-campaigns-list');
-    if (!container) return;
+  setupPreferencesHandlers() {
+    const emailBtn = document.getElementById('email-notifications-btn');
+    const pushBtn = document.getElementById('push-notifications-btn');
 
-    const campaigns = CampaignContext.getAllCampaigns();
-    const activeCampaignId = CampaignContext.getActiveCampaignId();
-
-    if (campaigns.length === 0) {
-      container.innerHTML = `
-        <div class="alert alert-info">
-          <p>No campaigns yet. Create your first campaign to get started!</p>
-        </div>
-      `;
-      return;
+    if (emailBtn) {
+      emailBtn.addEventListener('click', () => {
+        Components.showToast('Email notification settings coming soon', 'info');
+      });
     }
 
-    const campaignCards = campaigns.map(campaign => {
-      const isActive = campaign.id === activeCampaignId;
-      const card = CampaignManager.createCampaignCard(campaign);
+    if (pushBtn) {
+      pushBtn.addEventListener('click', () => {
+        Components.showToast('Push notification settings coming soon', 'info');
+      });
+    }
+  },
 
-      // Add active campaign styling
-      if (isActive) {
-        card.classList.add('settings-campaign-card', 'active-campaign');
+  setupImportExportHandlers() {
+    const exportCampaignBtn = document.getElementById('export-campaign-btn');
+    const importCampaignBtn = document.getElementById('import-campaign-btn');
+    const exportAllBtn = document.getElementById('export-all-btn');
+    const importAllBtn = document.getElementById('import-all-btn');
 
-        // Add active badge
-        const badge = Components.createBadge('Active', 'success');
-        badge.classList.add('settings-campaign-badge');
-        card.querySelector('.card').appendChild(badge);
-      } else {
-        card.classList.add('settings-campaign-card');
-      }
+    if (exportCampaignBtn) {
+      exportCampaignBtn.addEventListener('click', () => {
+        Components.showToast('Campaign export coming soon', 'info');
+      });
+    }
 
-      return card;
-    });
+    if (importCampaignBtn) {
+      importCampaignBtn.addEventListener('click', () => {
+        Components.showToast('Campaign import coming soon', 'info');
+      });
+    }
 
-    container.innerHTML = '';
-    campaignCards.forEach(card => container.appendChild(card));
+    if (exportAllBtn) {
+      exportAllBtn.addEventListener('click', () => {
+        Components.showToast('Full data export coming soon', 'info');
+      });
+    }
+
+    if (importAllBtn) {
+      importAllBtn.addEventListener('click', () => {
+        Components.showToast('Full data import coming soon', 'info');
+      });
+    }
   }
 };
 
 // Initialize settings when the settings page is shown
 document.addEventListener('DOMContentLoaded', () => {
-  // Set up event listener for the New Campaign button immediately
-  const newBtn = document.getElementById('settings-new-campaign-btn');
-  if (newBtn) {
-    newBtn.addEventListener('click', () => {
-      CampaignManager.showCampaignModal();
-    });
-  }
-
-  // Subscribe to campaign changes
-  CampaignContext.subscribe(() => {
-    if (document.getElementById('settings-page').classList.contains('active')) {
-      Settings.renderCurrentCampaign();
-      Settings.renderAllCampaigns();
-    }
-  });
-
   // Set up observer for when the page becomes active
   const settingsPage = document.getElementById('settings-page');
   if (settingsPage) {
