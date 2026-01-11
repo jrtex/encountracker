@@ -520,6 +520,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  text-decoration: none;
 }
 
 .dropdown-item:hover {
@@ -1719,6 +1720,7 @@ body {
   font-size: 0.875rem;
   transition: background-color 0.15s ease;
   color: var(--dark-color);
+  text-decoration: none;
 }
 
 .dropdown-item:hover {

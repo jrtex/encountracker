@@ -23,9 +23,6 @@
             </div>
 
             <div class="top-bar-actions">
-                <a href="#" data-page="settings" class="top-bar-settings admin-only">
-                    <i class="fas fa-cog settings-icon"></i>
-                </a>
                 <div class="nav-user">
                     <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
                         <i class="fas fa-user-circle avatar-icon"></i>
@@ -36,6 +33,9 @@
                             <span id="dropdown-role-badge" class="badge"></span>
                         </div>
                         <div class="user-dropdown-divider"></div>
+                        <a href="#" data-page="settings" class="dropdown-item admin-only">
+                            <i class="fas fa-cog dropdown-item-icon"></i>Settings
+                        </a>
                         <button id="dropdown-logout-btn" class="dropdown-item">
                             <i class="fas fa-sign-out-alt dropdown-item-icon"></i>
                             Logout
