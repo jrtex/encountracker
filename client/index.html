@@ -23,10 +23,6 @@
             </div>
 
             <div class="top-bar-actions">
-                <a href="#" data-page="settings" class="top-bar-settings admin-only">
-                    <i class="fas fa-cog settings-icon"></i>
-                    Settings
-                </a>
                 <div class="nav-user">
                     <button id="user-avatar-btn" class="avatar-btn" aria-label="User menu">
                         <i class="fas fa-user-circle avatar-icon"></i>
@@ -37,6 +33,9 @@
                             <span id="dropdown-role-badge" class="badge"></span>
                         </div>
                         <div class="user-dropdown-divider"></div>
+                        <a href="#" data-page="settings" class="dropdown-item admin-only">
+                            <i class="fas fa-cog dropdown-item-icon"></i>Settings
+                        </a>
                         <button id="dropdown-logout-btn" class="dropdown-item">
                             <i class="fas fa-sign-out-alt dropdown-item-icon"></i>
                             Logout
@@ -174,11 +173,32 @@
             <div class="container">
                 <div class="page-header">
                     <h2>Campaigns</h2>
-                    <div class="page-actions">
-                        <button id="campaigns-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
-                    </div>
                 </div>
                 <div id="campaigns-grid" class="campaign-grid"></div>
+            </div>
+        </div>
+
+        <!-- Campaign Detail Page -->
+        <div id="campaign-detail-page" class="page">
+            <div class="container">
+                <div class="page-header">
+                    <button id="campaign-detail-back-btn" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Campaigns
+                    </button>
+                    <h2 id="campaign-detail-page-title">Campaign Details</h2>
+                    <div class="page-actions">
+                        <button id="campaign-edit-toggle-btn" class="btn btn-primary admin-only" style="display: none;">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button id="campaign-detail-cancel-btn" class="btn btn-secondary admin-only" style="display: none;">
+                            Cancel
+                        </button>
+                        <button id="campaign-detail-save-btn" class="btn btn-success admin-only" style="display: none;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+                <div id="campaign-detail-content"></div>
             </div>
         </div>
 
@@ -292,21 +312,63 @@
             <div class="container">
                 <h2>Settings</h2>
 
-                <!-- Current Campaign Section -->
+                <!-- Account Section -->
                 <div class="settings-section">
                     <div class="settings-section-header">
-                        <h3>Current Campaign</h3>
+                        <h3>Account</h3>
                     </div>
-                    <div id="current-campaign-info" class="settings-card"></div>
+                    <div id="account-info" class="settings-card"></div>
                 </div>
 
-                <!-- Campaign Management Section -->
+                <!-- Preferences Section -->
                 <div class="settings-section">
                     <div class="settings-section-header">
-                        <h3>Campaign Management</h3>
-                        <button id="settings-new-campaign-btn" class="btn btn-primary admin-only">New Campaign</button>
+                        <h3>Preferences</h3>
                     </div>
-                    <div id="settings-campaigns-list" class="settings-campaigns-grid"></div>
+                    <div class="settings-card">
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">Notifications</span>
+                            <div>
+                                <button class="btn btn-sm btn-secondary" id="email-notifications-btn">
+                                    Email Notifications
+                                </button>
+                                <button class="btn btn-sm btn-secondary" id="push-notifications-btn">
+                                    Push Notifications
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import/Export Section -->
+                <div class="settings-section">
+                    <div class="settings-section-header">
+                        <h3>Import & Export</h3>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">Campaign Data</span>
+                            <div>
+                                <button class="btn btn-sm btn-success" id="export-campaign-btn">
+                                    <i class="fas fa-download"></i> Export Campaign
+                                </button>
+                                <button class="btn btn-sm btn-primary" id="import-campaign-btn">
+                                    <i class="fas fa-upload"></i> Import Campaign
+                                </button>
+                            </div>
+                        </div>
+                        <div class="settings-card-row">
+                            <span class="settings-card-label">All Data</span>
+                            <div>
+                                <button class="btn btn-sm btn-success" id="export-all-btn">
+                                    <i class="fas fa-download"></i> Export All
+                                </button>
+                                <button class="btn btn-sm btn-primary" id="import-all-btn">
+                                    <i class="fas fa-upload"></i> Import All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -328,6 +390,7 @@
     <script src="/js/components.js"></script>
     <script src="/js/campaignContext.js"></script>
     <script src="/js/campaigns.js"></script>
+    <script src="/js/campaignDetail.js"></script>
     <script src="/js/settings.js"></script>
     <script src="/js/encounters.js"></script>
     <script src="/js/monsters.js"></script>

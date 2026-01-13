@@ -3,8 +3,18 @@ const CampaignManager = {
   createCampaignCard(campaign) {
     const createdDate = new Date(campaign.created_at).toLocaleDateString();
 
+    const playerCount = campaign.player_count || 0;
+    const playerText = playerCount === 1 ? 'player' : 'players';
+
+    const encounterCount = campaign.encounter_count || 0;
+    const encounterText = encounterCount === 1 ? 'encounter' : 'encounters';
+
     const content = `
-      <p class="campaign-description">${campaign.description || 'No description provided.'}</p>
+      <p class="campaign-description">${campaign.description || ''}</p>
+      <p class="campaign-meta">
+        <small><i class="fas fa-users"></i> ${playerCount} ${playerText}</small>
+        <small><i class="fas fa-dragon"></i> ${encounterCount} ${encounterText}</small>
+      </p>
       <p class="campaign-meta">
         <small>Created: ${createdDate}</small>
       </p>
@@ -14,17 +24,11 @@ const CampaignManager = {
     footer.className = 'card-actions';
 
     if (Auth.isAdmin()) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn btn-sm btn-secondary';
-      editBtn.textContent = 'Edit';
-      editBtn.addEventListener('click', () => this.showCampaignModal(campaign));
-
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn btn-sm btn-danger';
       deleteBtn.textContent = 'Delete';
       deleteBtn.addEventListener('click', () => this.deleteCampaign(campaign.id));
 
-      footer.appendChild(editBtn);
       footer.appendChild(deleteBtn);
     }
 
@@ -201,19 +205,9 @@ const CampaignManager = {
 const Campaigns = {
   async init() {
     await this.loadCampaigns();
-    this.setupEventListeners();
 
     // Subscribe to campaign context changes
     CampaignContext.subscribe(() => this.loadCampaigns());
-  },
-
-  setupEventListeners() {
-    const newCampaignBtn = document.getElementById('campaigns-new-campaign-btn');
-    if (newCampaignBtn) {
-      newCampaignBtn.addEventListener('click', () => {
-        CampaignManager.showCampaignModal();
-      });
-    }
   },
 
   async loadCampaigns() {
@@ -226,50 +220,72 @@ const Campaigns = {
     const activeCampaignId = CampaignContext.getActiveCampaignId();
 
     if (campaigns.length === 0) {
-      container.innerHTML = '<p class="text-center">No campaigns found. Create your first campaign to get started!</p>';
-      return;
-    }
+      const messageDiv = document.createElement('div');
+      messageDiv.style.gridColumn = '1 / -1';
+      const alert = Components.createAlert(
+        'No campaigns yet. Create your first campaign to get started!',
+        'info'
+      );
+      messageDiv.appendChild(alert);
+      container.appendChild(messageDiv);
+    } else {
+      campaigns.forEach(campaign => {
+        const card = CampaignManager.createCampaignCard(campaign);
 
-    campaigns.forEach(campaign => {
-      const card = CampaignManager.createCampaignCard(campaign);
-
-      // Highlight active campaign
-      const isActive = campaign.id === activeCampaignId;
-      if (isActive) {
-        card.classList.add('active-campaign');
-      }
-
-      // Add active indicator icon to card header
-      const cardHeader = card.querySelector('.card-header');
-      if (cardHeader) {
-        // Make entire card clickable
-        card.style.cursor = 'pointer';
-        card.classList.add('campaign-card-clickable');
-
-        // Add active indicator to header
+        // Highlight active campaign
+        const isActive = campaign.id === activeCampaignId;
         if (isActive) {
-          const activeIndicator = document.createElement('i');
-          activeIndicator.className = 'fas fa-check-circle active-campaign-indicator';
-          activeIndicator.title = 'Active Campaign';
-          cardHeader.appendChild(activeIndicator);
+          card.classList.add('active-campaign');
         }
 
-        // Make card clickable to switch campaigns
-        card.addEventListener('click', async (e) => {
-          // Don't trigger if clicking on action buttons
-          if (e.target.closest('.card-footer') || e.target.closest('.btn')) {
-            return;
+        // Add active indicator icon to card header
+        const cardHeader = card.querySelector('.card-header');
+        if (cardHeader) {
+          // Make entire card clickable
+          card.style.cursor = 'pointer';
+          card.classList.add('campaign-card-clickable');
+
+          // Add active indicator to header
+          if (isActive) {
+            const activeIndicator = document.createElement('i');
+            activeIndicator.className = 'fas fa-check-circle active-campaign-indicator';
+            activeIndicator.title = 'Active Campaign';
+            cardHeader.appendChild(activeIndicator);
           }
 
-          if (campaign.id !== activeCampaignId) {
-            await App.handleCampaignChange(campaign.id);
-            await this.loadCampaigns(); // Refresh to update highlighting
-          }
-        });
-      }
+          // Make card clickable to navigate to campaign detail page
+          card.addEventListener('click', async (e) => {
+            // Don't trigger if clicking on action buttons
+            if (e.target.closest('.card-footer') || e.target.closest('.btn')) {
+              return;
+            }
 
-      container.appendChild(card);
-    });
+            // Navigate to campaign detail page
+            Router.navigate(`/campaigns/${campaign.id}`);
+          });
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    // Add "+" card for creating new campaign (admin only)
+    if (Auth.isAdmin()) {
+      const addCard = document.createElement('div');
+      addCard.className = 'card add-campaign-card';
+      addCard.style.cursor = 'pointer';
+      addCard.style.display = 'flex';
+      addCard.style.alignItems = 'center';
+      addCard.style.justifyContent = 'center';
+      addCard.style.minHeight = '200px';
+      addCard.style.border = '2px dashed var(--border-color)';
+      addCard.style.backgroundColor = 'var(--background-color)';
+      addCard.innerHTML = '<i class="fas fa-plus" style="font-size: 3rem; color: var(--primary-color); opacity: 0.6;"></i>';
+      addCard.addEventListener('click', () => {
+        CampaignManager.showCampaignModal();
+      });
+      container.appendChild(addCard);
+    }
   },
 
   showCampaignModal(campaign = null) {

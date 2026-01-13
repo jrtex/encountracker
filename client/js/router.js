@@ -17,6 +17,7 @@ const Router = (() => {
     { path: '/', pageId: 'dashboard-page', requireAuth: true },
     { path: '/dashboard', pageId: 'dashboard-page', requireAuth: true },
     { path: '/campaigns', pageId: 'campaigns-page', requireAuth: true },
+    { path: '/campaigns/:id', pageId: 'campaign-detail-page', requireAuth: true },
     { path: '/encounters', pageId: 'encounters-page', requireAuth: true },
     { path: '/encounters/:id', pageId: 'encounter-detail-page', requireAuth: true },
     { path: '/monsters/:id', pageId: 'monster-detail-page', requireAuth: true },
@@ -233,6 +234,11 @@ const Router = (() => {
       const page = document.getElementById('player-detail-page');
       if (page) {
         page.dataset.playerId = params.id;
+      }
+    } else if (pageId === 'campaign-detail-page' && params.id) {
+      const page = document.getElementById('campaign-detail-page');
+      if (page) {
+        page.dataset.campaignId = params.id;
       }
     }
   }
