@@ -17,7 +17,49 @@ This application is built primarily using AI coding tools. This project is inten
 - **Monster Database**: Store and manage monster stats for encounters
 - **Responsive Design**: Works on desktop and mobile devices
 
-## Installation
+## Quick Start - Automated Installation
+
+**NEW**: We now provide automated installation scripts that guide you through the entire setup process! This is the easiest way to get started.
+
+### Linux/macOS
+
+```bash
+# Make the script executable
+chmod +x install.sh
+
+# Run the installation script
+./install.sh
+```
+
+### Windows
+
+```powershell
+# Run PowerShell as Administrator, then execute:
+.\install.ps1
+```
+
+### What the Installation Scripts Do
+
+The automated scripts will:
+- Detect your system prerequisites (Node.js, PostgreSQL, Docker)
+- Let you choose between local development or Docker deployment
+- Guide you through database configuration (create new or use existing)
+- Automatically generate secure JWT secrets
+- Create your `.env` configuration file
+- Install dependencies and initialize the database
+- Start the application
+
+After installation completes, you can access the application at http://localhost:3000 with the default admin credentials:
+- **Username**: `admin`
+- **Password**: `admin123`
+
+**IMPORTANT**: Change the admin password immediately after first login!
+
+---
+
+## Manual Installation
+
+If you prefer manual installation or need more control over the setup process, follow the instructions below.
 
 ### Recommended: Docker Installation
 

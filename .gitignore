@@ -8,6 +8,7 @@ yarn.lock
 .env.*.local
 !.env.test
 !.env.example
+docker-compose.override.yml
 
 # Database and data files
 data/
