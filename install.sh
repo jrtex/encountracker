@@ -63,6 +63,18 @@ check_docker() {
         return 1
     fi
 
+    # Check if user can connect to Docker daemon
+    if ! docker info >/dev/null 2>&1; then
+        print_error "Cannot connect to Docker daemon"
+        echo ""
+        echo "This usually means your user is not in the 'docker' group."
+        echo "To fix this, run:"
+        echo "  sudo usermod -aG docker \$USER"
+        echo ""
+        echo "Then log out and log back in (or run 'newgrp docker') for the change to take effect."
+        return 1
+    fi
+
     # Check for docker-compose (V1) or docker compose (V2)
     if command_exists docker-compose; then
         DOCKER_COMPOSE_CMD="docker-compose"
@@ -348,8 +360,6 @@ if [ "$RUN_MODE" == "docker" ] && [ "$USE_EXTERNAL_DB" == true ]; then
     print_info "Creating docker-compose.override.yml for external database..."
 
     cat > "docker-compose.override.yml" <<EOF
-version: '3.8'
-
 services:
   app:
     environment:
