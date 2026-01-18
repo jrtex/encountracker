@@ -58,11 +58,22 @@ check_postgres() {
 
 # Check Docker installation
 check_docker() {
-    if command_exists docker && command_exists docker-compose; then
-        print_success "Docker and Docker Compose are installed"
+    if ! command_exists docker; then
+        print_error "Docker is not installed"
+        return 1
+    fi
+
+    # Check for docker-compose (V1) or docker compose (V2)
+    if command_exists docker-compose; then
+        DOCKER_COMPOSE_CMD="docker-compose"
+        print_success "Docker and Docker Compose (V1) are installed"
+        return 0
+    elif docker compose version >/dev/null 2>&1; then
+        DOCKER_COMPOSE_CMD="docker compose"
+        print_success "Docker and Docker Compose (V2) are installed"
         return 0
     else
-        print_error "Docker or Docker Compose is not installed"
+        print_error "Docker Compose is not installed"
         return 1
     fi
 }
@@ -385,7 +396,7 @@ if [ "$RUN_MODE" == "local" ]; then
 elif [ "$RUN_MODE" == "docker" ]; then
     # Build and start Docker containers
     print_info "Building and starting Docker containers..."
-    docker-compose up --build -d
+    $DOCKER_COMPOSE_CMD up --build -d
 
     if [ $? -eq 0 ]; then
         print_success "Docker containers started"
@@ -404,13 +415,13 @@ elif [ "$RUN_MODE" == "docker" ]; then
         print_warning "Remember to change the admin password after first login!"
         echo ""
         echo "Useful Docker commands:"
-        echo "  docker-compose logs -f       # View logs"
-        echo "  docker-compose restart       # Restart containers"
-        echo "  docker-compose down          # Stop containers"
-        echo "  docker-compose up --build -d # Rebuild and restart"
+        echo "  $DOCKER_COMPOSE_CMD logs -f       # View logs"
+        echo "  $DOCKER_COMPOSE_CMD restart       # Restart containers"
+        echo "  $DOCKER_COMPOSE_CMD down          # Stop containers"
+        echo "  $DOCKER_COMPOSE_CMD up --build -d # Rebuild and restart"
     else
         print_error "Failed to start Docker containers"
-        echo "Check the logs with: docker-compose logs"
+        echo "Check the logs with: $DOCKER_COMPOSE_CMD logs"
         exit 1
     fi
 fi

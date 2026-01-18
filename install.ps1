@@ -62,13 +62,30 @@ function Test-PostgreSQL {
 
 # Check Docker installation
 function Test-Docker {
-    if ((Test-CommandExists "docker") -and (Test-CommandExists "docker-compose")) {
-        Write-Success "Docker and Docker Compose are installed"
-        return $true
-    } else {
-        Write-ErrorMsg "Docker or Docker Compose is not installed"
+    if (-not (Test-CommandExists "docker")) {
+        Write-ErrorMsg "Docker is not installed"
         return $false
     }
+
+    # Check for docker-compose (V1) or docker compose (V2)
+    if (Test-CommandExists "docker-compose") {
+        $script:dockerComposeCmd = "docker-compose"
+        Write-Success "Docker and Docker Compose (V1) are installed"
+        return $true
+    }
+
+    # Check for docker compose as a subcommand (V2)
+    try {
+        $null = docker compose version 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $script:dockerComposeCmd = "docker compose"
+            Write-Success "Docker and Docker Compose (V2) are installed"
+            return $true
+        }
+    } catch {}
+
+    Write-ErrorMsg "Docker Compose is not installed"
+    return $false
 }
 
 # Check Node.js installation
@@ -417,7 +434,13 @@ if ($runMode -eq "local") {
 } elseif ($runMode -eq "docker") {
     # Build and start Docker containers
     Write-Info "Building and starting Docker containers..."
-    docker-compose up --build -d
+
+    # Execute docker compose command (handles both V1 and V2)
+    if ($dockerComposeCmd -eq "docker-compose") {
+        docker-compose up --build -d
+    } else {
+        docker compose up --build -d
+    }
 
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Docker containers started"
@@ -436,13 +459,13 @@ if ($runMode -eq "local") {
         Write-Warning "Remember to change the admin password after first login!"
         Write-Host ""
         Write-Host "Useful Docker commands:"
-        Write-Host "  docker-compose logs -f       # View logs"
-        Write-Host "  docker-compose restart       # Restart containers"
-        Write-Host "  docker-compose down          # Stop containers"
-        Write-Host "  docker-compose up --build -d # Rebuild and restart"
+        Write-Host "  $dockerComposeCmd logs -f       # View logs"
+        Write-Host "  $dockerComposeCmd restart       # Restart containers"
+        Write-Host "  $dockerComposeCmd down          # Stop containers"
+        Write-Host "  $dockerComposeCmd up --build -d # Rebuild and restart"
     } else {
         Write-ErrorMsg "Failed to start Docker containers"
-        Write-Host "Check the logs with: docker-compose logs"
+        Write-Host "Check the logs with: $dockerComposeCmd logs"
         exit 1
     }
 }
