@@ -186,6 +186,7 @@ case $INSTALL_MODE in
             echo "Please install PostgreSQL and run this script again"
             echo ""
             echo "Ubuntu/Debian: sudo apt install postgresql postgresql-contrib"
+            echo "Fedora: sudo dnf install postgresql-server postgresql-contrib"
             echo "macOS: brew install postgresql@16"
             exit 1
         fi
@@ -301,7 +302,28 @@ else
         if test_postgres_connection "$POSTGRES_HOST" "$POSTGRES_PORT" "$POSTGRES_DB" "$POSTGRES_USER" "$POSTGRES_PASSWORD"; then
             print_success "Database connection successful"
         else
-            print_error "Failed to connect to database. Please check your credentials."
+            print_error "Failed to connect to database"
+            echo ""
+            echo "This is usually caused by PostgreSQL's authentication configuration."
+            echo "You need to enable password authentication in pg_hba.conf:"
+            echo ""
+            echo "1. Find your pg_hba.conf file:"
+            echo "   Fedora/RHEL: /var/lib/pgsql/data/pg_hba.conf"
+            echo "   Ubuntu/Debian: /etc/postgresql/*/main/pg_hba.conf"
+            echo "   macOS (Homebrew): /opt/homebrew/var/postgresql@16/pg_hba.conf"
+            echo ""
+            echo "2. Edit the file (as root/sudo) and find lines like:"
+            echo "   local   all   all                 peer"
+            echo "   host    all   all   127.0.0.1/32  ident"
+            echo ""
+            echo "3. Change 'peer' and 'ident' to 'scram-sha-256' (or 'md5'):"
+            echo "   local   all   all                 scram-sha-256"
+            echo "   host    all   all   127.0.0.1/32  scram-sha-256"
+            echo ""
+            echo "4. Restart PostgreSQL:"
+            echo "   sudo systemctl restart postgresql"
+            echo ""
+            echo "5. Run this script again"
             exit 1
         fi
     fi
