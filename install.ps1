@@ -17,22 +17,22 @@ function Write-Header {
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor Green
+    Write-Host "[OK] $Message" -ForegroundColor Green
 }
 
 function Write-ErrorMsg {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor Red
+    Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
 
-function Write-Warning {
+function Write-Warn {
     param([string]$Message)
-    Write-Host "⚠ $Message" -ForegroundColor Yellow
+    Write-Host "[WARN] $Message" -ForegroundColor Yellow
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ $Message" -ForegroundColor Cyan
+    Write-Host "[INFO] $Message" -ForegroundColor Cyan
 }
 
 # Generate random JWT secret
@@ -293,7 +293,7 @@ if ($runMode -eq "docker" -and -not $useExternalDb) {
             if (New-PostgresDatabase $postgresDb $postgresUser $postgresPassword) {
                 Write-Success "Database created successfully"
             } else {
-                Write-Warning "Database creation failed. You may need to create it manually."
+                Write-Warn "Database creation failed. You may need to create it manually."
                 Write-Info "Run these commands in psql as postgres user:"
                 Write-Host ""
                 Write-Host "  CREATE DATABASE $postgresDb;"
@@ -429,7 +429,7 @@ if ($runMode -eq "local") {
     Write-Host "  Username: admin" -ForegroundColor Yellow
     Write-Host "  Password: admin123" -ForegroundColor Yellow
     Write-Host ""
-    Write-Warning "Remember to change the admin password after first login!"
+    Write-Warn "Remember to change the admin password after first login!"
 
 } elseif ($runMode -eq "docker") {
     # Build and start Docker containers
@@ -456,7 +456,7 @@ if ($runMode -eq "local") {
         Write-Host "  Username: admin" -ForegroundColor Yellow
         Write-Host "  Password: admin123" -ForegroundColor Yellow
         Write-Host ""
-        Write-Warning "Remember to change the admin password after first login!"
+        Write-Warn "Remember to change the admin password after first login!"
         Write-Host ""
         Write-Host "Useful Docker commands:"
         Write-Host "  $dockerComposeCmd logs -f       # View logs"
