@@ -168,9 +168,9 @@ function Read-SecurePassword {
     )
 
     if ($Default) {
-        $promptText = "$Prompt [$Default]: "
+        $promptText = "${Prompt} [${Default}]: "
     } else {
-        $promptText = "$Prompt: "
+        $promptText = "${Prompt}: "
     }
 
     $securePassword = Read-Host $promptText -AsSecureString
