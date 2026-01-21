@@ -67,10 +67,20 @@ function Test-Docker {
         return $false
     }
 
+    # Check if Docker daemon is running
+    $null = docker info 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-ErrorMsg "Docker is installed but not running"
+        Write-Host ""
+        Write-Host "Please start Docker Desktop and wait for it to fully initialize," -ForegroundColor Yellow
+        Write-Host "then run this script again." -ForegroundColor Yellow
+        return $false
+    }
+
     # Check for docker-compose (V1) or docker compose (V2)
     if (Test-CommandExists "docker-compose") {
         $script:dockerComposeCmd = "docker-compose"
-        Write-Success "Docker and Docker Compose (V1) are installed"
+        Write-Success "Docker and Docker Compose (V1) are installed and running"
         return $true
     }
 
@@ -79,7 +89,7 @@ function Test-Docker {
         $null = docker compose version 2>&1
         if ($LASTEXITCODE -eq 0) {
             $script:dockerComposeCmd = "docker compose"
-            Write-Success "Docker and Docker Compose (V2) are installed"
+            Write-Success "Docker and Docker Compose (V2) are installed and running"
             return $true
         }
     } catch {}
@@ -385,8 +395,6 @@ if ($runMode -eq "docker" -and $useExternalDb) {
     Write-Info "Creating docker-compose.override.yml for external database..."
 
     $overrideContent = @"
-version: '3.8'
-
 services:
   app:
     environment:
