@@ -40,7 +40,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_FILE=/app/data/app.log
       - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
-      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
+      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-10000}
     volumes:
       - app-logs:/app/data
     restart: unless-stopped
